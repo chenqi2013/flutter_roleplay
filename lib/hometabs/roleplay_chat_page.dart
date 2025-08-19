@@ -7,6 +7,12 @@ import 'dart:async';
 
 import 'package:flutter_roleplay/widgets/global_input_bar.dart';
 
+class RoleplayManage {
+  static Widget createRolePlayChatPage() {
+    return GetMaterialApp(home: RolePlayChat());
+  }
+}
+
 // 全局聊天状态管理
 class ChatStateManager {
   static final ChatStateManager _instance = ChatStateManager._internal();
