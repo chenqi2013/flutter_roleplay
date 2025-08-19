@@ -42,7 +42,7 @@ class JingxuanController extends GetxController {
   bool isModelLoaded = false;
   late String rmpack;
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
     _receivePort.listen((message) {
       if (message is SendPort) {
@@ -82,8 +82,20 @@ class JingxuanController extends GetxController {
     // streamChatCompletions(content: '阿甘！').listen((event) {
     //   debugPrint('streamChatCompletions event: $event');
     // });
-
-    loadChatModel();
+    // 检查是否需要下载模型
+    if (!await checkDownloadFile(downloadUrl)) {
+      debugPrint('downloadUrl file not exists');
+      showDownloadDialog(
+        Get.context!,
+        '需要先下载模型才可以使用角色扮演功能',
+        true,
+        downloadUrl,
+        '',
+      );
+    } else {
+      loadChatModel();
+      debugPrint('downloadUrl file exists');
+    }
   }
 
   Future<void> loadChatModel() async {

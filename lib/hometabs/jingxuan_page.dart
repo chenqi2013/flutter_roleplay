@@ -242,44 +242,60 @@ class _JingxuanPageState extends State<JingxuanPage>
   Widget build(BuildContext context) {
     super.build(context); // 必须调用，因为使用了 AutomaticKeepAliveClientMixin
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                reverse: true,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                itemCount: _messages.length + 1,
-                cacheExtent: 1000, // 增加缓存范围
-                addAutomaticKeepAlives: true,
-                addRepaintBoundaries: true, // 添加重绘边界
-                addSemanticIndexes: false, // 禁用语义索引以提升性能
-                itemBuilder: (context, index) {
-                  return RepaintBoundary(child: _buildListItem(context, index));
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: GlobalInputBar(
-                bottomBarHeight: 0,
-                height: inputBarHeight,
-                inline: true,
-                onSend: _handleSend,
-                controller: _textController,
-              ),
-            ),
-          ],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 背景图片
+        Positioned.fill(
+          child: Image.asset(
+            'packages/flutter_roleplay/assets/images/role_bg.png',
+            fit: BoxFit.cover,
+          ),
         ),
-      ),
+
+        // 前景内容
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          body: SafeArea(
+            top: false,
+            bottom: false,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    reverse: true,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    itemCount: _messages.length + 1,
+                    cacheExtent: 1000, // 增加缓存范围
+                    addAutomaticKeepAlives: true,
+                    addRepaintBoundaries: true, // 添加重绘边界
+                    addSemanticIndexes: false, // 禁用语义索引以提升性能
+                    itemBuilder: (context, index) {
+                      return RepaintBoundary(
+                        child: _buildListItem(context, index),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 25),
+                  child: GlobalInputBar(
+                    bottomBarHeight: 0,
+                    height: inputBarHeight,
+                    inline: true,
+                    onSend: _handleSend,
+                    controller: _textController,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
