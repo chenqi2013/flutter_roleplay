@@ -1,0 +1,454 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:flutter_roleplay/constant/constant.dart';
+import 'package:flutter_roleplay/hometabs/jingxuan_controller.dart';
+import 'package:flutter_roleplay/widgets/character_intro.dart';
+import 'dart:async';
+
+import 'package:flutter_roleplay/widgets/global_input_bar.dart';
+
+// 全局聊天状态管理
+class ChatStateManager {
+  static final ChatStateManager _instance = ChatStateManager._internal();
+  factory ChatStateManager() => _instance;
+  ChatStateManager._internal();
+
+  final Map<String, List<_ChatMessage>> _chatCache = {};
+  final Map<String, ScrollController> _scrollControllers = {};
+
+  List<_ChatMessage> getMessages(String pageKey) {
+    return _chatCache[pageKey] ??= [];
+  }
+
+  ScrollController getScrollController(String pageKey) {
+    return _scrollControllers[pageKey] ??= ScrollController();
+  }
+
+  void addMessage(String pageKey, _ChatMessage message) {
+    getMessages(pageKey).add(message);
+  }
+
+  void updateLastMessage(String pageKey, _ChatMessage message) {
+    final messages = getMessages(pageKey);
+    if (messages.isNotEmpty) {
+      messages[messages.length - 1] = message;
+    }
+  }
+
+  void clearMessages(String pageKey) {
+    _chatCache[pageKey]?.clear();
+  }
+
+  void dispose() {
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
+    _scrollControllers.clear();
+  }
+}
+
+class JingxuanPage extends StatefulWidget {
+  const JingxuanPage({super.key});
+
+  @override
+  State<JingxuanPage> createState() => _JingxuanPageState();
+}
+
+class _JingxuanPageState extends State<JingxuanPage>
+    with AutomaticKeepAliveClientMixin {
+  static const double inputBarHeight = 56.0;
+
+  final ChatStateManager _stateManager = ChatStateManager();
+  StreamSubscription<String>? _streamSub;
+  final TextEditingController _textController = TextEditingController();
+
+  // 缓存相关
+  bool _isControllerInitialized = false;
+  bool _isInitializing = false;
+
+  List<_ChatMessage> get _messages => _stateManager.getMessages(pageKey);
+  ScrollController get _scrollController =>
+      _stateManager.getScrollController(pageKey);
+  JingxuanController? _controller;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    // 异步初始化控制器，不阻塞UI
+    _initializeController();
+
+    // 监听角色信息变化，当角色信息更新时自动清空聊天记录
+    ever(roleDescription, (String newDesc) {
+      if (_messages.isNotEmpty) {
+        setState(() {
+          _messages.clear();
+        });
+        _scrollToBottom();
+      }
+    });
+  }
+
+  void _initializeController() {
+    // 使用 addPostFrameCallback 确保UI先渲染
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (_isControllerInitialized || _isInitializing) return;
+
+      _isInitializing = true;
+
+      try {
+        if (Get.isRegistered<JingxuanController>()) {
+          _controller = Get.find<JingxuanController>();
+        } else {
+          _controller = Get.put(JingxuanController());
+        }
+        _isControllerInitialized = true;
+        debugPrint('Controller initialized successfully');
+      } catch (e) {
+        debugPrint('Controller initialization error: $e');
+      } finally {
+        _isInitializing = false;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _streamSub?.cancel();
+    _textController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSend(String text) async {
+    final String content = text.trim();
+    if (content.isEmpty) return;
+
+    // 等待控制器初始化完成
+    if (!_isControllerInitialized) {
+      // 等待控制器初始化
+      int attempts = 0;
+      while (!_isControllerInitialized && attempts < 50) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        attempts++;
+      }
+      if (_controller == null) {
+        debugPrint('Controller not available after waiting');
+        return;
+      }
+    }
+
+    setState(() {
+      _messages.add(_ChatMessage(isUser: true, text: content));
+      _messages.add(const _ChatMessage(isUser: false, text: ''));
+    });
+    _scrollToBottom();
+
+    _streamSub?.cancel();
+    _streamSub = _controller!
+        .streamLocalChatCompletions(content: content)
+        .listen(
+          (String chunk) {
+            if (_messages.isEmpty || !mounted) return;
+            if (!_messages.last.isUser) {
+              setState(() {
+                _messages.last = _messages.last.copyWith(text: chunk);
+              });
+              _scrollToBottom();
+            }
+          },
+          onError: (Object e) {
+            if (_messages.isEmpty || !mounted) return;
+            if (!_messages.last.isUser) {
+              setState(() {
+                _messages.last = _messages.last.copyWith(
+                  text: _messages.last.text + '\n[错误] ' + e.toString(),
+                );
+              });
+              _scrollToBottom();
+            }
+          },
+        );
+  }
+
+  bool _shouldShowExpandIcon(String text) {
+    // 简化计算逻辑，使用字符数估算
+    final int charCount = text.length;
+    final int estimatedLines = (charCount / 25).ceil(); // 假设每行约25个字符
+
+    return estimatedLines > 4;
+  }
+
+  Widget _buildListItem(BuildContext context, int index) {
+    // 如果没有消息，显示角色介绍
+    if (_messages.isEmpty) {
+      return Obx(
+        () => CharacterIntro(
+          title: '简介',
+          description: roleDescription.value,
+          firstMessage: '',
+          maxLines: 4,
+          showExpandIcon: _shouldShowExpandIcon(roleDescription.value),
+        ),
+      );
+    }
+
+    if (index < _messages.length) {
+      final int reversedIdx = _messages.length - 1 - index;
+      final _ChatMessage msg = _messages[reversedIdx];
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: _ChatBubble(
+          key: ValueKey('${msg.isUser}_${msg.text.hashCode}'),
+          message: msg,
+        ),
+      );
+    }
+
+    // 列表最上方显示角色介绍
+    return Obx(
+      () => CharacterIntro(
+        title: '简介',
+        description: roleDescription.value,
+        firstMessage: '',
+        maxLines: 4,
+        showExpandIcon: _shouldShowExpandIcon(roleDescription.value),
+      ),
+    );
+  }
+
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients || !mounted) return;
+
+    // 使用 microtask 而不是 addPostFrameCallback 来减少延迟
+    Future.microtask(() {
+      if (!_scrollController.hasClients || !mounted) return;
+
+      final double currentOffset = _scrollController.offset;
+      const double bottomOffset = 0.0;
+
+      if (currentOffset > bottomOffset) {
+        _scrollController.animateTo(
+          bottomOffset,
+          duration: const Duration(milliseconds: 200), // 减少动画时间
+          curve: Curves.easeOut, // 使用更快的曲线
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // 必须调用，因为使用了 AutomaticKeepAliveClientMixin
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                reverse: true,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                itemCount: _messages.length + 1,
+                cacheExtent: 1000, // 增加缓存范围
+                addAutomaticKeepAlives: true,
+                addRepaintBoundaries: true, // 添加重绘边界
+                addSemanticIndexes: false, // 禁用语义索引以提升性能
+                itemBuilder: (context, index) {
+                  return RepaintBoundary(child: _buildListItem(context, index));
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: GlobalInputBar(
+                bottomBarHeight: 0,
+                height: inputBarHeight,
+                inline: true,
+                onSend: _handleSend,
+                controller: _textController,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatBubble extends StatelessWidget {
+  const _ChatBubble({super.key, required this.message});
+
+  final _ChatMessage message;
+
+  /// 解析文本，分离括号内容和普通内容
+  List<_TextSegment> _parseText(String text) {
+    final List<_TextSegment> segments = [];
+    // 匹配英文括号 () 和中文括号 （）
+    final RegExp regex = RegExp(r'[\(（]([^\)）]*)[\)）]');
+    int lastEnd = 0;
+
+    for (final match in regex.allMatches(text)) {
+      // 添加括号前的普通文本
+      if (match.start > lastEnd) {
+        final normalText = text.substring(lastEnd, match.start).trim();
+        if (normalText.isNotEmpty) {
+          segments.add(_TextSegment(text: normalText, isAction: false));
+        }
+      }
+
+      // 添加括号内的动作描述，保留原始括号
+      final fullMatch = match.group(0) ?? ''; // 完整匹配包括括号
+      if (fullMatch.isNotEmpty) {
+        segments.add(_TextSegment(text: fullMatch, isAction: true));
+      }
+
+      lastEnd = match.end;
+    }
+
+    // 添加最后剩余的普通文本
+    if (lastEnd < text.length) {
+      final normalText = text.substring(lastEnd).trim();
+      if (normalText.isNotEmpty) {
+        segments.add(_TextSegment(text: normalText, isAction: false));
+      }
+    }
+
+    // 如果没有匹配到任何括号，将整个文本作为普通文本
+    if (segments.isEmpty && text.trim().isNotEmpty) {
+      segments.add(_TextSegment(text: text.trim(), isAction: false));
+    }
+
+    return segments;
+  }
+
+  Widget _buildUserBubble(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.72,
+        ),
+        child: Container(
+          margin: const EdgeInsets.only(left: 50),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFC107),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
+              bottomLeft: Radius.circular(18),
+              bottomRight: Radius.circular(4),
+            ),
+          ),
+          child: Text(
+            message.text.trim(),
+            style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 15,
+              height: 1.35,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAiBubble(BuildContext context) {
+    final segments = _parseText(message.text);
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
+        child: Container(
+          margin: const EdgeInsets.only(right: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.6),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+              bottomLeft: Radius.circular(6),
+              bottomRight: Radius.circular(20),
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: segments.map((segment) {
+              if (segment.isAction) {
+                // 动作描述：斜体、更亮的灰色、较小字号
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    segment.text, // 已经包含原始括号（英文或中文）
+                    style: const TextStyle(
+                      color: Color(0xFFCCCCCC), // 更亮的灰色
+                      fontSize: 15,
+                      height: 1.4,
+                      fontStyle: FontStyle.italic, // 斜体
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                );
+              } else {
+                // 普通对话：正常样式
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 1),
+                  child: Text(
+                    segment.text,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      height: 1.4,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                );
+              }
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return message.isUser ? _buildUserBubble(context) : _buildAiBubble(context);
+  }
+}
+
+/// 文本片段，用于区分普通对话和动作描述
+class _TextSegment {
+  const _TextSegment({required this.text, required this.isAction});
+
+  final String text;
+  final bool isAction; // true表示括号内的动作描述，false表示普通对话
+}
+
+class _ChatMessage {
+  const _ChatMessage({required this.isUser, required this.text});
+
+  final bool isUser;
+  final String text;
+
+  _ChatMessage copyWith({bool? isUser, String? text}) {
+    return _ChatMessage(isUser: isUser ?? this.isUser, text: text ?? this.text);
+  }
+}
