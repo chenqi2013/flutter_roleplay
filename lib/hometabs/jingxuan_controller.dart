@@ -185,14 +185,26 @@ class JingxuanController extends GetxController {
     String? targetPath,
   }) async {
     try {
-      final data = await rootBundle.load(assetsPath);
+      // 在插件中加载资源时，先尝试从主应用加载
+      ByteData data;
+      try {
+        data = await rootBundle.load(assetsPath);
+      } catch (e) {
+        // 如果主应用中没有，则从 flutter_roleplay 包中加载
+        debugPrint(
+          "Asset not found in main app, loading from package: $assetsPath",
+        );
+        final packagePath = 'packages/flutter_roleplay/$assetsPath';
+        data = await rootBundle.load(packagePath);
+      }
+
       final tempDir = await getTemporaryDirectory();
       final tempFile = File(path.join(tempDir.path, targetPath ?? assetsPath));
       await tempFile.create(recursive: true);
       await tempFile.writeAsBytes(data.buffer.asUint8List());
       return tempFile.path;
     } catch (e) {
-      debugPrint("$e");
+      debugPrint("Error loading asset $assetsPath: $e");
       return "";
     }
   }
