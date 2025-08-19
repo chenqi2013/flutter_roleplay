@@ -18,9 +18,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/download_dialog.dart';
-import 'package:flutter_roleplay/hometabs/jingxuan_page.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_page.dart';
 
-class JingxuanController extends GetxController {
+class RolePlayChatController extends GetxController {
   /// Send message to RWKV isolate
   SendPort? _sendPort; //比如发送停止，发送prompt等
 

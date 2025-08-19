@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
-import 'package:flutter_roleplay/hometabs/jingxuan_controller.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/widgets/character_intro.dart';
 import 'dart:async';
 
@@ -47,14 +47,14 @@ class ChatStateManager {
   }
 }
 
-class JingxuanPage extends StatefulWidget {
-  const JingxuanPage({super.key});
+class RolePlayChat extends StatefulWidget {
+  const RolePlayChat({super.key});
 
   @override
-  State<JingxuanPage> createState() => _JingxuanPageState();
+  State<RolePlayChat> createState() => _RolePlayChatState();
 }
 
-class _JingxuanPageState extends State<JingxuanPage>
+class _RolePlayChatState extends State<RolePlayChat>
     with AutomaticKeepAliveClientMixin {
   static const double inputBarHeight = 56.0;
 
@@ -69,7 +69,7 @@ class _JingxuanPageState extends State<JingxuanPage>
   List<_ChatMessage> get _messages => _stateManager.getMessages(pageKey);
   ScrollController get _scrollController =>
       _stateManager.getScrollController(pageKey);
-  JingxuanController? _controller;
+  RolePlayChatController? _controller;
 
   @override
   bool get wantKeepAlive => true;
@@ -99,10 +99,10 @@ class _JingxuanPageState extends State<JingxuanPage>
       _isInitializing = true;
 
       try {
-        if (Get.isRegistered<JingxuanController>()) {
-          _controller = Get.find<JingxuanController>();
+        if (Get.isRegistered<RolePlayChatController>()) {
+          _controller = Get.find<RolePlayChatController>();
         } else {
-          _controller = Get.put(JingxuanController());
+          _controller = Get.put(RolePlayChatController());
         }
         // 设置 context 以便控制器可以显示对话框
         _controller?.setContext(context);

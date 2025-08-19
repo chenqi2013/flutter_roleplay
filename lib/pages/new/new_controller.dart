@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_roleplay/hometabs/jingxuan_controller.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import '../../constant/constant.dart';
 
 class NewController extends GetxController {
@@ -50,11 +50,11 @@ class NewController extends GetxController {
 
     Get.back(result: {'name': n, 'desc': d});
     Get.snackbar('已创建', '新角色"$n"已创建成功，聊天记录已清空');
-    JingxuanController? _controller;
-    if (Get.isRegistered<JingxuanController>()) {
-      _controller = Get.find<JingxuanController>();
+    RolePlayChatController? _controller;
+    if (Get.isRegistered<RolePlayChatController>()) {
+      _controller = Get.find<RolePlayChatController>();
     } else {
-      _controller = Get.put(JingxuanController());
+      _controller = Get.put(RolePlayChatController());
     }
 
     _controller?.clearStates();

@@ -2,11 +2,11 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/hometabs/jingxuan_page.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_page.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rwkv_downloader/downloader.dart';
-import 'package:flutter_roleplay/hometabs/jingxuan_controller.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:rxdart/rxdart.dart';
 
 DownloadTask? task;
@@ -297,11 +297,11 @@ void downloadfile(BuildContext context, String downloadurl) async {
           onDone: () {
             debugPrint('download done');
             Get.back();
-            JingxuanController? _controller;
-            if (Get.isRegistered<JingxuanController>()) {
-              _controller = Get.find<JingxuanController>();
+            RolePlayChatController? _controller;
+            if (Get.isRegistered<RolePlayChatController>()) {
+              _controller = Get.find<RolePlayChatController>();
             } else {
-              _controller = Get.put(JingxuanController());
+              _controller = Get.put(RolePlayChatController());
             }
 
             _controller?.loadChatModel();
