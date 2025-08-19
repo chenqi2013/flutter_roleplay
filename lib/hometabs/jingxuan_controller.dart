@@ -24,6 +24,17 @@ class JingxuanController extends GetxController {
   /// Send message to RWKV isolate
   SendPort? _sendPort; //比如发送停止，发送prompt等
 
+  /// Context for showing dialogs - can be set externally
+  BuildContext? _context;
+
+  /// Set context for showing dialogs
+  void setContext(BuildContext context) {
+    _context = context;
+  }
+
+  /// Get current context
+  BuildContext? get currentContext => _context ?? Get.context;
+
   /// Receive message from RWKV isolate
   late final _receivePort =
       ReceivePort(); //主要接收子isolate发送来的消息，比如生成的token，或者子的sendport发送过来后给_sendPort赋值
@@ -85,13 +96,21 @@ class JingxuanController extends GetxController {
     // 检查是否需要下载模型
     if (!await checkDownloadFile(downloadUrl)) {
       debugPrint('downloadUrl file not exists');
-      showDownloadDialog(
-        Get.context!,
-        '需要先下载模型才可以使用角色扮演功能',
-        true,
-        downloadUrl,
-        '',
-      );
+      // 延迟执行，确保 UI 已经构建完成
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final context = currentContext;
+        if (context != null) {
+          showDownloadDialog(
+            context,
+            '需要先下载模型才可以使用角色扮演功能',
+            true,
+            downloadUrl,
+            '',
+          );
+        } else {
+          debugPrint('No context available for showing download dialog');
+        }
+      });
     } else {
       loadChatModel();
       debugPrint('downloadUrl file exists');

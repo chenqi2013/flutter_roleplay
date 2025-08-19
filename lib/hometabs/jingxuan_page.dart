@@ -104,6 +104,8 @@ class _JingxuanPageState extends State<JingxuanPage>
         } else {
           _controller = Get.put(JingxuanController());
         }
+        // 设置 context 以便控制器可以显示对话框
+        _controller?.setContext(context);
         _isControllerInitialized = true;
         debugPrint('Controller initialized successfully');
       } catch (e) {

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/hometabs/jingxuan_page.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rwkv_downloader/downloader.dart';
@@ -20,6 +21,7 @@ void showDownloadDialog(
   String downloadurl,
   String md5,
 ) {
+  debugPrint('showDownloadDialog context=$context');
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -311,7 +313,7 @@ void downloadfile(BuildContext context, String downloadurl) async {
     /// todo： release包 点击开始下载后 下载对话框会自动消失，所以先这样处理，后面找时间定位问题
     Future.delayed(const Duration(milliseconds: 100), () {
       isdownloading.value = true;
-      showDownloadDialog(Get.context!, '', true, '', '');
+      showDownloadDialog(context, '', true, '', '');
     });
   }
 }
