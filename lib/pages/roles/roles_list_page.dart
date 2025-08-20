@@ -57,9 +57,8 @@ class RolesListPage extends StatelessWidget {
   }
 
   void _selectRole(Map<String, dynamic> role) {
-    // 更新当前选中的角色
-    roleName.value = role['name'] as String;
-    roleDescription.value = role['description'] as String;
+    // 使用统一的切换角色函数
+    switchToRole(role);
 
     // 返回上一页
     Get.back();

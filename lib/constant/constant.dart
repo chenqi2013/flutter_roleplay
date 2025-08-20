@@ -6,36 +6,73 @@ import 'package:get/get.dart';
 //     '请你扮演名为凯露的角色，你的设定是：猫耳少女，原本是霸瞳皇帝的手下。性格傲娇，嘴上不饶人但内心善良。擅长暗属性魔法，战斗力很强。最初对主人公抱有敌意，但逐渐被美食殿堂的温暖所感动，成为了可靠的伙伴。';
 // const String systemPrompt =
 //     '请你扮演名为凯露的角色，你的设定是：猫耳少女，原本是霸瞳皇帝的手下。性格傲娇，嘴上不饶人但内心善良。擅长暗属性魔法，战斗力很强。最初对主人公抱有敌意，但逐渐被美食殿堂的温暖所感动，成为了可靠的伙伴。';
-var roleName = '白素贞'.obs;
-var roleDescription =
-    '你来自《新白娘子传奇》，你叫白素贞。你是一条修炼千年的蛇仙，为了报答救命之恩，你化为人形来到人间，与许仙相识相爱。然而，因误会而分离的故事情节使得两人的感情曲折离奇，最终有情人终成眷属。'
-        .obs;
+// 当前角色信息
+var roleName = ''.obs;
+var roleDescription = ''.obs;
+var roleImage = ''.obs;
+
+// 用户使用过的角色列表（按使用顺序）
+var usedRoles = <Map<String, dynamic>>[].obs;
+
+// 初始化默认角色
+void initializeDefaultRole() {
+  if (roles.isNotEmpty && roleName.value.isEmpty) {
+    switchToRole(roles.first);
+  }
+}
+
+// 切换角色
+void switchToRole(Map<String, dynamic> role) {
+  roleName.value = role['name'] as String;
+  roleDescription.value = role['description'] as String;
+  roleImage.value = role['image'] as String;
+
+  // 从已使用角色列表中移除当前角色（如果存在）
+  usedRoles.removeWhere((usedRole) => usedRole['name'] == role['name']);
+
+  // 将当前角色添加到已使用角色列表的开头
+  usedRoles.insert(0, Map<String, dynamic>.from(role));
+
+  // 限制已使用角色列表的长度（最多保存10个）
+  if (usedRoles.length > 10) {
+    usedRoles.removeRange(10, usedRoles.length);
+  }
+}
 
 var roles = [
   {
     'name': '白素贞',
     'description':
         '你来自《新白娘子传奇》，你叫白素贞。你是一条修炼千年的蛇仙，为了报答救命之恩，你化为人形来到人间，与许仙相识相爱。然而，因误会而分离的故事情节使得两人的感情曲折离奇，最终有情人终成眷属。',
+    'image': 'https://download.rwkvos.com/rwkvmusic/downloads/1.0/role_bg.png',
   },
   {
     'name': '许仙',
     'description':
         '你来自《新白娘子传奇》，你叫许仙。你是一名心地善良的书生，机缘巧合下与白素贞相遇并坠入爱河。尽管面对法海的阻挠和世俗的压力，你始终怀着真挚的感情守护白素贞。',
+    'image':
+        'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common_bg.png',
   },
   {
     'name': '小青',
     'description':
         '你来自《新白娘子传奇》，你叫小青。你是一条青蛇，白素贞的义妹。你性格刚烈直爽，常常为姐姐出头，也是白素贞在人世间最忠诚的伙伴与依靠。',
+    'image':
+        'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common_bg.png',
   },
   {
     'name': '法海',
     'description':
         '你来自《新白娘子传奇》，你叫法海。你是金山寺的和尚，自认为维护人间秩序，坚决反对白素贞与许仙的结合。你法力高强，执念深重，常以佛法为名阻挠两人的爱情。',
+    'image':
+        'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common_bg.png',
   },
   {
     'name': '观音菩萨',
     'description':
         '你来自《新白娘子传奇》，你是观音菩萨。你慈悲为怀，洞察世事，常在关键时刻给予白素贞与许仙点化与帮助，引导他们走向圆满。',
+    'image':
+        'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common_bg.png',
   },
 ].obs;
 // llamacpp方式

@@ -69,6 +69,7 @@ class _RolePlayChatState extends State<RolePlayChat>
   final ChatStateManager _stateManager = ChatStateManager();
   StreamSubscription<String>? _streamSub;
   final TextEditingController _textController = TextEditingController();
+  final PageController _pageController = PageController();
 
   // 缓存相关
   bool _isControllerInitialized = false;
@@ -85,6 +86,10 @@ class _RolePlayChatState extends State<RolePlayChat>
   @override
   void initState() {
     super.initState();
+
+    // 初始化默认角色
+    initializeDefaultRole();
+
     // 异步初始化控制器，不阻塞UI
     _initializeController();
 
@@ -128,6 +133,7 @@ class _RolePlayChatState extends State<RolePlayChat>
   void dispose() {
     _streamSub?.cancel();
     _textController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -252,98 +258,227 @@ class _RolePlayChatState extends State<RolePlayChat>
   Widget build(BuildContext context) {
     super.build(context); // 必须调用，因为使用了 AutomaticKeepAliveClientMixin
 
+    return Obx(
+      () => usedRoles.isEmpty
+          ? _buildSingleChatPage()
+          : _buildSwipeableChatPages(),
+    );
+  }
+
+  Widget _buildSingleChatPage() {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 背景图片
+        // 动态背景图片
         Positioned.fill(
-          child: Image.asset(
-            'packages/flutter_roleplay/assets/images/role_bg.png',
-            fit: BoxFit.cover,
+          child: Obx(
+            () => roleImage.value.isEmpty
+                ? Container(color: Colors.grey.shade300)
+                : Image.network(
+                    roleImage.value,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Colors.grey.shade300,
+                      child: const Center(
+                        child: Icon(Icons.error, color: Colors.grey),
+                      ),
+                    ),
+                  ),
           ),
         ),
 
         // 前景内容
-        Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.list, color: Colors.white, size: 28),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const RolesListPage(),
+        _buildChatScaffold(),
+      ],
+    );
+  }
+
+  Widget _buildSwipeableChatPages() {
+    return PageView.builder(
+      controller: _pageController,
+      itemCount: usedRoles.length,
+      itemBuilder: (context, index) {
+        final role = usedRoles[index];
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // 背景图片
+            Positioned.fill(
+              child: Image.network(
+                role['image'] as String,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade300,
+                  child: const Center(
+                    child: Icon(Icons.error, color: Colors.grey),
                   ),
-                );
-              },
-            ),
-            title: Obx(
-              () => Text(
-                roleName.value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.add, color: Colors.white, size: 28),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreateRolePage(),
-                    ),
-                  );
+
+            // 前景内容 - 始终显示聊天界面
+            _buildChatScaffoldForRole(role),
+          ],
+        );
+      },
+      onPageChanged: (index) {
+        // 切换到对应的角色
+        final role = usedRoles[index];
+        if (role['name'] != roleName.value) {
+          switchToRole(role);
+        }
+      },
+    );
+  }
+
+  Widget _buildChatScaffoldForRole(Map<String, dynamic> role) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.list, color: Colors.white, size: 28),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const RolesListPage()),
+            );
+          },
+        ),
+        title: Text(
+          role['name'] as String,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white, size: 28),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CreateRolePage()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                reverse: true,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                itemCount: _messages.length + 1,
+                cacheExtent: 1000, // 增加缓存范围
+                addAutomaticKeepAlives: true,
+                addRepaintBoundaries: true, // 添加重绘边界
+                addSemanticIndexes: false, // 禁用语义索引以提升性能
+                itemBuilder: (context, index) {
+                  return RepaintBoundary(child: _buildListItem(context, index));
                 },
               ),
-            ],
-          ),
-          body: SafeArea(
-            top: false,
-            bottom: false,
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    itemCount: _messages.length + 1,
-                    cacheExtent: 1000, // 增加缓存范围
-                    addAutomaticKeepAlives: true,
-                    addRepaintBoundaries: true, // 添加重绘边界
-                    addSemanticIndexes: false, // 禁用语义索引以提升性能
-                    itemBuilder: (context, index) {
-                      return RepaintBoundary(
-                        child: _buildListItem(context, index),
-                      );
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 25),
-                  child: GlobalInputBar(
-                    bottomBarHeight: 0,
-                    height: inputBarHeight,
-                    inline: true,
-                    onSend: _handleSend,
-                    controller: _textController,
-                  ),
-                ),
-              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 25),
+              child: GlobalInputBar(
+                bottomBarHeight: 0,
+                height: inputBarHeight,
+                inline: true,
+                onSend: _handleSend,
+                controller: _textController,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatScaffold() {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.list, color: Colors.white, size: 28),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const RolesListPage()),
+            );
+          },
+        ),
+        title: Obx(
+          () => Text(
+            roleName.value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      ],
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white, size: 28),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CreateRolePage()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                reverse: true,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                itemCount: _messages.length + 1,
+                cacheExtent: 1000, // 增加缓存范围
+                addAutomaticKeepAlives: true,
+                addRepaintBoundaries: true, // 添加重绘边界
+                addSemanticIndexes: false, // 禁用语义索引以提升性能
+                itemBuilder: (context, index) {
+                  return RepaintBoundary(child: _buildListItem(context, index));
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 25),
+              child: GlobalInputBar(
+                bottomBarHeight: 0,
+                height: inputBarHeight,
+                inline: true,
+                onSend: _handleSend,
+                controller: _textController,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
