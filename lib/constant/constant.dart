@@ -94,6 +94,10 @@ var roles = [
   },
 ].obs;
 // llamacpp方式
+
+var downloadUrltest =
+    'https://download.rwkvos.com/rwkvmusic/downloads/1.0/test_app.apk';
+
 var downloadUrl =
     'https://hf-mirror.com/mollysama/rwkv-mobile-models/resolve/main/gguf/rwkv7-g1-2.9b-20250519-ctx4096-Q6_K.gguf?download=true';
 

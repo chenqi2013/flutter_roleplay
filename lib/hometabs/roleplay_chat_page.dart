@@ -292,7 +292,6 @@ class _RolePlayChatState extends State<RolePlayChat>
   @override
   Widget build(BuildContext context) {
     super.build(context); // 必须调用，因为使用了 AutomaticKeepAliveClientMixin
-
     return Obx(
       () => usedRoles.isEmpty
           ? _buildSingleChatPage()

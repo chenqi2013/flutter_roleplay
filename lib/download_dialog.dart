@@ -296,7 +296,13 @@ void downloadfile(BuildContext context, String downloadurl) async {
           },
           onDone: () {
             debugPrint('download done');
-            Get.back();
+
+            Future.delayed(const Duration(milliseconds: 200), () {
+              Future.microtask(() {
+                Navigator.of(context).pop();
+              });
+            });
+
             RolePlayChatController? _controller;
             if (Get.isRegistered<RolePlayChatController>()) {
               _controller = Get.find<RolePlayChatController>();
@@ -307,13 +313,13 @@ void downloadfile(BuildContext context, String downloadurl) async {
             _controller?.loadChatModel();
           },
         );
-    Get.back();
+    // Get.back();
     task?.start();
 
     /// todo： release包 点击开始下载后 下载对话框会自动消失，所以先这样处理，后面找时间定位问题
     Future.delayed(const Duration(milliseconds: 100), () {
       isdownloading.value = true;
-      showDownloadDialog(context, '', true, '', '');
+      // showDownloadDialog(context, '', true, '', '');
     });
   }
 }
