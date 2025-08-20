@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/constant/constant.dart';
+import 'package:get/state_manager.dart';
 
 // 全局贴底输入框组件：自动避让键盘 + 底部导航
 class GlobalInputBar extends StatelessWidget {
@@ -116,25 +118,27 @@ class _GlassInput extends StatelessWidget {
               const SizedBox(width: 12),
               // 输入框
               Expanded(
-                child: TextField(
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                  decoration: const InputDecoration(
-                    hintText: '发送消息给白燕',
-                    hintStyle: TextStyle(color: Colors.white54, fontSize: 16),
-                    border: InputBorder.none,
-                    filled: true,
-                    fillColor: Colors.transparent, // 背景透明
-                    contentPadding: EdgeInsets.zero,
+                child: Obx(
+                  () => TextField(
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    decoration: InputDecoration(
+                      hintText: '发送消息给${roleName.value}',
+                      hintStyle: TextStyle(color: Colors.white54, fontSize: 16),
+                      border: InputBorder.none,
+                      filled: true,
+                      fillColor: Colors.transparent, // 背景透明
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    controller: controller,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (value) {
+                      final String v = value.trim();
+                      if (v.isEmpty) return;
+                      onSend?.call(v);
+                      // 清空输入
+                      controller?.clear();
+                    },
                   ),
-                  controller: controller,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (value) {
-                    final String v = value.trim();
-                    if (v.isEmpty) return;
-                    onSend?.call(v);
-                    // 清空输入
-                    controller?.clear();
-                  },
                 ),
               ),
               const SizedBox(width: 12),
