@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
+import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 
-class RolesListPage extends StatelessWidget {
+class RolesListPage extends GetView<RolesListController> {
   const RolesListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // 确保 Controller 被注册
+    Get.put(RolesListController());
     return Scaffold(
       appBar: AppBar(
         title: const Text('角色列表'),
@@ -39,48 +41,75 @@ class RolesListPage extends StatelessWidget {
             ],
           ),
         ),
-        child: Obx(
-          () => ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: roles.length,
-            itemBuilder: (context, index) {
-              final role = roles[index];
-              return _RoleCard(
-                name: role['name'] as String,
-                description: role['description'] as String,
-                onTap: () => _selectRole(role),
-              );
-            },
-          ),
-        ),
+        child: _buildBody(),
       ),
     );
   }
 
-  void _selectRole(Map<String, dynamic> role) {
-    // 使用统一的切换角色函数
-    switchToRole(role);
+  Widget _buildBody() {
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+          ),
+        );
+      }
 
-    // 返回上一页
-    Get.back();
+      if (controller.error.value.isNotEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
+              const SizedBox(height: 16),
+              Text(
+                '加载失败',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  controller.error.value,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: controller.retryLoad,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('重试'),
+              ),
+            ],
+          ),
+        );
+      }
 
-    // 显示选择成功的提示
-    Get.snackbar(
-      '角色切换',
-      '已切换到 ${role['name']}',
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 2),
-      backgroundColor: Colors.green.withOpacity(0.8),
-      colorText: Colors.white,
-    );
-    RolePlayChatController? _controller;
-    if (Get.isRegistered<RolePlayChatController>()) {
-      _controller = Get.find<RolePlayChatController>();
-    } else {
-      _controller = Get.put(RolePlayChatController());
-    }
-
-    _controller?.clearStates();
+      return RefreshIndicator(
+        onRefresh: controller.refreshRoles,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: controller.roles.length,
+          itemBuilder: (context, index) {
+            final role = controller.roles[index];
+            return _RoleCard(
+              name: role.name,
+              description: role.description,
+              onTap: () => controller.selectRole(role),
+            );
+          },
+        ),
+      );
+    });
   }
 }
 

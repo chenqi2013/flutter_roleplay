@@ -11,3 +11,6 @@ export 'widgets/global_input_bar.dart';
 export 'constant/constant.dart';
 export 'download_dialog.dart';
 export 'pages/roles/roles_list_page.dart';
+export 'pages/roles/roles_list_controller.dart';
+export 'models/role_model.dart';
+export 'services/role_api_service.dart';
