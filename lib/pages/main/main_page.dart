@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'main_controller.dart';
-import '../new/new_page.dart';
+import '../new/createrole_page.dart';
 import '../tabs/home_page.dart';
 import '../tabs/messages_page.dart';
 import '../tabs/discover_page.dart';
@@ -108,7 +108,9 @@ class MainPage extends GetView<MainPageController> {
                 index: 1,
                 controller: controller,
               ),
-              _CenterAddButton(onTap: () => Get.to(() => const NewPage())),
+              _CenterAddButton(
+                onTap: () => Get.to(() => const CreateRolePage()),
+              ),
               _BottomTab(
                 icon: Icons.explore_outlined,
                 activeIcon: Icons.explore,

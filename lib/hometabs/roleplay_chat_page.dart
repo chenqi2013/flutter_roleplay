@@ -6,6 +6,7 @@ import 'package:flutter_roleplay/widgets/character_intro.dart';
 import 'dart:async';
 
 import 'package:flutter_roleplay/widgets/global_input_bar.dart';
+import 'package:flutter_roleplay/pages/new/createrole_page.dart';
 
 class RoleplayManage {
   static Widget createRolePlayChatPage() {
@@ -264,6 +265,33 @@ class _RolePlayChatState extends State<RolePlayChat>
         // 前景内容
         Scaffold(
           backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Obx(
+              () => Text(
+                roleName.value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add, color: Colors.white, size: 28),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreateRolePage(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
           body: SafeArea(
             top: false,
             bottom: false,

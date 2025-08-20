@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import '../../constant/constant.dart';
 
-class NewController extends GetxController {
+class CreateRoleController extends GetxController {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descController = TextEditingController();
 
