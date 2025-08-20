@@ -102,6 +102,41 @@ class _RolePlayChatState extends State<RolePlayChat>
         _scrollToBottom();
       }
     });
+
+    // 监听角色切换，同步PageView位置
+    ever(roleName, (String newRoleName) {
+      if (usedRoles.isNotEmpty) {
+        final index = usedRoles.indexWhere(
+          (role) => role['name'] == newRoleName,
+        );
+        if (index != -1 && _pageController.hasClients) {
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
+
+    // 监听 usedRoles 列表变化，如果有新角色添加，跳转到最后一页
+    ever(usedRoles, (List<Map<String, dynamic>> newUsedRoles) {
+      if (newUsedRoles.isNotEmpty && _pageController.hasClients) {
+        // 延迟执行，确保UI已更新
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final currentRoleIndex = newUsedRoles.indexWhere(
+            (role) => role['name'] == roleName.value,
+          );
+          if (currentRoleIndex != -1) {
+            _pageController.animateToPage(
+              currentRoleIndex,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
+      }
+    });
   }
 
   void _initializeController() {
@@ -298,111 +333,118 @@ class _RolePlayChatState extends State<RolePlayChat>
       controller: _pageController,
       itemCount: usedRoles.length,
       itemBuilder: (context, index) {
-        final role = usedRoles[index];
-
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            // 背景图片
-            Positioned.fill(
-              child: Image.network(
-                role['image'] as String,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey.shade300,
-                  child: const Center(
-                    child: Icon(Icons.error, color: Colors.grey),
-                  ),
-                ),
-              ),
-            ),
-
-            // 前景内容 - 始终显示聊天界面
-            _buildChatScaffoldForRole(role),
-          ],
-        );
+        return _buildPageContent(index);
       },
       onPageChanged: (index) {
-        // 切换到对应的角色
-        final role = usedRoles[index];
-        if (role['name'] != roleName.value) {
-          switchToRole(role);
-        }
+        // 延迟切换角色，避免界面更新冲突
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // debugPrint('onPageChanged: $index,description:${usedRoles}');
+          final role = usedRoles[index];
+          if (role['name'] != roleName.value) {
+            switchToRole(role);
+          }
+        });
       },
     );
   }
 
-  Widget _buildChatScaffoldForRole(Map<String, dynamic> role) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.list, color: Colors.white, size: 28),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const RolesListPage()),
-            );
-          },
-        ),
-        title: Text(
-          role['name'] as String,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+  Widget _buildPageContent(int index) {
+    final role = usedRoles[index];
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 背景图片 - 使用当前页面的角色图片
+        Positioned.fill(
+          child: Image.network(
+            role['image'] as String,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: Colors.grey.shade300,
+              child: const Center(child: Icon(Icons.error, color: Colors.grey)),
+            ),
           ),
         ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white, size: 28),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CreateRolePage()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                reverse: true,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                itemCount: _messages.length + 1,
-                cacheExtent: 1000, // 增加缓存范围
-                addAutomaticKeepAlives: true,
-                addRepaintBoundaries: true, // 添加重绘边界
-                addSemanticIndexes: false, // 禁用语义索引以提升性能
-                itemBuilder: (context, index) {
-                  return RepaintBoundary(child: _buildListItem(context, index));
+
+        // 前景内容 - 使用固定的角色信息
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.list, color: Colors.white, size: 28),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RolesListPage(),
+                  ),
+                );
+              },
+            ),
+            title: Text(
+              role['name'] as String,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add, color: Colors.white, size: 28),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreateRolePage(),
+                    ),
+                  );
                 },
               ),
+            ],
+          ),
+          body: SafeArea(
+            top: false,
+            bottom: false,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    reverse: true,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    itemCount: _messages.length + 1,
+                    cacheExtent: 1000,
+                    addAutomaticKeepAlives: true,
+                    addRepaintBoundaries: true,
+                    addSemanticIndexes: false,
+                    itemBuilder: (context, index) {
+                      return RepaintBoundary(
+                        child: _buildListItem(context, index),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 25),
+                  child: GlobalInputBar(
+                    bottomBarHeight: 0,
+                    height: inputBarHeight,
+                    inline: true,
+                    onSend: _handleSend,
+                    controller: _textController,
+                  ),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 25),
-              child: GlobalInputBar(
-                bottomBarHeight: 0,
-                height: inputBarHeight,
-                inline: true,
-                onSend: _handleSend,
-                controller: _textController,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 

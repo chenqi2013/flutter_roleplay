@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:rwkv_mobile_flutter/types.dart';
 import 'package:get/get.dart';
 
@@ -26,17 +28,33 @@ void switchToRole(Map<String, dynamic> role) {
   roleName.value = role['name'] as String;
   roleDescription.value = role['description'] as String;
   roleImage.value = role['image'] as String;
+  // debugPrint(
+  //   'switchToRole: ${role['name']},${role['description']},${role['image']}',
+  // );
 
-  // 从已使用角色列表中移除当前角色（如果存在）
-  usedRoles.removeWhere((usedRole) => usedRole['name'] == role['name']);
+  // 检查角色是否已经在列表中
+  final existingIndex = usedRoles.indexWhere(
+    (usedRole) => usedRole['name'] == role['name'],
+  );
 
-  // 将当前角色添加到已使用角色列表的开头
-  usedRoles.insert(0, Map<String, dynamic>.from(role));
+  if (existingIndex == -1) {
+    // 如果角色不在列表中，添加到末尾
+    usedRoles.add(Map<String, dynamic>.from(role));
 
-  // 限制已使用角色列表的长度（最多保存10个）
-  if (usedRoles.length > 10) {
-    usedRoles.removeRange(10, usedRoles.length);
+    // // 限制已使用角色列表的长度（最多保存10个）
+    // if (usedRoles.length > 10) {
+    //   usedRoles.removeAt(0); // 移除最早的角色
+    // }
   }
+  // 如果角色已存在，不需要重新添加，只更新当前状态
+  RolePlayChatController? _controller;
+  if (Get.isRegistered<RolePlayChatController>()) {
+    _controller = Get.find<RolePlayChatController>();
+  } else {
+    _controller = Get.put(RolePlayChatController());
+  }
+
+  _controller?.clearStates();
 }
 
 var roles = [
