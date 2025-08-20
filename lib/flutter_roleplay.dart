@@ -10,3 +10,4 @@ export 'widgets/character_intro.dart';
 export 'widgets/global_input_bar.dart';
 export 'constant/constant.dart';
 export 'download_dialog.dart';
+export 'pages/roles/roles_list_page.dart';

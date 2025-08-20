@@ -7,6 +7,7 @@ import 'dart:async';
 
 import 'package:flutter_roleplay/widgets/global_input_bar.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
+import 'package:flutter_roleplay/pages/roles/roles_list_page.dart';
 
 class RoleplayManage {
   static Widget createRolePlayChatPage() {
@@ -268,6 +269,17 @@ class _RolePlayChatState extends State<RolePlayChat>
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.list, color: Colors.white, size: 28),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RolesListPage(),
+                  ),
+                );
+              },
+            ),
             title: Obx(
               () => Text(
                 roleName.value,
