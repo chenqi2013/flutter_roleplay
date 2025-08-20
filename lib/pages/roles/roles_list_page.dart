@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 
@@ -72,6 +73,14 @@ class RolesListPage extends StatelessWidget {
       backgroundColor: Colors.green.withOpacity(0.8),
       colorText: Colors.white,
     );
+    RolePlayChatController? _controller;
+    if (Get.isRegistered<RolePlayChatController>()) {
+      _controller = Get.find<RolePlayChatController>();
+    } else {
+      _controller = Get.put(RolePlayChatController());
+    }
+
+    _controller?.clearStates();
   }
 }
 
