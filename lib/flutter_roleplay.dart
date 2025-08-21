@@ -14,3 +14,5 @@ export 'pages/roles/roles_list_page.dart';
 export 'pages/roles/roles_list_controller.dart';
 export 'models/role_model.dart';
 export 'services/role_api_service.dart';
+export 'models/chat_message_model.dart';
+export 'services/database_helper.dart';

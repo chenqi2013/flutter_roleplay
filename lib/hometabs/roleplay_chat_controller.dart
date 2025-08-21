@@ -19,6 +19,8 @@ import 'package:path/path.dart' as path;
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/download_dialog.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_page.dart';
+import 'package:flutter_roleplay/models/chat_message_model.dart';
+import 'package:flutter_roleplay/services/database_helper.dart';
 
 class RolePlayChatController extends GetxController {
   /// Send message to RWKV isolate
@@ -52,6 +54,10 @@ class RolePlayChatController extends GetxController {
   StreamController<String>? localChatController;
   bool isModelLoaded = false;
   late String rmpack;
+
+  // 数据库帮助类实例
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+  bool isNeedSaveAiMessage = false;
   @override
   void onInit() async {
     super.onInit();
@@ -67,10 +73,15 @@ class RolePlayChatController extends GetxController {
         // }
         if (message is ResponseBufferContent) {
           String result = message.responseBufferContent;
-          localChatController?.add(result);
           // debugPrint(
           //   'receive ResponseBufferContent: $result,length=${result.length}',
           // );
+          if (localChatController != null && !localChatController!.isClosed) {
+            localChatController!.add(result);
+            // debugPrint('Added to localChatController stream');
+          } else {
+            debugPrint('localChatController is null or closed');
+          }
         } else if (message is Speed) {
           // var decodeSpeed = message.decodeSpeed;
           // var prefillProgress = message.prefillProgress;
@@ -80,8 +91,11 @@ class RolePlayChatController extends GetxController {
           // );
         } else if (message is IsGenerating) {
           var generating = message.isGenerating;
-          // debugPrint('receive IsGenerating: $generating');
-          if (!generating) {
+          if (!generating && isNeedSaveAiMessage) {
+            debugPrint('receive IsGenerating: $generating');
+            isNeedSaveAiMessage = false;
+            // 生成完成时，保存AI回复到数据库
+            _saveCurrentAiMessage();
             if (_getTokensTimer != null) {
               _getTokensTimer!.cancel();
             }
@@ -243,6 +257,11 @@ class RolePlayChatController extends GetxController {
   Future<void> clearStates() async {
     prefillSpeed.value = 0;
     decodeSpeed.value = 0;
+
+    // 只清空内存中的聊天记录，不删除数据库记录
+    // 这样可以保留历史聊天记录
+    ChatStateManager().getMessages(roleName.value).clear();
+
     final sendPort = _sendPort;
     if (sendPort == null) {
       debugPrint("sendPort is null");
@@ -254,6 +273,31 @@ class RolePlayChatController extends GetxController {
         'System: 请你扮演名为${roleName.value}的角色，你的设定是：${roleDescription.value}\n\n';
     // var thinkingToken = '<think>\n</think>';
     // send(to_rwkv.SetThinkingToken(thinkingToken));
+    send(to_rwkv.SetPrompt(prompt));
+  }
+
+  // 彻底清空聊天记录（包括数据库）- 用于用户主动清空
+  Future<void> clearAllChatHistory() async {
+    prefillSpeed.value = 0;
+    decodeSpeed.value = 0;
+
+    // 清空数据库中的聊天记录
+    if (roleName.value.isNotEmpty) {
+      await clearChatHistoryFromDatabase(roleName.value);
+    }
+
+    // 清空内存中的聊天记录
+    ChatStateManager().getMessages(roleName.value).clear();
+
+    final sendPort = _sendPort;
+    if (sendPort == null) {
+      debugPrint("sendPort is null");
+      return;
+    }
+    send(to_rwkv.ClearStates());
+    send(to_rwkv.LoadInitialStates(rmpack));
+    prompt =
+        'System: 请你扮演名为${roleName.value}的角色，你的设定是：${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
   }
 
@@ -270,11 +314,14 @@ class RolePlayChatController extends GetxController {
   Future<void> stop() async => send(to_rwkv.Stop());
 
   Stream<String> streamLocalChatCompletions({String content = '介绍下自己'}) {
+    debugPrint('streamLocalChatCompletions called with content: $content');
     if (localChatController != null) {
       localChatController!.close();
     }
     localChatController = StreamController<String>();
+    debugPrint('Created new localChatController');
     generate(content);
+    debugPrint('Called generate method');
     return localChatController!.stream;
   }
 
@@ -331,21 +378,25 @@ class RolePlayChatController extends GetxController {
 
     // send(to_rwkv.SetPrompt(prompt));
 
-    final messages = ChatStateManager().getMessages(pageKey);
+    final messages = ChatStateManager().getMessages(roleName.value);
+    debugPrint(
+      'Current messages count for ${roleName.value}: ${messages.length}',
+    );
     var history = <String>[];
     for (var message in messages) {
-      var text = message.text;
+      var text = message.content;
       if (text.isNotEmpty) {
         history.add(text);
       }
     }
     debugPrint("to_rwkv.history: $history");
     send(to_rwkv.ChatAsync(history, reasoning: false));
+    debugPrint('Sent ChatAsync to RWKV');
 
     if (_getTokensTimer != null) {
       _getTokensTimer!.cancel();
     }
-
+    isNeedSaveAiMessage = true;
     _getTokensTimer = Timer.periodic(const Duration(milliseconds: 20), (
       timer,
     ) async {
@@ -545,5 +596,83 @@ class RolePlayChatController extends GetxController {
     }();
 
     return controller.stream;
+  }
+
+  // 保存用户消息到数据库
+  Future<void> saveUserMessage(String content) async {
+    try {
+      final message = ChatMessage(
+        roleName: roleName.value,
+        content: content,
+        isUser: true,
+        timestamp: DateTime.now(),
+      );
+      await _dbHelper.insertMessage(message);
+    } catch (e) {
+      debugPrint('Failed to save user message: $e');
+    }
+  }
+
+  // 保存AI回复到数据库
+  Future<void> saveAiMessage(String content) async {
+    try {
+      final message = ChatMessage(
+        roleName: roleName.value,
+        content: content,
+        isUser: false,
+        timestamp: DateTime.now(),
+      );
+      int result = await _dbHelper.insertMessage(message);
+      debugPrint('saveAiMessage result: $result');
+    } catch (e) {
+      debugPrint('Failed to save AI message: $e');
+    }
+  }
+
+  // 从数据库加载指定角色的聊天记录
+  Future<List<ChatMessage>> loadChatHistory(String roleName) async {
+    try {
+      return await _dbHelper.getMessagesByRole(roleName);
+    } catch (e) {
+      debugPrint('Failed to load chat history: $e');
+      return [];
+    }
+  }
+
+  // 清空指定角色的聊天记录
+  Future<void> clearChatHistoryFromDatabase(String roleName) async {
+    try {
+      await _dbHelper.deleteMessagesByRole(roleName);
+    } catch (e) {
+      debugPrint('Failed to clear chat history: $e');
+    }
+  }
+
+  // 获取指定角色的消息数量
+  Future<int> getMessageCount(String roleName) async {
+    try {
+      return await _dbHelper.getMessageCountByRole(roleName);
+    } catch (e) {
+      debugPrint('Failed to get message count: $e');
+      return 0;
+    }
+  }
+
+  // 保存当前AI回复到数据库
+  Future<void> _saveCurrentAiMessage() async {
+    try {
+      // 获取当前角色的最后一条消息
+      final messages = ChatStateManager().getMessages(roleName.value);
+      if (messages.isNotEmpty && !messages.last.isUser) {
+        final aiMessage = messages.last;
+        // 只有当消息内容不为空时才保存
+        if (aiMessage.content.isNotEmpty) {
+          await saveAiMessage(aiMessage.content);
+          debugPrint('AI message saved to database: ${aiMessage.content}');
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to save current AI message: $e');
+    }
   }
 }

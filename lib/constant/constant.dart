@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_page.dart';
 import 'package:rwkv_mobile_flutter/types.dart';
 import 'package:get/get.dart';
 
@@ -54,7 +55,26 @@ void switchToRole(Map<String, dynamic> role) {
     _controller = Get.put(RolePlayChatController());
   }
 
+  // 清空当前状态（只清空内存，不删除数据库记录）
   _controller?.clearStates();
+
+  // 异步加载该角色的聊天历史记录
+  Future.microtask(() async {
+    try {
+      final chatStateManager = ChatStateManager();
+      await chatStateManager.loadMessagesFromDatabase(role['name'] as String);
+      debugPrint(
+        'Loaded chat history for ${role['name']}, message count: ${chatStateManager.getMessages(role['name'] as String).length}',
+      );
+
+      // 通知UI更新
+      if (Get.isRegistered<RolePlayChatController>()) {
+        Get.find<RolePlayChatController>().update();
+      }
+    } catch (e) {
+      debugPrint('Failed to load chat history in switchToRole: $e');
+    }
+  });
 }
 
 var roles = [
