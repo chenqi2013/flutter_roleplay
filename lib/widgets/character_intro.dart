@@ -177,34 +177,34 @@ class _CharacterIntroState extends State<CharacterIntro> {
           ),
         ],
         const SizedBox(height: 16),
-        // 引导提示
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.45),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
-              width: 0.5,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.lightbulb_outline, color: Colors.white70, size: 16),
-              const SizedBox(width: 8),
-              const Text(
-                '试试开启继续说',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+        // // 引导提示
+        // Container(
+        //   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        //   decoration: BoxDecoration(
+        //     color: Colors.black.withValues(alpha: 0.45),
+        //     borderRadius: BorderRadius.circular(14),
+        //     border: Border.all(
+        //       color: Colors.white.withValues(alpha: 0.15),
+        //       width: 0.5,
+        //     ),
+        //   ),
+        //   child: Row(
+        //     mainAxisSize: MainAxisSize.min,
+        //     children: [
+        //       Icon(Icons.lightbulb_outline, color: Colors.white70, size: 16),
+        //       const SizedBox(width: 8),
+        //       const Text(
+        //         '试试开启继续说',
+        //         style: TextStyle(
+        //           color: Colors.white,
+        //           fontSize: 13,
+        //           fontWeight: FontWeight.w400,
+        //         ),
+        //         textAlign: TextAlign.center,
+        //       ),
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }

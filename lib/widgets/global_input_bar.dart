@@ -144,53 +144,53 @@ class _GlassInput extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              // 右侧按钮们
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _circleBtn(
-                    gradient: const [Color(0x66FFC107), Color(0x33FF9800)],
-                    borderColor: const Color(0x88FFC107),
-                    child: const Icon(
-                      Icons.flash_on_outlined,
-                      color: Colors.amber,
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Stack(
-                    children: [
-                      _circleBtn(
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                          size: 26,
-                        ),
-                      ),
-                      // Positioned(
-                      //   top: 6,
-                      //   right: 6,
-                      //   child: Container(
-                      //     width: 8,
-                      //     height: 8,
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.red,
-                      //       shape: BoxShape.circle,
-                      //       boxShadow: [
-                      //         BoxShadow(
-                      //           color: Colors.red.withValues(alpha: 0.5),
-                      //           blurRadius: 4,
-                      //           offset: const Offset(0, 1),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //   ),
-                      // ),
-                    ],
-                  ),
-                ],
-              ),
+              // const SizedBox(width: 12),
+              // // 右侧按钮们
+              // Row(
+              //   mainAxisSize: MainAxisSize.min,
+              //   children: [
+              //     _circleBtn(
+              //       gradient: const [Color(0x66FFC107), Color(0x33FF9800)],
+              //       borderColor: const Color(0x88FFC107),
+              //       child: const Icon(
+              //         Icons.flash_on_outlined,
+              //         color: Colors.amber,
+              //         size: 26,
+              //       ),
+              //     ),
+              //     const SizedBox(width: 10),
+              //     Stack(
+              //       children: [
+              //         _circleBtn(
+              //           child: const Icon(
+              //             Icons.add,
+              //             color: Colors.white,
+              //             size: 26,
+              //           ),
+              //         ),
+              //         // Positioned(
+              //         //   top: 6,
+              //         //   right: 6,
+              //         //   child: Container(
+              //         //     width: 8,
+              //         //     height: 8,
+              //         //     decoration: BoxDecoration(
+              //         //       color: Colors.red,
+              //         //       shape: BoxShape.circle,
+              //         //       boxShadow: [
+              //         //         BoxShadow(
+              //         //           color: Colors.red.withValues(alpha: 0.5),
+              //         //           blurRadius: 4,
+              //         //           offset: const Offset(0, 1),
+              //         //         ),
+              //         //       ],
+              //         //     ),
+              //         //   ),
+              //         // ),
+              //       ],
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),

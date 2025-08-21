@@ -23,10 +23,10 @@ dependencies:
       url: https://github.com/RWKV-APP/rwkv_downloader.git
       ref: master
   rwkv_mobile_flutter:
-    # path: ../rwkv_mobile_flutter
-     git:
-       url: https://github.com/MollySophia/rwkv_mobile_flutter
-       ref: dev
+    path: ../rwkv_mobile_flutter
+    #  git:
+    #    url: https://github.com/MollySophia/rwkv_mobile_flutter
+    #    ref: dev
 
 dev_dependencies:
   flutter_test:

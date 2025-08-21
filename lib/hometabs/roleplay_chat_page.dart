@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
@@ -530,49 +531,52 @@ class _RolePlayChatState extends State<RolePlayChat>
             ),
             centerTitle: true,
             actions: [
-              // 调试按钮：测试消息发送
-              IconButton(
-                icon: const Icon(
-                  Icons.bug_report,
-                  color: Colors.orange,
-                  size: 24,
+              // Debug模式下的调试按钮
+              if (kDebugMode) ...[
+                // 调试按钮：测试消息发送
+                IconButton(
+                  icon: const Icon(
+                    Icons.bug_report,
+                    color: Colors.orange,
+                    size: 24,
+                  ),
+                  onPressed: () {
+                    _handleSend('测试消息：你好');
+                  },
                 ),
-                onPressed: () {
-                  _handleSend('测试消息：你好');
-                },
-              ),
-              // 调试按钮：查看数据库消息数量
-              IconButton(
-                icon: const Icon(Icons.storage, color: Colors.blue, size: 24),
-                onPressed: () async {
-                  final roleName = role['name'] as String;
-                  final count = await _stateManager.getMessageCount(roleName);
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('数据库中$roleName的消息数: $count')),
-                    );
-                  }
-                },
-              ),
-              // 清空历史记录按钮
-              IconButton(
-                icon: const Icon(
-                  Icons.delete_forever,
-                  color: Colors.red,
-                  size: 24,
+                // 调试按钮：查看数据库消息数量
+                IconButton(
+                  icon: const Icon(Icons.storage, color: Colors.blue, size: 24),
+                  onPressed: () async {
+                    final roleName = role['name'] as String;
+                    final count = await _stateManager.getMessageCount(roleName);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('数据库中$roleName的消息数: $count')),
+                      );
+                    }
+                  },
                 ),
-                onPressed: () async {
-                  await _controller?.clearAllChatHistory();
-                  setState(() {
-                    // 触发UI更新
-                  });
-                  if (mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
-                  }
-                },
-              ),
+                // 清空历史记录按钮
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_forever,
+                    color: Colors.red,
+                    size: 24,
+                  ),
+                  onPressed: () async {
+                    await _controller?.clearAllChatHistory();
+                    setState(() {
+                      // 触发UI更新
+                    });
+                    if (mounted) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
+                    }
+                  },
+                ),
+              ],
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.white, size: 28),
                 onPressed: () {
@@ -652,43 +656,54 @@ class _RolePlayChatState extends State<RolePlayChat>
         ),
         centerTitle: true,
         actions: [
-          // 调试按钮：测试消息发送
-          IconButton(
-            icon: const Icon(Icons.bug_report, color: Colors.orange, size: 24),
-            onPressed: () {
-              _handleSend('测试消息：你好');
-            },
-          ),
-          // 调试按钮：查看数据库消息数量
-          IconButton(
-            icon: const Icon(Icons.storage, color: Colors.blue, size: 24),
-            onPressed: () async {
-              final currentRoleName = roleName.value;
-              final count = await _stateManager.getMessageCount(
-                currentRoleName,
-              );
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('数据库中$currentRoleName的消息数: $count')),
+          // Debug模式下的调试按钮
+          if (kDebugMode) ...[
+            // 调试按钮：测试消息发送
+            IconButton(
+              icon: const Icon(
+                Icons.bug_report,
+                color: Colors.orange,
+                size: 24,
+              ),
+              onPressed: () {
+                _handleSend('测试消息：你好');
+              },
+            ),
+            // 调试按钮：查看数据库消息数量
+            IconButton(
+              icon: const Icon(Icons.storage, color: Colors.blue, size: 24),
+              onPressed: () async {
+                final currentRoleName = roleName.value;
+                final count = await _stateManager.getMessageCount(
+                  currentRoleName,
                 );
-              }
-            },
-          ),
-          // 清空历史记录按钮
-          IconButton(
-            icon: const Icon(Icons.delete_forever, color: Colors.red, size: 24),
-            onPressed: () async {
-              await _controller?.clearAllChatHistory();
-              setState(() {
-                // 触发UI更新
-              });
-              if (mounted) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
-              }
-            },
-          ),
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('数据库中$currentRoleName的消息数: $count')),
+                  );
+                }
+              },
+            ),
+            // 清空历史记录按钮
+            IconButton(
+              icon: const Icon(
+                Icons.delete_forever,
+                color: Colors.red,
+                size: 24,
+              ),
+              onPressed: () async {
+                await _controller?.clearAllChatHistory();
+                setState(() {
+                  // 触发UI更新
+                });
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
+                }
+              },
+            ),
+          ],
           IconButton(
             icon: const Icon(Icons.add, color: Colors.white, size: 28),
             onPressed: () {
