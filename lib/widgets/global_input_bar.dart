@@ -22,11 +22,12 @@ class GlobalInputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewInsets = MediaQuery.of(context).viewInsets.bottom; // 键盘高度
+    final bottomPadding = MediaQuery.of(context).padding.bottom; // 安全区域底部高度
 
     if (inline) {
       // 页面最底部内嵌模式：不使用悬浮/对齐，由外部控制底部间距
       return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding + 8),
         child: _GlassInput(
           height: height,
           onSend: onSend,
@@ -35,23 +36,25 @@ class GlobalInputBar extends StatelessWidget {
       );
     }
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: AnimatedPadding(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        // 键盘弹出时：顶到键盘之上；否则：悬停在底部导航上方
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          bottom: (viewInsets > 0)
-              ? (viewInsets + 8) // 键盘在时，跟随键盘
-              : (bottomBarHeight + 12), // 常规状态，悬停在底部导航上方
-        ),
-        child: _GlassInput(
-          height: height,
-          onSend: onSend,
-          controller: controller,
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          // 键盘弹出时：顶到键盘之上；否则：悬停在底部导航上方
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: (viewInsets > 0)
+                ? (viewInsets + 8) // 键盘在时，跟随键盘
+                : (bottomBarHeight + 8), // 常规状态，悬停在底部导航上方
+          ),
+          child: _GlassInput(
+            height: height,
+            onSend: onSend,
+            controller: controller,
+          ),
         ),
       ),
     );

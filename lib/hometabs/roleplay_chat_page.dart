@@ -611,15 +611,12 @@ class _RolePlayChatState extends State<RolePlayChat>
                     },
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 25),
-                  child: GlobalInputBar(
-                    bottomBarHeight: 0,
-                    height: inputBarHeight,
-                    inline: true,
-                    onSend: _handleSend,
-                    controller: _textController,
-                  ),
+                GlobalInputBar(
+                  bottomBarHeight: 0,
+                  height: inputBarHeight,
+                  inline: true,
+                  onSend: _handleSend,
+                  controller: _textController,
                 ),
               ],
             ),
@@ -726,15 +723,12 @@ class _RolePlayChatState extends State<RolePlayChat>
                 },
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 25),
-              child: GlobalInputBar(
-                bottomBarHeight: 0,
-                height: inputBarHeight,
-                inline: true,
-                onSend: _handleSend,
-                controller: _textController,
-              ),
+            GlobalInputBar(
+              bottomBarHeight: 0,
+              height: inputBarHeight,
+              inline: true,
+              onSend: _handleSend,
+              controller: _textController,
             ),
           ],
         ),
