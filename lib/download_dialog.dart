@@ -216,7 +216,7 @@ void showDownloadDialog(
 Future<String> getCachePath() async {
   String tempDirPath = '';
   try {
-    Directory tempDir = await getApplicationCacheDirectory();
+    Directory tempDir = await getApplicationDocumentsDirectory();
     tempDirPath = tempDir.path;
   } catch (e) {
     print('Error getCachePath: $e');
