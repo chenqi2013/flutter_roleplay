@@ -43,7 +43,7 @@ class RolePlayChatController extends GetxController {
 
   final RxInt prefillSpeed = 0.obs;
   final RxInt decodeSpeed = 0.obs;
-  bool isGenerating = false;
+  final RxBool isGenerating = false.obs;
   late Completer<void> _initRuntimeCompleter = Completer<void>();
   Timer? _getTokensTimer; // 未使用，先注释避免 lint 警告
   String prompt11 = '<EOD>User: 读博可以改变一个人的性格吗\n\nAssistant: <think>\n</think>';
@@ -91,6 +91,7 @@ class RolePlayChatController extends GetxController {
           // );
         } else if (message is IsGenerating) {
           var generating = message.isGenerating;
+          isGenerating.value = generating;
           if (!generating && isNeedSaveAiMessage) {
             debugPrint('receive IsGenerating: $generating');
             isNeedSaveAiMessage = false;
@@ -358,9 +359,11 @@ class RolePlayChatController extends GetxController {
   Future<void> generate(String prompt) async {
     prefillSpeed.value = 0;
     decodeSpeed.value = 0;
+    isGenerating.value = true; // 开始生成时设置为true
     final sendPort = _sendPort;
     if (sendPort == null) {
       debugPrint("sendPort is null");
+      isGenerating.value = false;
       return;
     }
 
