@@ -397,7 +397,7 @@ class RolePlayChatController extends GetxController {
       _getTokensTimer!.cancel();
     }
     isNeedSaveAiMessage = true;
-    _getTokensTimer = Timer.periodic(const Duration(milliseconds: 20), (
+    _getTokensTimer = Timer.periodic(const Duration(milliseconds: 100), (
       timer,
     ) async {
       send(to_rwkv.GetResponseBufferIds());
@@ -405,6 +405,12 @@ class RolePlayChatController extends GetxController {
       send(to_rwkv.GetResponseBufferContent());
       await Future.delayed(const Duration(milliseconds: 1000));
       send(to_rwkv.GetIsGenerating());
+
+      // 减少不必要的调用频率
+      if (timer.tick % 5 == 0) {
+        send(to_rwkv.GetPrefillAndDecodeSpeed());
+        send(to_rwkv.GetIsGenerating());
+      }
     });
   }
 
