@@ -8,8 +8,10 @@ class GlobalInputBar extends StatelessWidget {
   final double bottomBarHeight;
   final double height;
   final bool inline; // 置于页面布局最底部（不悬浮）
-  final ValueChanged<String>? onSend; // 键盘“发送”提交回调
+  final ValueChanged<String>? onSend; // 键盘"发送"提交回调
   final TextEditingController? controller; // 外部可控输入内容
+  final bool isLoading; // AI回复中的加载状态
+  final String roleName; // 角色名称
   const GlobalInputBar({
     super.key,
     required this.bottomBarHeight,
@@ -17,6 +19,8 @@ class GlobalInputBar extends StatelessWidget {
     this.inline = false,
     this.onSend,
     this.controller,
+    this.isLoading = false,
+    this.roleName = '',
   });
 
   @override
@@ -32,6 +36,8 @@ class GlobalInputBar extends StatelessWidget {
           height: height,
           onSend: onSend,
           controller: controller,
+          isLoading: isLoading,
+          roleName: roleName,
         ),
       );
     }
@@ -54,6 +60,8 @@ class GlobalInputBar extends StatelessWidget {
             height: height,
             onSend: onSend,
             controller: controller,
+            isLoading: isLoading,
+            roleName: roleName,
           ),
         ),
       ),
@@ -66,7 +74,15 @@ class _GlassInput extends StatelessWidget {
   final double height;
   final ValueChanged<String>? onSend;
   final TextEditingController? controller;
-  const _GlassInput({required this.height, this.onSend, this.controller});
+  final bool isLoading;
+  final String roleName;
+  const _GlassInput({
+    required this.height,
+    this.onSend,
+    this.controller,
+    this.isLoading = false,
+    this.roleName = '',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,27 +137,36 @@ class _GlassInput extends StatelessWidget {
               const SizedBox(width: 12),
               // 输入框
               Expanded(
-                child: Obx(
-                  () => TextField(
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                    decoration: InputDecoration(
-                      hintText: '发送消息给${roleName.value}',
-                      hintStyle: TextStyle(color: Colors.white54, fontSize: 16),
-                      border: InputBorder.none,
-                      filled: true,
-                      fillColor: Colors.transparent, // 背景透明
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    controller: controller,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (value) {
-                      final String v = value.trim();
-                      if (v.isEmpty) return;
-                      onSend?.call(v);
-                      // 清空输入
-                      controller?.clear();
-                    },
+                child: TextField(
+                  enabled: !isLoading, // 加载时禁用输入
+                  style: TextStyle(
+                    color: isLoading ? Colors.white38 : Colors.white,
+                    fontSize: 16,
                   ),
+                  decoration: InputDecoration(
+                    hintText: isLoading
+                        ? 'AI正在回复中...'
+                        : '发送消息给${roleName.isNotEmpty ? roleName : "AI"}',
+                    hintStyle: TextStyle(
+                      color: isLoading ? Colors.white38 : Colors.white54,
+                      fontSize: 16,
+                    ),
+                    border: InputBorder.none,
+                    filled: true,
+                    fillColor: Colors.transparent, // 背景透明
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  controller: controller,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: isLoading
+                      ? null
+                      : (value) {
+                          final String v = value.trim();
+                          if (v.isEmpty) return;
+                          onSend?.call(v);
+                          // 清空输入
+                          controller?.clear();
+                        },
                 ),
               ),
               // const SizedBox(width: 12),

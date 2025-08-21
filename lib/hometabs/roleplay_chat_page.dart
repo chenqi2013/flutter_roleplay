@@ -141,6 +141,9 @@ class _RolePlayChatState extends State<RolePlayChat>
   bool _isControllerInitialized = false;
   bool _isInitializing = false;
 
+  // 滑动检测相关
+  bool _isUserScrolling = false;
+
   List<ChatMessage> get _messages {
     final messages = _stateManager.getMessages(roleName.value);
     // debugPrint(
@@ -165,6 +168,11 @@ class _RolePlayChatState extends State<RolePlayChat>
 
     // 异步初始化控制器，不阻塞UI
     _initializeController();
+
+    // 添加ScrollController监听器来实时检测滑动
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.addListener(_onScrollPositionChanged);
+    });
 
     // 监听角色信息变化，当角色信息更新时自动清空聊天记录
     ever(roleDescription, (String newDesc) {
@@ -273,6 +281,7 @@ class _RolePlayChatState extends State<RolePlayChat>
     _streamSub?.cancel();
     _textController.dispose();
     _pageController.dispose();
+    _scrollController.removeListener(_onScrollPositionChanged);
     super.dispose();
   }
 
@@ -345,7 +354,13 @@ class _RolePlayChatState extends State<RolePlayChat>
               // debugPrint(
               //   'Updated message with chunk, content length: ${chunk.length}',
               // );
-              _scrollToBottom();
+
+              // 关键修改：只有在用户没有滑动时才自动滚动
+              if (!_isUserScrolling) {
+                _scrollToBottom();
+              } else {
+                debugPrint('用户正在滑动，跳过自动滚动');
+              }
             }
           },
           onError: (Object e) {
@@ -360,7 +375,11 @@ class _RolePlayChatState extends State<RolePlayChat>
               setState(() {
                 // 触发UI更新
               });
-              _scrollToBottom();
+
+              // 错误时也检查用户是否在滑动
+              if (!_isUserScrolling) {
+                _scrollToBottom();
+              }
             }
           },
         );
@@ -415,9 +434,12 @@ class _RolePlayChatState extends State<RolePlayChat>
   void _scrollToBottom() {
     if (!_scrollController.hasClients || !mounted) return;
 
+    // 只有在用户没有主动滑动到上方时才自动滚动
+    if (_isUserScrolling) return;
+
     // 使用 microtask 而不是 addPostFrameCallback 来减少延迟
     Future.microtask(() {
-      if (!_scrollController.hasClients || !mounted) return;
+      if (!_scrollController.hasClients || !mounted || _isUserScrolling) return;
 
       final double currentOffset = _scrollController.offset;
       const double bottomOffset = 0.0;
@@ -430,6 +452,65 @@ class _RolePlayChatState extends State<RolePlayChat>
         );
       }
     });
+  }
+
+  // 实时监听滚动位置变化
+  void _onScrollPositionChanged() {
+    if (!_scrollController.hasClients) return;
+
+    final currentOffset = _scrollController.offset;
+
+    // 进一步降低阈值，让用户更容易滑动
+    // 如果用户滚动到距离底部超过10像素，立即停止自动滚动
+    if (currentOffset > 10.0) {
+      if (!_isUserScrolling) {
+        _isUserScrolling = true;
+        debugPrint('检测到用户向上滚动，立即停止自动滚动 - offset: $currentOffset');
+      }
+    } else {
+      // 如果用户回到底部附近（10像素内），恢复自动滚动
+      if (_isUserScrolling) {
+        _isUserScrolling = false;
+        debugPrint('用户回到底部，恢复自动滚动 - offset: $currentOffset');
+      }
+    }
+  }
+
+  // 处理用户滑动开始
+  void _onUserScrollStart() {
+    // 用户一开始滑动就立即停止自动滚动，确保最快响应
+    if (!_isUserScrolling) {
+      _isUserScrolling = true;
+      debugPrint('用户开始滑动，立即停止自动滚动');
+    }
+  }
+
+  // 处理用户滑动结束
+  void _onUserScrollEnd() {
+    // 滑动结束后，快速检查位置并决定是否恢复自动滚动
+    if (_scrollController.hasClients) {
+      final currentOffset = _scrollController.offset;
+      debugPrint('滑动结束，当前位置: $currentOffset');
+
+      // 如果在底部附近（10像素内），立即恢复自动滚动
+      if (currentOffset <= 10.0) {
+        _isUserScrolling = false;
+        debugPrint('滑动结束时在底部，立即恢复自动滚动');
+      } else {
+        // 如果在上方，延迟500毫秒后恢复，给用户更快的响应
+        debugPrint('滑动结束时在上方，500毫秒后恢复自动滚动');
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && _scrollController.hasClients) {
+            final newOffset = _scrollController.offset;
+            // 再次检查位置，如果还在上方就保持停止状态
+            if (newOffset <= 10.0) {
+              _isUserScrolling = false;
+              debugPrint('延迟检查后在底部，恢复自动滚动');
+            }
+          }
+        });
+      }
+    }
   }
 
   @override
@@ -605,31 +686,45 @@ class _RolePlayChatState extends State<RolePlayChat>
             child: Column(
               children: [
                 Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    itemCount: _messages.length + 1,
-                    cacheExtent: 1000,
-                    addAutomaticKeepAlives: true,
-                    addRepaintBoundaries: true,
-                    addSemanticIndexes: false,
-                    itemBuilder: (context, index) {
-                      return RepaintBoundary(
-                        child: _buildListItem(context, index),
-                      );
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification notification) {
+                      if (notification is ScrollStartNotification) {
+                        _onUserScrollStart();
+                      } else if (notification is ScrollEndNotification) {
+                        _onUserScrollEnd();
+                      }
+                      return false;
                     },
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      itemCount: _messages.length + 1,
+                      cacheExtent: 1000,
+                      addAutomaticKeepAlives: true,
+                      addRepaintBoundaries: true,
+                      addSemanticIndexes: false,
+                      itemBuilder: (context, index) {
+                        return RepaintBoundary(
+                          child: _buildListItem(context, index),
+                        );
+                      },
+                    ),
                   ),
                 ),
-                GlobalInputBar(
-                  bottomBarHeight: 0,
-                  height: inputBarHeight,
-                  inline: true,
-                  onSend: _handleSend,
-                  controller: _textController,
+                Obx(
+                  () => GlobalInputBar(
+                    bottomBarHeight: 0,
+                    height: inputBarHeight,
+                    inline: true,
+                    onSend: _handleSend,
+                    controller: _textController,
+                    isLoading: _controller?.isGenerating.value ?? false,
+                    roleName: roleName.value,
+                  ),
                 ),
               ],
             ),
@@ -730,29 +825,45 @@ class _RolePlayChatState extends State<RolePlayChat>
         child: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                reverse: true,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                itemCount: _messages.length + 1,
-                cacheExtent: 1000, // 增加缓存范围
-                addAutomaticKeepAlives: true,
-                addRepaintBoundaries: true, // 添加重绘边界
-                addSemanticIndexes: false, // 禁用语义索引以提升性能
-                itemBuilder: (context, index) {
-                  return RepaintBoundary(child: _buildListItem(context, index));
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification notification) {
+                  if (notification is ScrollStartNotification) {
+                    _onUserScrollStart();
+                  } else if (notification is ScrollEndNotification) {
+                    _onUserScrollEnd();
+                  }
+                  return false;
                 },
+                child: ListView.builder(
+                  controller: _scrollController,
+                  reverse: true,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  itemCount: _messages.length + 1,
+                  cacheExtent: 1000, // 增加缓存范围
+                  addAutomaticKeepAlives: true,
+                  addRepaintBoundaries: true, // 添加重绘边界
+                  addSemanticIndexes: false, // 禁用语义索引以提升性能
+                  itemBuilder: (context, index) {
+                    return RepaintBoundary(
+                      child: _buildListItem(context, index),
+                    );
+                  },
+                ),
               ),
             ),
-            GlobalInputBar(
-              bottomBarHeight: 0,
-              height: inputBarHeight,
-              inline: true,
-              onSend: _handleSend,
-              controller: _textController,
+            Obx(
+              () => GlobalInputBar(
+                bottomBarHeight: 0,
+                height: inputBarHeight,
+                inline: true,
+                onSend: _handleSend,
+                controller: _textController,
+                isLoading: _controller?.isGenerating.value ?? false,
+                roleName: roleName.value,
+              ),
             ),
           ],
         ),
