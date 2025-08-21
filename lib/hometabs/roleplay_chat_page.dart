@@ -12,8 +12,11 @@ import 'package:flutter_roleplay/pages/roles/roles_list_page.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 
+BuildContext? currentContext;
+
 class RoleplayManage {
-  static Widget createRolePlayChatPage() {
+  static Widget createRolePlayChatPage(BuildContext context) {
+    currentContext = context;
     return GetMaterialApp(home: RolePlayChat());
   }
 }
@@ -512,14 +515,9 @@ class _RolePlayChatState extends State<RolePlayChat>
             backgroundColor: Colors.transparent,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.list, color: Colors.white, size: 28),
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const RolesListPage(),
-                  ),
-                );
+                Navigator.of(currentContext!).pop();
               },
             ),
             title: Text(
@@ -532,51 +530,62 @@ class _RolePlayChatState extends State<RolePlayChat>
             centerTitle: true,
             actions: [
               // Debug模式下的调试按钮
-              if (kDebugMode) ...[
-                // 调试按钮：测试消息发送
-                IconButton(
-                  icon: const Icon(
-                    Icons.bug_report,
-                    color: Colors.orange,
-                    size: 24,
-                  ),
-                  onPressed: () {
-                    _handleSend('测试消息：你好');
-                  },
-                ),
-                // 调试按钮：查看数据库消息数量
-                IconButton(
-                  icon: const Icon(Icons.storage, color: Colors.blue, size: 24),
-                  onPressed: () async {
-                    final roleName = role['name'] as String;
-                    final count = await _stateManager.getMessageCount(roleName);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('数据库中$roleName的消息数: $count')),
-                      );
-                    }
-                  },
-                ),
-                // 清空历史记录按钮
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_forever,
-                    color: Colors.red,
-                    size: 24,
-                  ),
-                  onPressed: () async {
-                    await _controller?.clearAllChatHistory();
-                    setState(() {
-                      // 触发UI更新
-                    });
-                    if (mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
-                    }
-                  },
-                ),
-              ],
+              // if (kDebugMode) ...[
+              //   // 调试按钮：测试消息发送
+              //   IconButton(
+              //     icon: const Icon(
+              //       Icons.bug_report,
+              //       color: Colors.orange,
+              //       size: 24,
+              //     ),
+              //     onPressed: () {
+              //       _handleSend('测试消息：你好');
+              //     },
+              //   ),
+              //   // 调试按钮：查看数据库消息数量
+              //   IconButton(
+              //     icon: const Icon(Icons.storage, color: Colors.blue, size: 24),
+              //     onPressed: () async {
+              //       final roleName = role['name'] as String;
+              //       final count = await _stateManager.getMessageCount(roleName);
+              //       if (mounted) {
+              //         ScaffoldMessenger.of(context).showSnackBar(
+              //           SnackBar(content: Text('数据库中$roleName的消息数: $count')),
+              //         );
+              //       }
+              //     },
+              //   ),
+              //   // 清空历史记录按钮
+              //   IconButton(
+              //     icon: const Icon(
+              //       Icons.delete_forever,
+              //       color: Colors.red,
+              //       size: 24,
+              //     ),
+              //     onPressed: () async {
+              //       await _controller?.clearAllChatHistory();
+              //       setState(() {
+              //         // 触发UI更新
+              //       });
+              //       if (mounted) {
+              //         ScaffoldMessenger.of(
+              //           context,
+              //         ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
+              //       }
+              //     },
+              //   ),
+              // ],
+              IconButton(
+                icon: const Icon(Icons.list, color: Colors.white, size: 28),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RolesListPage(),
+                    ),
+                  );
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.white, size: 28),
                 onPressed: () {
