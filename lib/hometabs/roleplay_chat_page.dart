@@ -636,26 +636,26 @@ class _RolePlayChatState extends State<RolePlayChat>
               //       }
               //     },
               //   ),
-              //   // 清空历史记录按钮
-              //   IconButton(
-              //     icon: const Icon(
-              //       Icons.delete_forever,
-              //       color: Colors.red,
-              //       size: 24,
-              //     ),
-              //     onPressed: () async {
-              //       await _controller?.clearAllChatHistory();
-              //       setState(() {
-              //         // 触发UI更新
-              //       });
-              //       if (mounted) {
-              //         ScaffoldMessenger.of(
-              //           context,
-              //         ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
-              //       }
-              //     },
-              //   ),
               // ],
+              // 清空历史记录按钮
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_forever,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                onPressed: () async {
+                  await _controller?.clearAllChatHistory();
+                  setState(() {
+                    // 触发UI更新
+                  });
+                  if (mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
+                  }
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.list, color: Colors.white, size: 28),
                 onPressed: () {
@@ -788,35 +788,31 @@ class _RolePlayChatState extends State<RolePlayChat>
                 }
               },
             ),
-            // 清空历史记录按钮
-            IconButton(
-              icon: const Icon(
-                Icons.delete_forever,
-                color: Colors.red,
-                size: 24,
-              ),
-              onPressed: () async {
-                await _controller?.clearAllChatHistory();
-                setState(() {
-                  // 触发UI更新
-                });
-                if (mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
-                }
-              },
-            ),
           ],
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white, size: 28),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CreateRolePage()),
-              );
-            },
-          ),
+          // // 清空历史记录按钮
+          // IconButton(
+          //   icon: const Icon(Icons.delete_forever, color: Colors.red, size: 24),
+          //   onPressed: () async {
+          //     await _controller?.clearAllChatHistory();
+          //     setState(() {
+          //       // 触发UI更新
+          //     });
+          //     if (mounted) {
+          //       ScaffoldMessenger.of(
+          //         context,
+          //       ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
+          //     }
+          //   },
+          // ),
+          // IconButton(
+          //   icon: const Icon(Icons.add, color: Colors.white, size: 28),
+          //   onPressed: () {
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(builder: (context) => const CreateRolePage()),
+          //     );
+          //   },
+          // ),
         ],
       ),
       body: SafeArea(

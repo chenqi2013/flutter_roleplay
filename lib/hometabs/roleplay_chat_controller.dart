@@ -216,10 +216,10 @@ class RolePlayChatController extends GetxController {
       to_rwkv.SetSamplerParams(
         temperature: 1.5,
         topK: 500,
-        topP: 0.3,
-        presencePenalty: .0,
-        frequencyPenalty: 1.0,
-        penaltyDecay: .996,
+        topP: 0,
+        presencePenalty: 0,
+        frequencyPenalty: 0,
+        penaltyDecay: 0.996,
       ),
     );
     // send(to_rwkv.SetGenerationStopToken(0));
