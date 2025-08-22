@@ -40,16 +40,19 @@ class RolesListController extends GetxController {
   Future<void> _loadFromNetwork() async {
     try {
       debugPrint('正在从网络加载角色列表...');
-      final roleList = await RoleApiService.getRoles();
+      final apiRoles = await RoleApiService.getRoles();
 
-      // 保存到本地缓存
-      await _storageService.saveRoles(roleList);
+      // 保存API角色到本地缓存 (会保留现有的自定义角色)
+      await _storageService.saveRoles(apiRoles);
 
-      roles.value = roleList;
+      // 重新从本地数据库加载所有角色 (包括API和自定义角色，自定义角色在前)
+      final allRoles = await _storageService.getRoles();
+
+      roles.value = allRoles;
       isLoading.value = false;
       error.value = '';
 
-      debugPrint('成功从网络加载 ${roleList.length} 个角色');
+      debugPrint('成功从网络加载 ${apiRoles.length} 个API角色，总角色数: ${allRoles.length}');
     } catch (e) {
       debugPrint('网络加载角色失败: $e');
       rethrow; // 重新抛出异常，让上层处理

@@ -582,9 +582,9 @@ class _RolePlayChatState extends State<RolePlayChat>
           child: Image.network(
             role['image'] as String,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: Colors.grey.shade300,
-              child: const Center(child: Icon(Icons.error, color: Colors.grey)),
+            errorBuilder: (context, error, stackTrace) => Image.asset(
+              'packages/flutter_roleplay/assets/images/common_bg.png',
+              fit: BoxFit.cover,
             ),
           ),
         ),

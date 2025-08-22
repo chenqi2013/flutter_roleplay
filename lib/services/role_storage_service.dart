@@ -20,7 +20,7 @@ class RoleStorageService {
     String path = join(await getDatabasesPath(), 'role_storage.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // 升级版本以添加 is_custom 字段
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -34,6 +34,7 @@ class RoleStorageService {
         name TEXT NOT NULL,
         description TEXT NOT NULL,
         image TEXT NOT NULL,
+        is_custom INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -42,6 +43,10 @@ class RoleStorageService {
     // 创建索引
     await db.execute('''
       CREATE INDEX idx_role_name ON roles (name)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_is_custom ON roles (is_custom)
     ''');
 
     // 创建缓存元数据表，记录最后更新时间等信息
@@ -57,22 +62,28 @@ class RoleStorageService {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // 未来版本升级时的处理
-    if (oldVersion < newVersion) {
-      // 可以在这里添加新的表或修改现有表结构
+    debugPrint('数据库升级: $oldVersion -> $newVersion');
+
+    if (oldVersion < 2) {
+      // 从版本1升级到版本2: 添加 is_custom 字段
+      await db.execute(
+        'ALTER TABLE roles ADD COLUMN is_custom INTEGER NOT NULL DEFAULT 0',
+      );
+      await db.execute('CREATE INDEX idx_is_custom ON roles (is_custom)');
+      debugPrint('已添加 is_custom 字段和索引');
     }
   }
 
-  /// 保存角色列表到本地
+  /// 保存API角色列表到本地 (会清空现有的API角色，保留自定义角色)
   Future<void> saveRoles(List<RoleModel> roles) async {
     try {
       final db = await database;
       final batch = db.batch();
 
-      // 清空现有数据
-      batch.delete('roles');
+      // 只清空API角色，保留自定义角色
+      batch.delete('roles', where: 'is_custom = ?', whereArgs: [0]);
 
-      // 插入新数据
+      // 插入新的API角色数据
       final now = DateTime.now().millisecondsSinceEpoch;
       for (final role in roles) {
         batch.insert('roles', {
@@ -80,6 +91,7 @@ class RoleStorageService {
           'name': role.name,
           'description': role.description,
           'image': role.image,
+          'is_custom': role.isCustom ? 1 : 0,
           'created_at': now,
           'updated_at': now,
         });
@@ -100,25 +112,22 @@ class RoleStorageService {
     }
   }
 
-  /// 从本地获取角色列表
+  /// 从本地获取角色列表 (自定义角色排在前面)
   Future<List<RoleModel>> getRoles() async {
     try {
       final db = await database;
       final List<Map<String, dynamic>> maps = await db.query(
         'roles',
-        orderBy: 'id ASC',
+        orderBy: 'is_custom DESC, id ASC', // 自定义角色在前，然后按ID排序
       );
 
       final roles = List.generate(maps.length, (i) {
-        return RoleModel.fromJson({
-          'id': maps[i]['id'],
-          'name': maps[i]['name'],
-          'description': maps[i]['description'],
-          'image': maps[i]['image'],
-        });
+        return RoleModel.fromDbMap(maps[i]);
       });
 
-      debugPrint('从本地数据库加载了 ${roles.length} 个角色');
+      debugPrint(
+        '从本地数据库加载了 ${roles.length} 个角色 (自定义: ${roles.where((r) => r.isCustom).length}, API: ${roles.where((r) => !r.isCustom).length})',
+      );
       return roles;
     } catch (e) {
       debugPrint('从本地数据库加载角色失败: $e');
@@ -173,6 +182,93 @@ class RoleStorageService {
     }
   }
 
+  /// 保存单个自定义角色
+  Future<int> saveCustomRole(RoleModel role) async {
+    try {
+      final db = await database;
+
+      // 生成新的自定义角色ID (负数，避免与API角色冲突)
+      final customRoleId = await _generateCustomRoleId();
+
+      final roleWithId = RoleModel.createCustom(
+        id: customRoleId,
+        name: role.name,
+        description: role.description,
+        image: role.image,
+      );
+
+      await db.insert('roles', roleWithId.toDbMap());
+      debugPrint('成功保存自定义角色: ${roleWithId.name} (ID: $customRoleId)');
+      return customRoleId;
+    } catch (e) {
+      debugPrint('保存自定义角色失败: $e');
+      rethrow;
+    }
+  }
+
+  /// 生成自定义角色ID (使用负数避免与API角色冲突)
+  Future<int> _generateCustomRoleId() async {
+    try {
+      final db = await database;
+      final result = await db.rawQuery(
+        'SELECT MIN(id) as min_id FROM roles WHERE is_custom = 1',
+      );
+
+      final minId = result.first['min_id'] as int?;
+      if (minId == null) {
+        return -1; // 第一个自定义角色
+      } else {
+        return minId - 1; // 递减生成新ID
+      }
+    } catch (e) {
+      debugPrint('生成自定义角色ID失败: $e');
+      return -DateTime.now().millisecondsSinceEpoch; // 使用时间戳作为备用ID
+    }
+  }
+
+  /// 删除自定义角色
+  Future<void> deleteCustomRole(int roleId) async {
+    try {
+      final db = await database;
+      final count = await db.delete(
+        'roles',
+        where: 'id = ? AND is_custom = 1',
+        whereArgs: [roleId],
+      );
+
+      if (count > 0) {
+        debugPrint('成功删除自定义角色 (ID: $roleId)');
+      } else {
+        debugPrint('未找到要删除的自定义角色 (ID: $roleId)');
+      }
+    } catch (e) {
+      debugPrint('删除自定义角色失败: $e');
+      rethrow;
+    }
+  }
+
+  /// 获取所有自定义角色
+  Future<List<RoleModel>> getCustomRoles() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> maps = await db.query(
+        'roles',
+        where: 'is_custom = 1',
+        orderBy: 'created_at DESC', // 按创建时间倒序
+      );
+
+      final roles = List.generate(maps.length, (i) {
+        return RoleModel.fromDbMap(maps[i]);
+      });
+
+      debugPrint('获取到 ${roles.length} 个自定义角色');
+      return roles;
+    } catch (e) {
+      debugPrint('获取自定义角色失败: $e');
+      return [];
+    }
+  }
+
   /// 获取角色数量
   Future<int> getRoleCount() async {
     try {
@@ -181,6 +277,20 @@ class RoleStorageService {
       return result.first['count'] as int;
     } catch (e) {
       debugPrint('获取角色数量失败: $e');
+      return 0;
+    }
+  }
+
+  /// 获取自定义角色数量
+  Future<int> getCustomRoleCount() async {
+    try {
+      final db = await database;
+      final result = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM roles WHERE is_custom = 1',
+      );
+      return result.first['count'] as int;
+    } catch (e) {
+      debugPrint('获取自定义角色数量失败: $e');
       return 0;
     }
   }
