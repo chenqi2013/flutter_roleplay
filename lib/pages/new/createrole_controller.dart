@@ -38,18 +38,22 @@ class CreateRoleController extends GetxController {
     final String n = nameController.text.trim();
     final String d = descController.text.trim();
     if (n.isEmpty || d.isEmpty) {
-      Get.snackbar('提示', '请完整填写角色名称与设定');
+      Get.snackbar('提示', '请完整填写角色名称与设定', duration: Duration(seconds: 2));
       return;
     }
     if (descLength.value > descMaxLength) {
-      Get.snackbar('提示', '角色设定过长，建议精炼至 $descMaxLength 字以内');
+      Get.snackbar(
+        '提示',
+        '角色设定过长，建议精炼至 $descMaxLength 字以内',
+        duration: Duration(seconds: 2),
+      );
       return;
     }
     roleName.value = n;
     roleDescription.value = d;
 
     Get.back(result: {'name': n, 'desc': d});
-    Get.snackbar('已创建', '新角色"$n"已创建成功，聊天记录已清空');
+    Get.snackbar('已创建', '新角色"$n"已创建成功，聊天记录已清空', duration: Duration(seconds: 2));
     RolePlayChatController? _controller;
     if (Get.isRegistered<RolePlayChatController>()) {
       _controller = Get.find<RolePlayChatController>();

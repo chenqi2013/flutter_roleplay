@@ -333,7 +333,7 @@ class RolePlayChatController extends GetxController {
       localChatController = null;
     }
     // 通知UI清空聊天记录
-    Get.snackbar('提示', '聊天记录已清空，开始新的角色扮演');
+    Get.snackbar('提示', '聊天记录已清空，开始新的角色扮演', duration: Duration(seconds: 2));
   }
 
   Future<void> reInitRuntime({
