@@ -16,3 +16,4 @@ export 'models/role_model.dart';
 export 'services/role_api_service.dart';
 export 'models/chat_message_model.dart';
 export 'services/database_helper.dart';
+export 'services/role_storage_service.dart';

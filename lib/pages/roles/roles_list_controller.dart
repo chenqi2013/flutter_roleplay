@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/services/role_api_service.dart';
+import 'package:flutter_roleplay/services/role_storage_service.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 
 class RolesListController extends GetxController {
@@ -8,6 +10,10 @@ class RolesListController extends GetxController {
   final RxList<RoleModel> roles = <RoleModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxString error = ''.obs;
+  final RxBool isLoadingFromCache = false.obs;
+
+  // 本地存储服务
+  final RoleStorageService _storageService = RoleStorageService();
 
   @override
   void onInit() {
@@ -15,19 +21,78 @@ class RolesListController extends GetxController {
     loadRoles();
   }
 
-  /// 加载角色列表
+  /// 加载角色列表 - 优先从网络获取，失败时从本地加载
   Future<void> loadRoles() async {
     try {
       isLoading.value = true;
       error.value = '';
 
+      // 首先尝试从网络加载
+      await _loadFromNetwork();
+    } catch (e) {
+      debugPrint('网络加载失败: $e');
+      // 网络加载失败，尝试从本地缓存加载
+      await _loadFromCache();
+    }
+  }
+
+  /// 从网络加载角色列表
+  Future<void> _loadFromNetwork() async {
+    try {
+      debugPrint('正在从网络加载角色列表...');
       final roleList = await RoleApiService.getRoles();
+
+      // 保存到本地缓存
+      await _storageService.saveRoles(roleList);
 
       roles.value = roleList;
       isLoading.value = false;
+      error.value = '';
+
+      debugPrint('成功从网络加载 ${roleList.length} 个角色');
     } catch (e) {
-      error.value = e.toString();
+      debugPrint('网络加载角色失败: $e');
+      rethrow; // 重新抛出异常，让上层处理
+    }
+  }
+
+  /// 从本地缓存加载角色列表
+  Future<void> _loadFromCache() async {
+    try {
+      isLoadingFromCache.value = true;
+      debugPrint('正在从本地缓存加载角色列表...');
+
+      final cachedRoles = await _storageService.getRoles();
+
+      if (cachedRoles.isNotEmpty) {
+        roles.value = cachedRoles;
+        error.value = ''; // 清空错误信息
+
+        // // 显示从缓存加载的提示
+        // Get.snackbar(
+        //   '离线模式',
+        //   '已从本地缓存加载 ${cachedRoles.length} 个角色',
+        //   snackPosition: SnackPosition.TOP,
+        //   duration: const Duration(seconds: 3),
+        //   backgroundColor: Get.theme.colorScheme.secondary.withValues(
+        //     alpha: 0.8,
+        //   ),
+        //   colorText: Get.theme.colorScheme.onSecondary,
+        // );
+
+        debugPrint('成功从本地缓存加载 ${cachedRoles.length} 个角色');
+      } else {
+        error.value = '网络连接失败，且本地无缓存数据';
+        debugPrint('本地缓存为空，无法加载角色');
+      }
+
       isLoading.value = false;
+      isLoadingFromCache.value = false;
+    } catch (e) {
+      debugPrint('从本地缓存加载角色失败: $e');
+      error.value = '加载失败: ${e.toString()}';
+      isLoading.value = false;
+      isLoadingFromCache.value = false;
     }
   }
 
@@ -45,19 +110,75 @@ class RolesListController extends GetxController {
       '已切换到 ${role.name}',
       snackPosition: SnackPosition.TOP,
       duration: const Duration(seconds: 2),
-      backgroundColor: Get.theme.colorScheme.primary.withOpacity(0.8),
+      backgroundColor: Get.theme.colorScheme.primary.withValues(alpha: 0.8),
       colorText: Get.theme.colorScheme.onPrimary,
     );
   }
 
-  /// 刷新角色列表
+  /// 刷新角色列表 - 强制从网络获取
   Future<void> refreshRoles() async {
-    await loadRoles();
+    try {
+      isLoading.value = true;
+      error.value = '';
+      await _loadFromNetwork();
+    } catch (e) {
+      // 刷新时如果网络失败，仍然尝试从缓存加载
+      await _loadFromCache();
+    }
   }
 
   /// 重试加载
   void retryLoad() {
     loadRoles();
+  }
+
+  /// 仅从本地缓存加载（用于离线模式）
+  Future<void> loadFromCacheOnly() async {
+    await _loadFromCache();
+  }
+
+  /// 检查是否有本地缓存
+  Future<bool> hasLocalCache() async {
+    return await _storageService.hasLocalData();
+  }
+
+  /// 获取缓存信息
+  Future<String> getCacheInfo() async {
+    final hasCache = await _storageService.hasLocalData();
+    if (!hasCache) {
+      return '无本地缓存';
+    }
+
+    final count = await _storageService.getRoleCount();
+    final lastUpdate = await _storageService.getLastUpdateTime();
+
+    if (lastUpdate != null) {
+      final duration = DateTime.now().difference(lastUpdate);
+      String timeAgo;
+      if (duration.inDays > 0) {
+        timeAgo = '${duration.inDays}天前';
+      } else if (duration.inHours > 0) {
+        timeAgo = '${duration.inHours}小时前';
+      } else if (duration.inMinutes > 0) {
+        timeAgo = '${duration.inMinutes}分钟前';
+      } else {
+        timeAgo = '刚刚';
+      }
+      return '缓存: $count 个角色，更新于 $timeAgo';
+    }
+
+    return '缓存: $count 个角色';
+  }
+
+  /// 清空本地缓存
+  Future<void> clearCache() async {
+    await _storageService.clearRoles();
+    Get.snackbar(
+      '缓存清理',
+      '已清空本地角色缓存',
+      snackPosition: SnackPosition.TOP,
+      duration: const Duration(seconds: 2),
+    );
   }
 
   /// 检查角色是否为当前角色
