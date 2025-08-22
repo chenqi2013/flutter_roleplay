@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_page.dart';
-import 'package:flutter_roleplay/services/role_storage_service.dart';
+import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/services/role_api_service.dart';
 import 'package:rwkv_mobile_flutter/types.dart';
 import 'package:get/get.dart';
@@ -31,8 +31,8 @@ Future<void> initializeDefaultRole() async {
     debugPrint('开始初始化默认角色...');
 
     // 1. 先尝试从本地存储获取角色
-    final storageService = RoleStorageService();
-    final localRoles = await storageService.getRoles();
+    final dbHelper = DatabaseHelper();
+    final localRoles = await dbHelper.getRoles();
 
     if (localRoles.isNotEmpty) {
       debugPrint('从本地存储找到 ${localRoles.length} 个角色，使用第一个作为默认角色');
@@ -50,7 +50,7 @@ Future<void> initializeDefaultRole() async {
       debugPrint('从网络获取到 ${apiRoles.length} 个角色，使用第一个作为默认角色');
 
       // 保存到本地存储
-      await storageService.saveRoles(apiRoles);
+      await dbHelper.saveRoles(apiRoles);
       debugPrint('角色已保存到本地存储');
 
       // 使用第一个角色作为默认角色

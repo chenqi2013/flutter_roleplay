@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/services/role_api_service.dart';
-import 'package:flutter_roleplay/services/role_storage_service.dart';
+import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 
 class RolesListController extends GetxController {
@@ -12,8 +12,8 @@ class RolesListController extends GetxController {
   final RxString error = ''.obs;
   final RxBool isLoadingFromCache = false.obs;
 
-  // 本地存储服务
-  final RoleStorageService _storageService = RoleStorageService();
+  // 数据库辅助类
+  final DatabaseHelper _dbHelper = DatabaseHelper();
 
   @override
   void onInit() {
@@ -43,10 +43,10 @@ class RolesListController extends GetxController {
       final apiRoles = await RoleApiService.getRoles();
 
       // 保存API角色到本地缓存 (会保留现有的自定义角色)
-      await _storageService.saveRoles(apiRoles);
+      await _dbHelper.saveRoles(apiRoles);
 
       // 重新从本地数据库加载所有角色 (包括API和自定义角色，自定义角色在前)
-      final allRoles = await _storageService.getRoles();
+      final allRoles = await _dbHelper.getRoles();
 
       roles.value = allRoles;
       isLoading.value = false;
@@ -65,7 +65,7 @@ class RolesListController extends GetxController {
       isLoadingFromCache.value = true;
       debugPrint('正在从本地缓存加载角色列表...');
 
-      final cachedRoles = await _storageService.getRoles();
+      final cachedRoles = await _dbHelper.getRoles();
 
       if (cachedRoles.isNotEmpty) {
         roles.value = cachedRoles;
@@ -107,15 +107,15 @@ class RolesListController extends GetxController {
     // 返回上一页
     Get.back();
 
-    // 显示选择成功的提示
-    Get.snackbar(
-      '角色切换',
-      '已切换到 ${role.name}',
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 2),
-      backgroundColor: Get.theme.colorScheme.primary.withValues(alpha: 0.8),
-      colorText: Get.theme.colorScheme.onPrimary,
-    );
+    // // 显示选择成功的提示
+    // Get.snackbar(
+    //   '角色切换',
+    //   '已切换到 ${role.name}',
+    //   snackPosition: SnackPosition.TOP,
+    //   duration: const Duration(seconds: 2),
+    //   backgroundColor: Get.theme.colorScheme.primary.withValues(alpha: 0.8),
+    //   colorText: Get.theme.colorScheme.onPrimary,
+    // );
   }
 
   /// 刷新角色列表 - 强制从网络获取
@@ -142,18 +142,18 @@ class RolesListController extends GetxController {
 
   /// 检查是否有本地缓存
   Future<bool> hasLocalCache() async {
-    return await _storageService.hasLocalData();
+    return await _dbHelper.hasLocalRoleData();
   }
 
   /// 获取缓存信息
   Future<String> getCacheInfo() async {
-    final hasCache = await _storageService.hasLocalData();
+    final hasCache = await _dbHelper.hasLocalRoleData();
     if (!hasCache) {
       return '无本地缓存';
     }
 
-    final count = await _storageService.getRoleCount();
-    final lastUpdate = await _storageService.getLastUpdateTime();
+    final count = await _dbHelper.getRoleCount();
+    final lastUpdate = await _dbHelper.getLastUpdateTime();
 
     if (lastUpdate != null) {
       final duration = DateTime.now().difference(lastUpdate);
@@ -175,7 +175,7 @@ class RolesListController extends GetxController {
 
   /// 清空本地缓存
   Future<void> clearCache() async {
-    await _storageService.clearRoles();
+    await _dbHelper.clearRoles();
     Get.snackbar(
       '缓存清理',
       '已清空本地角色缓存',

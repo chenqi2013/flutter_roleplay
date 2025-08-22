@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
-import 'package:flutter_roleplay/services/role_storage_service.dart';
+import 'package:flutter_roleplay/services/database_helper.dart';
 import '../../constant/constant.dart';
 
 class CreateRoleController extends GetxController {
@@ -14,8 +14,8 @@ class CreateRoleController extends GetxController {
   final RxInt descLength = 0.obs;
   static const int descMaxLength = 600;
 
-  // 角色存储服务
-  final RoleStorageService _storageService = RoleStorageService();
+  // 数据库辅助类
+  final DatabaseHelper _dbHelper = DatabaseHelper();
 
   @override
   void onInit() {
@@ -69,7 +69,7 @@ class CreateRoleController extends GetxController {
       );
 
       // 保存到本地数据库
-      final roleId = await _storageService.saveCustomRole(customRole);
+      final roleId = await _dbHelper.saveCustomRole(customRole);
       debugPrint('自定义角色已保存，ID: $roleId');
 
       // 更新全局状态
