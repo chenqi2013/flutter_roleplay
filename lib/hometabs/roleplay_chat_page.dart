@@ -163,8 +163,8 @@ class _RolePlayChatState extends State<RolePlayChat>
   void initState() {
     super.initState();
 
-    // 初始化默认角色
-    initializeDefaultRole();
+    // 异步初始化默认角色和控制器，不阻塞UI
+    _initializeAsync();
 
     // 异步初始化控制器，不阻塞UI
     _initializeController();
@@ -227,6 +227,19 @@ class _RolePlayChatState extends State<RolePlayChat>
             );
           }
         });
+      }
+    });
+  }
+
+  // 异步初始化默认角色
+  void _initializeAsync() {
+    // 使用 addPostFrameCallback 确保UI先渲染
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await initializeDefaultRole();
+        debugPrint('默认角色初始化完成');
+      } catch (e) {
+        debugPrint('默认角色初始化失败: $e');
       }
     });
   }
