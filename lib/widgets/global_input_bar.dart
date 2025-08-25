@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/constant/constant.dart';
-import 'package:get/state_manager.dart';
+
 
 // 全局贴底输入框组件：自动避让键盘 + 底部导航
 class GlobalInputBar extends StatelessWidget {
