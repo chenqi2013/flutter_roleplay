@@ -129,7 +129,7 @@ class RolePlayChat extends StatefulWidget {
 }
 
 class _RolePlayChatState extends State<RolePlayChat>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   static const double inputBarHeight = 56.0;
 
   final ChatStateManager _stateManager = ChatStateManager();
@@ -162,6 +162,9 @@ class _RolePlayChatState extends State<RolePlayChat>
   @override
   void initState() {
     super.initState();
+
+    // 注册生命周期观察者
+    WidgetsBinding.instance.addObserver(this);
 
     // 异步初始化默认角色和控制器，不阻塞UI
     _initializeAsync();
@@ -291,11 +294,36 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   @override
   void dispose() {
+    // 取消流订阅
     _streamSub?.cancel();
+    _streamSub = null;
+
+    // 如果AI正在生成回复，停止它
+    if (_controller != null && _controller!.isGenerating.value) {
+      _controller!.stop();
+    }
+
+    // 移除生命周期观察者
+    WidgetsBinding.instance.removeObserver(this);
+
     _textController.dispose();
     _pageController.dispose();
     _scrollController.removeListener(_onScrollPositionChanged);
     super.dispose();
+  }
+
+  // 当页面被遮挡或不可见时取消AI回复
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _streamSub?.cancel();
+      _streamSub = null;
+      if (_controller != null && _controller!.isGenerating.value) {
+        _controller!.stop();
+      }
+    }
   }
 
   Future<void> _handleSend(String text) async {
@@ -572,6 +600,13 @@ class _RolePlayChatState extends State<RolePlayChat>
         return _buildPageContent(index);
       },
       onPageChanged: (index) {
+        // 取消当前AI回复
+        _streamSub?.cancel();
+        _streamSub = null;
+        if (_controller != null && _controller!.isGenerating.value) {
+          _controller!.stop();
+        }
+
         // 延迟切换角色，避免界面更新冲突
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // debugPrint('onPageChanged: $index,description:${usedRoles}');
@@ -611,6 +646,13 @@ class _RolePlayChatState extends State<RolePlayChat>
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
               onPressed: () {
+                // 取消当前AI回复
+                _streamSub?.cancel();
+                _streamSub = null;
+                if (_controller != null && _controller!.isGenerating.value) {
+                  _controller!.stop();
+                }
+
                 Navigator.of(currentContext!).pop();
               },
             ),
@@ -828,6 +870,13 @@ class _RolePlayChatState extends State<RolePlayChat>
               IconButton(
                 icon: const Icon(Icons.list, color: Colors.white, size: 28),
                 onPressed: () {
+                  // 取消当前AI回复
+                  _streamSub?.cancel();
+                  _streamSub = null;
+                  if (_controller != null && _controller!.isGenerating.value) {
+                    _controller!.stop();
+                  }
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -839,6 +888,13 @@ class _RolePlayChatState extends State<RolePlayChat>
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.white, size: 28),
                 onPressed: () {
+                  // 取消当前AI回复
+                  _streamSub?.cancel();
+                  _streamSub = null;
+                  if (_controller != null && _controller!.isGenerating.value) {
+                    _controller!.stop();
+                  }
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
