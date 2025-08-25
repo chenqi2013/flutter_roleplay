@@ -23,8 +23,8 @@ class RolesListPage extends GetView<RolesListController> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.purple.withOpacity(0.8),
-                Colors.blue.withOpacity(0.8),
+                Colors.purple.withValues(alpha: 0.8),
+                Colors.blue.withValues(alpha: 0.8),
               ],
             ),
           ),
@@ -36,8 +36,8 @@ class RolesListPage extends GetView<RolesListController> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.purple.withOpacity(0.1),
-              Colors.blue.withOpacity(0.1),
+              Colors.purple.withValues(alpha: 0.1),
+              Colors.blue.withValues(alpha: 0.1),
             ],
           ),
         ),
@@ -141,8 +141,8 @@ class _RoleCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withOpacity(0.95),
-                Colors.grey.shade50.withOpacity(0.95),
+                Colors.white.withValues(alpha: 0.95),
+                Colors.grey.shade50.withValues(alpha: 0.95),
               ],
             ),
           ),
