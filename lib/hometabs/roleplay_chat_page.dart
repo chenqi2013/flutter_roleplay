@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
-import 'package:flutter_roleplay/util/common_util.dart';
+import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';

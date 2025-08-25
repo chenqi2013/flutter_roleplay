@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/util/common_util.dart';
+import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
