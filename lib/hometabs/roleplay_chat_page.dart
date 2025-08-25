@@ -10,6 +10,7 @@ import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/utils/chat_dialogs.dart';
+import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:flutter_roleplay/widgets/global_input_bar.dart';
 import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
 import 'package:flutter_roleplay/mixins/scroll_management_mixin.dart';
@@ -61,9 +62,6 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   List<ChatMessage> get _messages {
     final messages = _stateManager.getMessages(roleName.value);
-    // debugPrint(
-    //   'Getting messages for ${roleName.value}: ${messages.length} messages',
-    // );
     return messages;
   }
 
@@ -154,7 +152,7 @@ class _RolePlayChatState extends State<RolePlayChat>
     // 使用 addPostFrameCallback 确保UI先渲染
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        await initializeDefaultRole();
+        await CommonUtil.initializeDefaultRole();
         debugPrint('默认角色初始化完成');
       } catch (e) {
         debugPrint('默认角色初始化失败: $e');
@@ -310,7 +308,6 @@ class _RolePlayChatState extends State<RolePlayChat>
         .streamLocalChatCompletions(content: content)
         .listen(
           (String chunk) {
-            // debugPrint('Received chunk: $chunk, length: ${chunk.length}');
             if (_messages.isEmpty || !mounted) return;
             if (!_messages.last.isUser) {
               // 流式更新期间只更新内存，不保存到数据库
@@ -323,9 +320,6 @@ class _RolePlayChatState extends State<RolePlayChat>
               setState(() {
                 // 触发UI更新
               });
-              // debugPrint(
-              //   'Updated message with chunk, content length: ${chunk.length}',
-              // );
 
               // 关键修改：只有在用户没有滑动时才自动滚动
               if (!isUserScrolling) {
@@ -357,29 +351,6 @@ class _RolePlayChatState extends State<RolePlayChat>
         );
   }
 
-
-
-
-
-
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context); // 必须调用，因为使用了 AutomaticKeepAliveClientMixin
-    return Obx(
-      () => usedRoles.isEmpty
-          ? ChatPageBuilders.buildSingleChatPage(
-              chatScaffold: _buildChatScaffold(),
-            )
-          : ChatPageBuilders.buildSwipeableChatPages(
-              pageController: _pageController,
-              usedRoles: usedRoles,
-              onPageChanged: _onPageChanged,
-              buildPageContent: _buildPageContent,
-            ),
-    );
-  }
-
   // 页面切换处理
   void _onPageChanged(int index) async {
     final role = usedRoles[index];
@@ -397,7 +368,7 @@ class _RolePlayChatState extends State<RolePlayChat>
           _controller!.stop();
           // 延迟切换角色，避免界面更新冲突
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            switchToRole(role);
+            CommonUtil.switchToRole(role);
           });
         } else {
           // 用户取消，回到原来的页面
@@ -410,7 +381,7 @@ class _RolePlayChatState extends State<RolePlayChat>
       } else {
         // AI没有在回复，直接切换
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          switchToRole(role);
+          CommonUtil.switchToRole(role);
         });
       }
     }
@@ -527,6 +498,21 @@ class _RolePlayChatState extends State<RolePlayChat>
       ),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // 必须调用，因为使用了 AutomaticKeepAliveClientMixin
+    return Obx(
+      () => usedRoles.isEmpty
+          ? ChatPageBuilders.buildSingleChatPage(
+              chatScaffold: _buildChatScaffold(),
+            )
+          : ChatPageBuilders.buildSwipeableChatPages(
+              pageController: _pageController,
+              usedRoles: usedRoles,
+              onPageChanged: _onPageChanged,
+              buildPageContent: _buildPageContent,
+            ),
+    );
+  }
 }
-
-

@@ -1,3 +1,4 @@
+import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
@@ -102,7 +103,7 @@ class RolesListController extends GetxController {
   /// 选择角色
   void selectRole(RoleModel role) {
     // 使用统一的切换角色函数
-    switchToRole(role.toMap());
+    CommonUtil.switchToRole(role.toMap());
 
     // 返回上一页
     Get.back();
