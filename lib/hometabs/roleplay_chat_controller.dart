@@ -122,6 +122,18 @@ class RolePlayChatController extends GetxController {
       // 通知外部应用需要下载模型，而不是在插件内部处理
       WidgetsBinding.instance.addPostFrameCallback((_) {
         notifyModelDownloadRequired();
+        // final context = currentContext;
+        // if (context != null) {
+        //   showDownloadDialog(
+        //     context,
+        //     '需要先下载模型才可以使用角色扮演功能',
+        //     true,
+        //     downloadUrl,
+        //     '',
+        //   );
+        // } else {
+        //   debugPrint('No context available for showing download dialog');
+        // }
       });
     } else {
       loadChatModel();

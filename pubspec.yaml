@@ -43,7 +43,7 @@ flutter:
  assets:
     - assets/images/
     - assets/lib/chat/
-    - assets/lib/qnn/
+    # - assets/lib/qnn/
     - assets/model/chat/
     - assets/config/chat/
     # - assets/filter.txt

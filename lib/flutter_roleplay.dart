@@ -18,3 +18,4 @@ export 'models/chat_message_model.dart';
 export 'services/database_helper.dart';
 export 'services/chat_state_manager.dart';
 export 'services/model_callback_service.dart';
+export 'services/role_play_manage.dart';
