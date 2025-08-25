@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/util/common_util.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
@@ -87,7 +88,7 @@ class CreateRoleController extends GetxController {
       };
 
       // 切换到新创建的角色
-      switchToRole(roleMap);
+      CommonUtil.switchToRole(roleMap);
 
       // 清理聊天状态
       RolePlayChatController? controller;

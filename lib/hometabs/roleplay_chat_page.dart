@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/services/role_play_manage.dart';
+import 'package:flutter_roleplay/util/common_util.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
@@ -14,30 +16,6 @@ import 'package:flutter_roleplay/pages/roles/roles_list_page.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
-
-BuildContext? currentContext;
-
-class RoleplayManage {
-  static Widget createRolePlayChatPage(
-    BuildContext context, {
-    VoidCallback? onModelDownloadRequired,
-  }) {
-    currentContext = context;
-
-    // 设置全局模型下载回调
-    setGlobalModelDownloadCallback(onModelDownloadRequired);
-
-    return GetMaterialApp(home: RolePlayChat());
-  }
-
-  /// 通知插件模型下载完成，插件将重新加载模型
-  /// 外部应用在模型下载完成后调用此方法
-  static void onModelDownloadComplete(ModelInfo info) {
-    debugPrint('外部应用通知：模型下载完成');
-    // 调用全局函数通知模型下载完成
-    notifyModelDownloadComplete(info);
-  }
-}
 
 class RolePlayChat extends StatefulWidget {
   const RolePlayChat({super.key});
@@ -157,7 +135,7 @@ class _RolePlayChatState extends State<RolePlayChat>
     // 使用 addPostFrameCallback 确保UI先渲染
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        await initializeDefaultRole();
+        await CommonUtil.initializeDefaultRole();
         debugPrint('默认角色初始化完成');
       } catch (e) {
         debugPrint('默认角色初始化失败: $e');
@@ -936,7 +914,7 @@ class _RolePlayChatState extends State<RolePlayChat>
               _controller!.stop();
               // 延迟切换角色，避免界面更新冲突
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                switchToRole(role);
+                CommonUtil.switchToRole(role);
               });
             } else {
               // 用户取消，回到原来的页面
@@ -949,7 +927,7 @@ class _RolePlayChatState extends State<RolePlayChat>
           } else {
             // AI没有在回复，直接切换
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              switchToRole(role);
+              CommonUtil.switchToRole(role);
             });
           }
         }
