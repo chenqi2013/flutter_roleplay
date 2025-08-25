@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
@@ -31,10 +32,10 @@ class RoleplayManage {
 
   /// 通知插件模型下载完成，插件将重新加载模型
   /// 外部应用在模型下载完成后调用此方法
-  static void onModelDownloadComplete() {
+  static void onModelDownloadComplete(ModelInfo info) {
     debugPrint('外部应用通知：模型下载完成');
     // 调用全局函数通知模型下载完成
-    notifyModelDownloadComplete();
+    notifyModelDownloadComplete(info);
   }
 }
 
