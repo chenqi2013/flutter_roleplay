@@ -5,6 +5,7 @@ import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/widgets/character_intro.dart';
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter_roleplay/widgets/global_input_bar.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
@@ -45,7 +46,7 @@ class RolePlayChat extends StatefulWidget {
 }
 
 class _RolePlayChatState extends State<RolePlayChat>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   static const double inputBarHeight = 56.0;
 
   final ChatStateManager _stateManager = ChatStateManager();
@@ -78,6 +79,9 @@ class _RolePlayChatState extends State<RolePlayChat>
   @override
   void initState() {
     super.initState();
+
+    // 注册生命周期观察者
+    WidgetsBinding.instance.addObserver(this);
 
     // 异步初始化默认角色和控制器，不阻塞UI
     _initializeAsync();
@@ -205,13 +209,241 @@ class _RolePlayChatState extends State<RolePlayChat>
     }
   }
 
+  // 检查是否需要停止AI回复并显示确认对话框
+  Future<bool> _checkAndStopAiReply() async {
+    if (_controller != null && _controller!.isGenerating.value) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black.withOpacity(0.6),
+        builder: (BuildContext context) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 30,
+                          offset: const Offset(0, 10),
+                          spreadRadius: 0,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 图标
+                        Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.orange.shade300,
+                                Colors.orange.shade500,
+                              ],
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.orange.withOpacity(0.3),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.warning_rounded,
+                            size: 36,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // 标题
+                        const Text(
+                          '确认操作',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1A1A1A),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // 内容
+                        Text(
+                          'AI正在回复中，离开页面将中断回复。\n确定要继续吗？',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                            height: 1.5,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // 按钮
+                        Row(
+                          children: [
+                            // 取消按钮
+                            Expanded(
+                              child: Container(
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.grey.shade200,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.grey.shade700,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: const Text(
+                                    '取消',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+
+                            // 确定按钮
+                            Expanded(
+                              child: Container(
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.red.shade400,
+                                      Colors.red.shade600,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.red.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: const Text(
+                                    '确定',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+
+      if (confirmed == true) {
+        _streamSub?.cancel();
+        _streamSub = null;
+        _controller!.stop();
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
   @override
   void dispose() {
+    // 取消流订阅
     _streamSub?.cancel();
+    _streamSub = null;
+
+    // 如果AI正在生成回复，停止它
+    if (_controller != null && _controller!.isGenerating.value) {
+      _controller!.stop();
+    }
+
+    // 移除生命周期观察者
+    WidgetsBinding.instance.removeObserver(this);
+
     _textController.dispose();
     _pageController.dispose();
     _scrollController.removeListener(_onScrollPositionChanged);
     super.dispose();
+  }
+
+  // 当页面被遮挡或不可见时取消AI回复
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _streamSub?.cancel();
+      _streamSub = null;
+      if (_controller != null && _controller!.isGenerating.value) {
+        _controller!.stop();
+      }
+    }
   }
 
   Future<void> _handleSend(String text) async {
@@ -487,15 +719,239 @@ class _RolePlayChatState extends State<RolePlayChat>
       itemBuilder: (context, index) {
         return _buildPageContent(index);
       },
-      onPageChanged: (index) {
-        // 延迟切换角色，避免界面更新冲突
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // debugPrint('onPageChanged: $index,description:${usedRoles}');
-          final role = usedRoles[index];
-          if (role['name'] != roleName.value) {
-            switchToRole(role);
+      onPageChanged: (index) async {
+        final role = usedRoles[index];
+        if (role['name'] != roleName.value) {
+          // 如果AI正在回复，需要确认
+          if (_controller != null && _controller!.isGenerating.value) {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              barrierColor: Colors.black.withOpacity(0.6),
+              builder: (BuildContext context) {
+                return Dialog(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Container(
+                          padding: const EdgeInsets.all(28),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 30,
+                                offset: const Offset(0, 10),
+                                spreadRadius: 0,
+                              ),
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // 图标
+                              Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.blue.shade300,
+                                      Colors.blue.shade500,
+                                    ],
+                                  ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blue.withOpacity(0.3),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.swap_horiz_rounded,
+                                  size: 36,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+
+                              // 标题
+                              const Text(
+                                '切换角色',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1A1A1A),
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // 内容
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                    height: 1.5,
+                                    letterSpacing: 0.2,
+                                  ),
+                                  children: [
+                                    const TextSpan(text: 'AI正在回复中，切换到 '),
+                                    TextSpan(
+                                      text: '"${role['name']}"',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue.shade600,
+                                      ),
+                                    ),
+                                    const TextSpan(text: ' 将中断回复。\n确定要继续吗？'),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+
+                              // 按钮
+                              Row(
+                                children: [
+                                  // 取消按钮
+                                  Expanded(
+                                    child: Container(
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: Colors.grey.shade200,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: Colors.grey.shade700,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                        child: const Text(
+                                          '取消',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+
+                                  // 确定按钮
+                                  Expanded(
+                                    child: Container(
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Colors.blue.shade400,
+                                            Colors.blue.shade600,
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.blue.withOpacity(0.3),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                      ),
+                                      child: TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                        child: const Text(
+                                          '确定',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+
+            if (confirmed == true) {
+              _streamSub?.cancel();
+              _streamSub = null;
+              _controller!.stop();
+              // 延迟切换角色，避免界面更新冲突
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                switchToRole(role);
+              });
+            } else {
+              // 用户取消，回到原来的页面
+              _pageController.animateToPage(
+                usedRoles.indexWhere((r) => r['name'] == roleName.value),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          } else {
+            // AI没有在回复，直接切换
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              switchToRole(role);
+            });
           }
-        });
+        }
       },
     );
   }
@@ -527,6 +983,13 @@ class _RolePlayChatState extends State<RolePlayChat>
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
               onPressed: () {
+                // 取消当前AI回复
+                _streamSub?.cancel();
+                _streamSub = null;
+                if (_controller != null && _controller!.isGenerating.value) {
+                  _controller!.stop();
+                }
+
                 Navigator.of(currentContext!).pop();
               },
             ),
@@ -743,24 +1206,28 @@ class _RolePlayChatState extends State<RolePlayChat>
               ),
               IconButton(
                 icon: const Icon(Icons.list, color: Colors.white, size: 28),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RolesListPage(),
-                    ),
-                  );
+                onPressed: () async {
+                  if (await _checkAndStopAiReply()) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RolesListPage(),
+                      ),
+                    );
+                  }
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.white, size: 28),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreateRolePage(),
-                    ),
-                  );
+                onPressed: () async {
+                  if (await _checkAndStopAiReply()) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CreateRolePage(),
+                      ),
+                    );
+                  }
                 },
               ),
             ],
@@ -827,11 +1294,13 @@ class _RolePlayChatState extends State<RolePlayChat>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.list, color: Colors.white, size: 28),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const RolesListPage()),
-            );
+          onPressed: () async {
+            if (await _checkAndStopAiReply()) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RolesListPage()),
+              );
+            }
           },
         ),
         title: Obx(
