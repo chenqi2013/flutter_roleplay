@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
-import 'package:flutter_roleplay/hometabs/roleplay_chat_page.dart';
+import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/services/role_api_service.dart';
 import 'package:rwkv_mobile_flutter/types.dart';

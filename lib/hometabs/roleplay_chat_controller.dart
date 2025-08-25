@@ -18,9 +18,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/download_dialog.dart';
-import 'package:flutter_roleplay/hometabs/roleplay_chat_page.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
+import 'package:flutter_roleplay/services/chat_state_manager.dart';
+import 'package:flutter_roleplay/services/model_callback_service.dart';
 
 class RolePlayChatController extends GetxController {
   /// Send message to RWKV isolate
@@ -61,6 +62,12 @@ class RolePlayChatController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
+
+    // 设置模型下载完成回调，当外部应用通知下载完成时重新加载模型
+    setGlobalModelDownloadCompleteCallback(() {
+      loadChatModel();
+    });
+
     _receivePort.listen((message) {
       if (message is SendPort) {
         _sendPort = message;
@@ -111,20 +118,9 @@ class RolePlayChatController extends GetxController {
     // 检查是否需要下载模型
     if (!await checkDownloadFile(downloadUrl)) {
       debugPrint('downloadUrl file not exists');
-      // 延迟执行，确保 UI 已经构建完成
+      // 通知外部应用需要下载模型，而不是在插件内部处理
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final context = currentContext;
-        if (context != null) {
-          showDownloadDialog(
-            context,
-            '需要先下载模型才可以使用角色扮演功能',
-            true,
-            downloadUrl,
-            '',
-          );
-        } else {
-          debugPrint('No context available for showing download dialog');
-        }
+        notifyModelDownloadRequired();
       });
     } else {
       loadChatModel();
@@ -261,7 +257,8 @@ class RolePlayChatController extends GetxController {
 
     // 只清空内存中的聊天记录，不删除数据库记录
     // 这样可以保留历史聊天记录
-    ChatStateManager().getMessages(roleName.value).clear();
+    final stateManager = ChatStateManager();
+    stateManager.getMessages(roleName.value).clear();
 
     final sendPort = _sendPort;
     if (sendPort == null) {
@@ -288,7 +285,8 @@ class RolePlayChatController extends GetxController {
     }
 
     // 清空内存中的聊天记录
-    ChatStateManager().getMessages(roleName.value).clear();
+    final stateManager = ChatStateManager();
+    stateManager.getMessages(roleName.value).clear();
 
     final sendPort = _sendPort;
     if (sendPort == null) {
@@ -381,7 +379,8 @@ class RolePlayChatController extends GetxController {
 
     // send(to_rwkv.SetPrompt(prompt));
 
-    final messages = ChatStateManager().getMessages(roleName.value);
+    final stateManager = ChatStateManager();
+    final messages = stateManager.getMessages(roleName.value);
     debugPrint(
       'Current messages count for ${roleName.value}: ${messages.length}',
     );
@@ -671,7 +670,8 @@ class RolePlayChatController extends GetxController {
   Future<void> _saveCurrentAiMessage() async {
     try {
       // 获取当前角色的最后一条消息
-      final messages = ChatStateManager().getMessages(roleName.value);
+      final stateManager = ChatStateManager();
+      final messages = stateManager.getMessages(roleName.value);
       if (messages.isNotEmpty && !messages.last.isUser) {
         final aiMessage = messages.last;
         // 只有当消息内容不为空时才保存
