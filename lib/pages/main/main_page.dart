@@ -29,7 +29,7 @@ class MainPage extends GetView<MainPageController> {
             // 背景图片 - 覆盖整个页面包括tabbar区域
             Positioned.fill(
               child: Image.asset(
-                'assets/images/role_bg.png',
+                'assets/images/common_bg.webp',
                 fit: BoxFit.cover,
               ),
             ),

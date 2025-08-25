@@ -631,7 +631,7 @@ class _RolePlayChatState extends State<RolePlayChat>
             role['image'] as String,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => Image.asset(
-              'packages/flutter_roleplay/assets/images/common_bg.png',
+              'packages/flutter_roleplay/assets/images/common_bg.webp',
               fit: BoxFit.cover,
             ),
           ),
