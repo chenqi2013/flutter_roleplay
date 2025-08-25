@@ -1,3 +1,4 @@
+import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -64,7 +65,7 @@ class RolePlayChatController extends GetxController {
     super.onInit();
 
     // 设置模型下载完成回调，当外部应用通知下载完成时重新加载模型
-    setGlobalModelDownloadCompleteCallback(() {
+    setGlobalModelDownloadCompleteCallback((ModelInfo? info) {
       loadChatModel();
     });
 
