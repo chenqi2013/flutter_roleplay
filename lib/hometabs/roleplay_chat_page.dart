@@ -405,6 +405,10 @@ class _RolePlayChatState extends State<RolePlayChat>
           );
         }
       },
+      onNavigateToChangeModel: () async {
+        debugPrint('onNavigateToChangeModel');
+        notifyModelChangeRequired();
+      },
       chatListView: _buildChatListView(),
       inputBar: _buildInputBar(),
     );

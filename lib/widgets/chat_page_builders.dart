@@ -13,9 +13,7 @@ class ChatPageBuilders {
   static const double inputBarHeight = 56.0;
 
   /// 构建单个聊天页面
-  static Widget buildSingleChatPage({
-    required Widget chatScaffold,
-  }) {
+  static Widget buildSingleChatPage({required Widget chatScaffold}) {
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -68,6 +66,7 @@ class ChatPageBuilders {
     required Function() onClearHistory,
     required Function() onNavigateToRolesList,
     required Function() onNavigateToCreateRole,
+    required Function() onNavigateToChangeModel,
     required Widget chatListView,
     required Widget inputBar,
   }) {
@@ -97,6 +96,7 @@ class ChatPageBuilders {
             onClearHistory: onClearHistory,
             onNavigateToRolesList: onNavigateToRolesList,
             onNavigateToCreateRole: onNavigateToCreateRole,
+            onNavigateToChangeModel: onNavigateToChangeModel,
           ),
           body: SafeArea(
             top: false,
@@ -192,19 +192,14 @@ class ChatPageBuilders {
       child: ListView.builder(
         controller: scrollController,
         reverse: true,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 12,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         itemCount: messages.length + 1,
         cacheExtent: 1000,
         addAutomaticKeepAlives: true,
         addRepaintBoundaries: true,
         addSemanticIndexes: false,
         itemBuilder: (context, index) {
-          return RepaintBoundary(
-            child: itemBuilder(context, index),
-          );
+          return RepaintBoundary(child: itemBuilder(context, index));
         },
       ),
     );
@@ -258,6 +253,7 @@ class ChatPageBuilders {
     required Function() onClearHistory,
     required Function() onNavigateToRolesList,
     required Function() onNavigateToCreateRole,
+    required Function() onNavigateToChangeModel,
   }) {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -277,13 +273,11 @@ class ChatPageBuilders {
       actions: [
         // 清空历史记录按钮
         IconButton(
-          icon: const Icon(
-            Icons.delete_forever,
-            color: Colors.white,
-            size: 24,
-          ),
+          icon: const Icon(Icons.delete_forever, color: Colors.white, size: 24),
           onPressed: () async {
-            final confirmed = await ChatDialogs.showDeleteHistoryDialog(context);
+            final confirmed = await ChatDialogs.showDeleteHistoryDialog(
+              context,
+            );
             if (confirmed == true) {
               onClearHistory();
             }
@@ -297,6 +291,10 @@ class ChatPageBuilders {
           icon: const Icon(Icons.add, color: Colors.white, size: 28),
           onPressed: onNavigateToCreateRole,
         ),
+        IconButton(
+          icon: const Icon(Icons.change_circle, color: Colors.white, size: 28),
+          onPressed: onNavigateToChangeModel,
+        ),
       ],
     );
   }
@@ -307,20 +305,17 @@ class ChatPageBuilders {
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
-        style: const TextStyle(
-          fontSize: 15,
-          height: 1.35,
-        ),
+        style: const TextStyle(fontSize: 15, height: 1.35),
       ),
       textDirection: TextDirection.ltr,
       maxLines: 4, // 对应 CharacterIntro 的 maxLines
     );
-    
+
     // 动态获取屏幕宽度并计算容器最大宽度
     final screenWidth = MediaQuery.of(context).size.width;
     final maxWidth = screenWidth * 0.85 - 24; // 85%宽度减去左右padding 12*2
     textPainter.layout(maxWidth: maxWidth);
-    
+
     // 检查文本是否被截断（didExceedMaxLines 表示文本超过了maxLines）
     return textPainter.didExceedMaxLines;
   }
