@@ -30,10 +30,10 @@ class RWKVModelService extends GetxController {
   final RxInt prefillSpeed = 0.obs;
   final RxInt decodeSpeed = 0.obs;
   final RxBool isGenerating = false.obs;
-  
+
   late Completer<void> _initRuntimeCompleter = Completer<void>();
   Timer? _getTokensTimer;
-  
+
   bool isModelLoaded = false;
   late String rmpack;
 
@@ -99,6 +99,10 @@ class RWKVModelService extends GetxController {
     // 设置模型下载完成回调，当外部应用通知下载完成时重新加载模型
     setGlobalModelDownloadCompleteCallback((ModelInfo? info) {
       loadChatModel();
+    });
+
+    setGlobalStateFileChangeCallback((ModelInfo? info) {
+      clearStates();
     });
 
     // 检查是否需要下载模型
@@ -190,7 +194,8 @@ class RWKVModelService extends GetxController {
 
   /// 设置模型参数
   void _setupModelParameters() {
-    final prompt = 'System: 请你扮演名为${roleName.value}的角色，你的设定是：${roleDescription.value}\n\n';
+    final prompt =
+        'System: 请你扮演名为${roleName.value}的角色，你的设定是：${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
     send(to_rwkv.SetMaxLength(2000));
     send(
@@ -251,7 +256,8 @@ class RWKVModelService extends GetxController {
     }
     send(to_rwkv.ClearStates());
     send(to_rwkv.LoadInitialStates(rmpack));
-    final prompt = 'System: 请你扮演名为${roleName.value}的角色，你的设定是：${roleDescription.value}\n\n';
+    final prompt =
+        'System: 请你扮演名为${roleName.value}的角色，你的设定是：${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
   }
 
@@ -349,8 +355,6 @@ class RWKVModelService extends GetxController {
     );
     return _initRuntimeCompleter.future;
   }
-
-
 
   @override
   void onClose() {
