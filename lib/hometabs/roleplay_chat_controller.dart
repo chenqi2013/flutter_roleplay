@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 
@@ -29,12 +30,14 @@ class RolePlayChatController extends GetxController {
   // 流订阅
   StreamSubscription<String>? _streamSub;
 
+  ModelInfo? modelInfo;
+
   // 获取生成状态
   RxBool get isGenerating => _modelService.isGenerating;
   @override
   void onInit() async {
     super.onInit();
-    
+
     // 设置模型服务回调
     _modelService.setOnGenerationComplete(() {
       _saveCurrentAiMessage();
@@ -45,8 +48,6 @@ class RolePlayChatController extends GetxController {
   Future<void> loadChatModel() async {
     await _modelService.loadChatModel();
   }
-
-
 
   // 清空状态 - 委托给模型服务
   Future<void> clearStates() async {
@@ -84,7 +85,9 @@ class RolePlayChatController extends GetxController {
   }
 
   // HTTP 流式聊天完成 - 委托给流服务
-  Future<Map<String, dynamic>?> requestChatCompletions({String content = 'hello'}) {
+  Future<Map<String, dynamic>?> requestChatCompletions({
+    String content = 'hello',
+  }) {
     return _streamService.requestChatCompletions(
       content: content,
       roleName: roleName.value,

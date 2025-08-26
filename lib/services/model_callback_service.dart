@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:get/get.dart';
 
 /// 模型下载回调函数类型
 typedef ModelDownloadCallback = void Function();
 
 /// 全局模型下载回调
 ModelDownloadCallback? _globalModelDownloadCallback;
+
+/// 全局模型切换回调
+Function(ModelInfo?)? _globalModelChangeCallback;
 
 /// 全局模型下载完成回调
 Function(ModelInfo?)? _globalModelDownloadCompleteCallback;
@@ -16,6 +21,11 @@ Function(ModelInfo?)? _globalStateFileChangeCallback;
 /// 设置全局模型下载回调
 void setGlobalModelDownloadCallback(ModelDownloadCallback? callback) {
   _globalModelDownloadCallback = callback;
+}
+
+/// 设置全局模型切换回调
+void setGlobalModelChangeCallback(Function(ModelInfo?)? callback) {
+  _globalModelChangeCallback = callback;
 }
 
 /// 设置全局模型下载完成回调
@@ -35,6 +45,22 @@ void notifyModelDownloadRequired() {
     _globalModelDownloadCallback!();
   } else {
     debugPrint('未设置模型下载回调，无法通知外部应用');
+  }
+}
+
+/// 通知需要切换模型
+void notifyModelChangeRequired() {
+  if (_globalModelChangeCallback != null) {
+    debugPrint('通知外部应用需要切换模型');
+    RolePlayChatController? _controller;
+    if (Get.isRegistered<RolePlayChatController>()) {
+      _controller = Get.find<RolePlayChatController>();
+    } else {
+      _controller = Get.put(RolePlayChatController());
+    }
+    _globalModelChangeCallback!(_controller!.modelInfo);
+  } else {
+    debugPrint('未设置模型切换回调，无法通知外部应用');
   }
 }
 

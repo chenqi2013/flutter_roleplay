@@ -10,11 +10,15 @@ class RoleplayManage {
   static Widget createRolePlayChatPage(
     BuildContext context, {
     VoidCallback? onModelDownloadRequired,
+    Function(ModelInfo?)? changeModelCallback,
   }) {
     currentContext = context;
 
     // 设置全局模型下载回调
     setGlobalModelDownloadCallback(onModelDownloadRequired);
+
+    // 设置全局模型切换回调
+    setGlobalModelChangeCallback(changeModelCallback);
 
     return GetMaterialApp(home: RolePlayChat());
   }
