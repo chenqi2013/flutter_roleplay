@@ -99,6 +99,8 @@ class RWKVModelService extends GetxController {
     // 设置模型下载完成回调，当外部应用通知下载完成时重新加载模型
     setGlobalModelDownloadCompleteCallback((ModelInfo? info) {
       loadChatModel();
+
+      /// 把当前的modelinfo 保存到本地
     });
 
     setGlobalStateFileChangeCallback((ModelInfo? info) {

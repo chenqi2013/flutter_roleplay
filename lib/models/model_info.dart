@@ -19,4 +19,22 @@ class ModelInfo {
     required this.statePath,
     required this.backend,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'modelPath': modelPath,
+      'statePath': statePath,
+      'backend': backend,
+    };
+  }
+
+  factory ModelInfo.fromJson(Map<String, dynamic> json) {
+    return ModelInfo(
+      id: json['id'],
+      modelPath: json['modelPath'],
+      statePath: json['statePath'],
+      backend: json['backend'],
+    );
+  }
 }
