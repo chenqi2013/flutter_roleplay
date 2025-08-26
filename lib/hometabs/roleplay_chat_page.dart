@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 
@@ -17,30 +18,6 @@ import 'package:flutter_roleplay/mixins/scroll_management_mixin.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_page.dart';
 
-BuildContext? currentContext;
-
-class RoleplayManage {
-  static Widget createRolePlayChatPage(
-    BuildContext context, {
-    VoidCallback? onModelDownloadRequired,
-  }) {
-    currentContext = context;
-
-    // 设置全局模型下载回调
-    setGlobalModelDownloadCallback(onModelDownloadRequired);
-
-    return GetMaterialApp(home: RolePlayChat());
-  }
-
-  /// 通知插件模型下载完成，插件将重新加载模型
-  /// 外部应用在模型下载完成后调用此方法
-  static void onModelDownloadComplete(ModelInfo info) {
-    debugPrint('外部应用通知：模型下载完成');
-    // 调用全局函数通知模型下载完成
-    notifyModelDownloadComplete(info);
-  }
-}
-
 class RolePlayChat extends StatefulWidget {
   const RolePlayChat({super.key});
 
@@ -49,8 +26,10 @@ class RolePlayChat extends StatefulWidget {
 }
 
 class _RolePlayChatState extends State<RolePlayChat>
-    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver, ScrollManagementMixin {
-
+    with
+        AutomaticKeepAliveClientMixin,
+        WidgetsBindingObserver,
+        ScrollManagementMixin {
   final ChatStateManager _stateManager = ChatStateManager();
   StreamSubscription<String>? _streamSub;
   final TextEditingController _textController = TextEditingController();
@@ -405,9 +384,9 @@ class _RolePlayChatState extends State<RolePlayChat>
         await _controller?.clearAllChatHistory();
         setState(() {});
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('聊天记录已清空')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
         }
       },
       onNavigateToRolesList: () async {
