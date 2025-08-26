@@ -29,6 +29,31 @@ class CharacterIntro extends StatefulWidget {
 class _CharacterIntroState extends State<CharacterIntro> {
   bool _isExpanded = false;
 
+  /// 检查文本是否需要展开功能
+  bool _shouldShowExpandButton() {
+    if (!widget.showExpandIcon) return false;
+    
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: widget.description,
+        style: const TextStyle(
+          fontSize: 15,
+          height: 1.35,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: widget.maxLines,
+    );
+    
+    // 动态获取屏幕宽度并计算容器最大宽度
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = screenWidth * 0.85 - 24; // 85%宽度减去左右padding 12*2
+    textPainter.layout(maxWidth: maxWidth);
+    
+    // 检查文本是否被截断
+    return textPainter.didExceedMaxLines;
+  }
+
   @override
   Widget build(BuildContext context) {
     final backgroundColor =
@@ -118,7 +143,7 @@ class _CharacterIntroState extends State<CharacterIntro> {
                     overflow: _isExpanded ? null : TextOverflow.ellipsis,
                   ),
                   // 展开/收起按钮 - 只在需要时显示
-                  if (widget.showExpandIcon)
+                  if (_shouldShowExpandButton())
                     GestureDetector(
                       onTap: () {
                         setState(() {

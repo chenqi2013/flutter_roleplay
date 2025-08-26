@@ -224,7 +224,7 @@ class ChatPageBuilders {
         description: roleDescription,
         firstMessage: '',
         maxLines: 4,
-        showExpandIcon: _shouldShowExpandIcon(roleDescription),
+        showExpandIcon: _shouldShowExpandIcon(roleDescription, context),
       );
     }
 
@@ -246,7 +246,7 @@ class ChatPageBuilders {
       description: roleDescription,
       firstMessage: '',
       maxLines: 4,
-      showExpandIcon: _shouldShowExpandIcon(roleDescription),
+      showExpandIcon: _shouldShowExpandIcon(roleDescription, context),
     );
   }
 
@@ -302,10 +302,26 @@ class ChatPageBuilders {
   }
 
   /// 检查是否需要显示展开图标
-  static bool _shouldShowExpandIcon(String text) {
-    // 简化计算逻辑，使用字符数估算
-    final int charCount = text.length;
-    final int estimatedLines = (charCount / 25).ceil(); // 假设每行约25个字符
-    return estimatedLines > 4;
+  static bool _shouldShowExpandIcon(String text, BuildContext context) {
+    // 使用更精确的文本测量方法
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: const TextStyle(
+          fontSize: 15,
+          height: 1.35,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 4, // 对应 CharacterIntro 的 maxLines
+    );
+    
+    // 动态获取屏幕宽度并计算容器最大宽度
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = screenWidth * 0.85 - 24; // 85%宽度减去左右padding 12*2
+    textPainter.layout(maxWidth: maxWidth);
+    
+    // 检查文本是否被截断（didExceedMaxLines 表示文本超过了maxLines）
+    return textPainter.didExceedMaxLines;
   }
 }
