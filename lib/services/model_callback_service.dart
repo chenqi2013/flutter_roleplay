@@ -10,6 +10,9 @@ ModelDownloadCallback? _globalModelDownloadCallback;
 /// 全局模型下载完成回调
 Function(ModelInfo?)? _globalModelDownloadCompleteCallback;
 
+/// 全局state文件切换回调
+Function(ModelInfo?)? _globalStateFileChangeCallback;
+
 /// 设置全局模型下载回调
 void setGlobalModelDownloadCallback(ModelDownloadCallback? callback) {
   _globalModelDownloadCallback = callback;
@@ -18,6 +21,11 @@ void setGlobalModelDownloadCallback(ModelDownloadCallback? callback) {
 /// 设置全局模型下载完成回调
 void setGlobalModelDownloadCompleteCallback(Function(ModelInfo?)? callback) {
   _globalModelDownloadCompleteCallback = callback;
+}
+
+/// state文件切换
+void setGlobalStateFileChangeCallback(Function(ModelInfo?)? callback) {
+  _globalStateFileChangeCallback = callback;
 }
 
 /// 通知需要下载模型
@@ -37,5 +45,15 @@ void notifyModelDownloadComplete(ModelInfo info) {
     _globalModelDownloadCompleteCallback!(info);
   } else {
     debugPrint('未设置模型下载完成回调');
+  }
+}
+
+/// 通知外部应用state文件改变，插件应该重新clearstate
+void notifyStateFileChange(ModelInfo info) {
+  if (_globalStateFileChangeCallback != null) {
+    debugPrint('收到state文件改变通知，重新加载模型');
+    _globalStateFileChangeCallback!(info);
+  } else {
+    debugPrint('未设置state文件改变回调');
   }
 }

@@ -26,4 +26,9 @@ class RoleplayManage {
     // 调用全局函数通知模型下载完成
     notifyModelDownloadComplete(info);
   }
+
+  /// state文件切换
+  static void onStateFileChange(ModelInfo info) {
+    debugPrint('外部应用通知：state文件切换了');
+  }
 }
