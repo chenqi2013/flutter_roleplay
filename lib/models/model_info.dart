@@ -37,4 +37,9 @@ class ModelInfo {
       backend: json['backend'],
     );
   }
+
+  @override
+  String toString() {
+    return 'ModelInfo(id: $id, modelPath: $modelPath, statePath: $statePath, backend: $backend)';
+  }
 }

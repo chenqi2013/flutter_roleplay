@@ -4,6 +4,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
+import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:rwkv_mobile_flutter/types.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -22,7 +24,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'flutter_roleplay.db');
     return await openDatabase(
       path,
-      version: 2, // 升级版本以添加角色表
+      version: 3, // 升级版本以添加模型信息表
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -62,6 +64,19 @@ class DatabaseHelper {
       )
     ''');
 
+    // 创建模型信息表
+    await db.execute('''
+      CREATE TABLE model_info (
+        id TEXT PRIMARY KEY,
+        model_path TEXT NOT NULL,
+        state_path TEXT NOT NULL,
+        backend TEXT NOT NULL,
+        is_active INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+
     // 创建索引以提高查询性能
     await db.execute('''
       CREATE INDEX idx_role_name ON chat_messages (role_name)
@@ -77,6 +92,10 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE INDEX idx_roles_is_custom ON roles (is_custom)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_model_info_is_active ON model_info (is_active)
     ''');
 
     debugPrint('数据库表创建完成');
@@ -111,6 +130,27 @@ class DatabaseHelper {
       await db.execute('CREATE INDEX idx_roles_is_custom ON roles (is_custom)');
 
       debugPrint('已添加角色表和相关索引');
+    }
+
+    if (oldVersion < 3) {
+      // 从版本2升级到版本3: 添加模型信息表
+      await db.execute('''
+        CREATE TABLE model_info (
+          id TEXT PRIMARY KEY,
+          model_path TEXT NOT NULL,
+          state_path TEXT NOT NULL,
+          backend TEXT NOT NULL,
+          is_active INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        )
+      ''');
+
+      await db.execute(
+        'CREATE INDEX idx_model_info_is_active ON model_info (is_active)',
+      );
+
+      debugPrint('已添加模型信息表和相关索引');
     }
   }
 
@@ -457,6 +497,136 @@ class DatabaseHelper {
     } catch (e) {
       debugPrint('获取自定义角色数量失败: $e');
       return 0;
+    }
+  }
+
+  // ==================== 模型信息存储相关方法 ====================
+
+  /// 保存模型信息到本地
+  Future<void> saveModelInfo(ModelInfo modelInfo) async {
+    try {
+      final db = await database;
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      // // 首先将所有模型设置为非活跃状态
+      // await db.update('model_info', {'is_active': 0, 'updated_at': now});
+
+      ///数据库里只保存一条模型信息，把之前的记录先删除
+      await clearAllModelInfo();
+
+      // 保存新的模型信息并设置为活跃状态
+      await db.insert('model_info', {
+        'id': modelInfo.id,
+        'model_path': modelInfo.modelPath,
+        'state_path': modelInfo.statePath,
+        'backend': modelInfo.backend.name,
+        'is_active': 1,
+        'created_at': now,
+        'updated_at': now,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+      debugPrint('成功保存模型信息: ${modelInfo.id}');
+    } catch (e) {
+      debugPrint('保存模型信息失败: $e');
+      rethrow;
+    }
+  }
+
+  /// 获取当前活跃的模型信息
+  Future<ModelInfo?> getActiveModelInfo() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> maps = await db.query(
+        'model_info',
+        where: 'is_active = ?',
+        whereArgs: [1],
+        limit: 1,
+      );
+
+      if (maps.isNotEmpty) {
+        final map = maps.first;
+        final modelInfo = ModelInfo(
+          id: map['id'],
+          modelPath: map['model_path'],
+          statePath: map['state_path'],
+          backend: Backend.values.firstWhere(
+            (b) => b.name == map['backend'],
+            orElse: () => Backend.llamacpp,
+          ),
+        );
+        debugPrint('获取到活跃模型信息: ${modelInfo.id}');
+        return modelInfo;
+      }
+
+      debugPrint('没有找到活跃的模型信息');
+      return null;
+    } catch (e) {
+      debugPrint('获取活跃模型信息失败: $e');
+      return null;
+    }
+  }
+
+  /// 获取所有模型信息
+  Future<List<ModelInfo>> getAllModelInfo() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> maps = await db.query(
+        'model_info',
+        orderBy: 'updated_at DESC',
+      );
+
+      final modelInfoList = maps
+          .map(
+            (map) => ModelInfo(
+              id: map['id'],
+              modelPath: map['model_path'],
+              statePath: map['state_path'],
+              backend: Backend.values.firstWhere(
+                (b) => b.name == map['backend'],
+                orElse: () => Backend.llamacpp,
+              ),
+            ),
+          )
+          .toList();
+
+      debugPrint('获取到 ${modelInfoList.length} 个模型信息');
+      return modelInfoList;
+    } catch (e) {
+      debugPrint('获取所有模型信息失败: $e');
+      return [];
+    }
+  }
+
+  /// 删除模型信息
+  Future<void> deleteModelInfo(String modelId) async {
+    try {
+      final db = await database;
+      final count = await db.delete(
+        'model_info',
+        where: 'id = ?',
+        whereArgs: [modelId],
+      );
+
+      if (count > 0) {
+        debugPrint('成功删除模型信息: $modelId');
+      } else {
+        debugPrint('未找到要删除的模型信息: $modelId');
+      }
+    } catch (e) {
+      debugPrint('删除模型信息失败: $e');
+      rethrow;
+    }
+  }
+
+  /// 清空所有模型信息
+  Future<void> clearAllModelInfo() async {
+    try {
+      final db = await database;
+      await db.delete('model_info');
+      debugPrint('已清空所有模型信息');
+    } catch (e) {
+      debugPrint('清空模型信息失败: $e');
+      rethrow;
     }
   }
 

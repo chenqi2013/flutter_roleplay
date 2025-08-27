@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'dart:isolate';
@@ -17,6 +18,7 @@ import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
+import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/download_dialog.dart';
 
 /// RWKV 模型管理服务
@@ -35,7 +37,7 @@ class RWKVModelService extends GetxController {
   Timer? _getTokensTimer;
 
   bool isModelLoaded = false;
-  late String rmpack;
+  String? rmpack;
 
   StreamController<String>? localChatController;
   bool isNeedSaveAiMessage = false;
@@ -43,7 +45,7 @@ class RWKVModelService extends GetxController {
   // 回调函数
   Function(String)? _onMessageGenerated;
   Function()? _onGenerationComplete;
-
+  RolePlayChatController? _controller;
   @override
   void onInit() async {
     super.onInit();
@@ -96,27 +98,43 @@ class RWKVModelService extends GetxController {
 
   /// 检查并加载模型
   Future<void> _checkAndLoadModel() async {
-    // 设置模型下载完成回调，当外部应用通知下载完成时重新加载模型
-    setGlobalModelDownloadCompleteCallback((ModelInfo? info) {
-      loadChatModel();
+    // 首先尝试从本地加载已保存的模型信息
+    ModelInfo? modelInfo = await _loadModelFromLocal();
+    RolePlayChatController? controller;
+    if (Get.isRegistered<RolePlayChatController>()) {
+      controller = Get.find<RolePlayChatController>();
+    } else {
+      controller = Get.put(RolePlayChatController());
+    }
+    controller?.modelInfo = modelInfo;
 
-      /// 把当前的modelinfo 保存到本地
+    // 设置模型下载完成回调，当外部应用通知下载完成时重新加载模型
+    setGlobalModelDownloadCompleteCallback((ModelInfo? info) async {
+      debugPrint('modelDownloadCompleteCallback: ${info?.toString()}');
+      controller?.modelInfo = modelInfo;
+      if (info != null) {
+        // 把当前的 modelinfo 保存到本地
+        await _saveModelInfoToLocal(info);
+      }
+      loadChatModel();
     });
 
     setGlobalStateFileChangeCallback((ModelInfo? info) {
+      controller?.modelInfo = modelInfo;
+      debugPrint('stateFileChangeCallback: ${info?.toString()}');
       clearStates();
     });
 
     // 检查是否需要下载模型
-    if (!await checkDownloadFile(downloadUrl)) {
-      debugPrint('downloadUrl file not exists');
+    if (modelInfo != null &&
+        await checkDownloadFile(modelInfo.modelPath, isLocalFilePath: true)) {
+      loadChatModel();
+    } else {
+      debugPrint('模型不存在，通知外部下载模型');
       // 通知外部应用需要下载模型，而不是在插件内部处理
       WidgetsBinding.instance.addPostFrameCallback((_) {
         notifyModelDownloadRequired();
       });
-    } else {
-      loadChatModel();
-      debugPrint('downloadUrl file exists');
     }
   }
 
@@ -129,6 +147,41 @@ class RWKVModelService extends GetxController {
     decodeSpeed.value = 0;
 
     late String modelPath;
+    String? statePath;
+
+    // 首先尝试从数据库获取保存的模型信息
+    try {
+      if (_controller == null) {
+        if (Get.isRegistered<RolePlayChatController>()) {
+          _controller = Get.find<RolePlayChatController>();
+        } else {
+          _controller = Get.put(RolePlayChatController());
+        }
+      }
+      var modelInfo = _controller?.modelInfo;
+      if (modelInfo == null) {
+        final databaseHelper = DatabaseHelper();
+        modelInfo = await databaseHelper.getActiveModelInfo();
+        debugPrint('从数据库获取modelInfo: ${modelInfo?.toString()}');
+      }
+      if (modelInfo != null && File(modelInfo.modelPath).existsSync()) {
+        modelPath = modelInfo.modelPath;
+        statePath = modelInfo.statePath;
+        backend = modelInfo.backend;
+      } else {
+        // // 如果数据库中没有有效的模型信息，使用默认方式获取路径
+        // modelPath = await getLocalFilePath(downloadUrl);
+        // if (!File(modelPath).existsSync()) {
+        //   debugPrint('modelPath not exists: $modelPath');
+        //   return;
+        // }
+        debugPrint('没有获取到模型信息');
+        return;
+      }
+    } catch (e) {
+      debugPrint('获取数据库模型信息失败: $e');
+      return;
+    }
 
     if (Platform.isAndroid && backend == Backend.qnn) {
       for (final lib in qnnLibList) {
@@ -143,23 +196,26 @@ class RWKVModelService extends GetxController {
       "assets/config/chat/b_rwkv_vocab_v20230424.txt",
     );
 
-    rmpack = await fromAssetsToTemp(
-      "assets/config/chat/rwkv-9-mix_user6500_system1700.rmpack",
-    );
-
-    modelPath = await getLocalFilePath(downloadUrl);
-    if (!File(modelPath).existsSync()) {
-      debugPrint('modelPath not exists');
-      return;
+    // 如果有保存的状态路径，使用它；否则使用默认的 rmpack
+    if (File(statePath).existsSync()) {
+      rmpack = statePath;
+      debugPrint('使用state文件: $statePath');
     }
+    // else {
+    //   rmpack = await fromAssetsToTemp(
+    //     "assets/config/chat/rwkv-9-mix_user6500_system1700.rmpack",
+    //   );
+    //   debugPrint('使用默认状态文件: $rmpack');
+    // }
+
     isModelLoaded = true;
 
-    if (Platform.isIOS || Platform.isMacOS) {
-      modelPath = await fromAssetsToTemp(
-        "assets/model/othello/RWKV-x070-G1-0.1b-20250307-ctx4096.st",
-      );
-      backend = Backend.webRwkv;
-    }
+    // if (Platform.isIOS || Platform.isMacOS) {
+    //   modelPath = await fromAssetsToTemp(
+    //     "assets/model/othello/RWKV-x070-G1-0.1b-20250307-ctx4096.st",
+    //   );
+    //   backend = Backend.webRwkv;
+    // }
 
     final rootIsolateToken = RootIsolateToken.instance;
 
@@ -188,7 +244,9 @@ class RWKVModelService extends GetxController {
       debugPrint("waiting for sendPort...");
       await Future.delayed(const Duration(milliseconds: 50));
     }
-    send(to_rwkv.LoadInitialStates(rmpack));
+    if (rmpack != null) {
+      send(to_rwkv.LoadInitialStates(rmpack!));
+    }
     // send(to_rwkv.GetLatestRuntimeAddress()); // 已弃用
 
     _setupModelParameters();
@@ -196,8 +254,7 @@ class RWKVModelService extends GetxController {
 
   /// 设置模型参数
   void _setupModelParameters() {
-    final prompt =
-        'System: 请你扮演名为${roleName.value}的角色，你的设定是：${roleDescription.value}\n\n';
+    final prompt = 'System: 请你扮演${roleName.value}，${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
     send(to_rwkv.SetMaxLength(2000));
     send(
@@ -257,9 +314,10 @@ class RWKVModelService extends GetxController {
       return;
     }
     send(to_rwkv.ClearStates());
-    send(to_rwkv.LoadInitialStates(rmpack));
-    final prompt =
-        'System: 请你扮演名为${roleName.value}的角色，你的设定是：${roleDescription.value}\n\n';
+    if (rmpack != null) {
+      send(to_rwkv.LoadInitialStates(rmpack!));
+    }
+    final prompt = 'System: 请你扮演${roleName.value}，${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
   }
 
@@ -356,6 +414,53 @@ class RWKVModelService extends GetxController {
       ),
     );
     return _initRuntimeCompleter.future;
+  }
+
+  /// 从本地加载模型信息
+  Future<ModelInfo?> _loadModelFromLocal() async {
+    try {
+      final databaseHelper = DatabaseHelper();
+      final modelInfo = await databaseHelper.getActiveModelInfo();
+
+      if (modelInfo != null) {
+        debugPrint('从本地加载模型信息: ${modelInfo.id}');
+        debugPrint('模型路径: ${modelInfo.modelPath}');
+        debugPrint('state文件路径: ${modelInfo.statePath}');
+        debugPrint('后端类型: ${modelInfo.backend}');
+
+        // 更新全局配置，使用保存的模型信息
+        downloadUrl = modelInfo.id; // 使用 id 作为下载 URL 的标识
+        backend = modelInfo.backend;
+
+        // 检查模型文件是否存在
+        if (File(modelInfo.modelPath).existsSync()) {
+          debugPrint('本地模型文件存在，可以直接加载: ${modelInfo.modelPath}');
+          // 如果本地文件存在，直接返回，跳过下载检查
+          return modelInfo;
+        } else {
+          debugPrint('本地模型文件不存在: ${modelInfo.modelPath}');
+          // 文件不存在时，仍然使用保存的配置，让下载流程处理
+          return null;
+        }
+      } else {
+        debugPrint('没有找到本地保存的模型信息，不加载模型');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('从本地加载模型信息失败: $e');
+      return null;
+    }
+  }
+
+  /// 保存模型信息到本地
+  Future<void> _saveModelInfoToLocal(ModelInfo modelInfo) async {
+    try {
+      final databaseHelper = DatabaseHelper();
+      await databaseHelper.saveModelInfo(modelInfo);
+      debugPrint('成功保存模型信息到本地: ${modelInfo.id}');
+    } catch (e) {
+      debugPrint('保存模型信息到本地失败: $e');
+    }
   }
 
   @override

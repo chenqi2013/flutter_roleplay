@@ -233,7 +233,13 @@ Future<String> getLocalFilePath(String downloadurl) async {
   return filePath;
 }
 
-Future<bool> checkDownloadFile(String downloadurl) async {
+Future<bool> checkDownloadFile(
+  String downloadurl, {
+  bool? isLocalFilePath,
+}) async {
+  if (isLocalFilePath == true) {
+    return File(downloadurl).existsSync();
+  }
   String downloadPath = await getCachePath();
   Uri uri = Uri.parse(downloadurl);
   var name = uri.pathSegments.last;
