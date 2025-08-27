@@ -1,10 +1,16 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/services/role_api_service.dart';
 import 'package:get/get.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 class CommonUtil {
   // 初始化默认角色
@@ -121,5 +127,35 @@ class CommonUtil {
         debugPrint('Failed to load chat history in switchToRole: $e');
       }
     });
+  }
+
+  /// 从资源文件复制到临时目录
+  static Future<String> fromAssetsToTemp(
+    String assetsPath, {
+    String? targetPath,
+  }) async {
+    try {
+      // 在插件中加载资源时，先尝试从主应用加载
+      ByteData data;
+      try {
+        data = await rootBundle.load(assetsPath);
+      } catch (e) {
+        // 如果主应用中没有，则从 flutter_roleplay 包中加载
+        debugPrint(
+          "Asset not found in main app, loading from package: $assetsPath",
+        );
+        final packagePath = 'packages/flutter_roleplay/$assetsPath';
+        data = await rootBundle.load(packagePath);
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File(path.join(tempDir.path, targetPath ?? assetsPath));
+      await tempFile.create(recursive: true);
+      await tempFile.writeAsBytes(data.buffer.asUint8List());
+      return tempFile.path;
+    } catch (e) {
+      debugPrint("Error loading asset $assetsPath: $e");
+      return "";
+    }
   }
 }

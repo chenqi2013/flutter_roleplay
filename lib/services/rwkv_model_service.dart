@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
+import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'dart:isolate';
@@ -11,8 +12,6 @@ import 'package:rwkv_mobile_flutter/from_rwkv.dart';
 import 'package:rwkv_mobile_flutter/rwkv_mobile_flutter.dart';
 import 'package:rwkv_mobile_flutter/to_rwkv.dart' as to_rwkv;
 import 'package:rwkv_mobile_flutter/types.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
@@ -185,14 +184,14 @@ class RWKVModelService extends GetxController {
 
     if (Platform.isAndroid && backend == Backend.qnn) {
       for (final lib in qnnLibList) {
-        await fromAssetsToTemp(
+        await CommonUtil.fromAssetsToTemp(
           "assets/lib/qnn/$lib",
           targetPath: "assets/lib/$lib",
         );
       }
     }
 
-    final tokenizerPath = await fromAssetsToTemp(
+    final tokenizerPath = await CommonUtil.fromAssetsToTemp(
       "assets/config/chat/b_rwkv_vocab_v20230424.txt",
     );
 
@@ -267,36 +266,6 @@ class RWKVModelService extends GetxController {
         penaltyDecay: 0.996,
       ),
     );
-  }
-
-  /// 从资源文件复制到临时目录
-  Future<String> fromAssetsToTemp(
-    String assetsPath, {
-    String? targetPath,
-  }) async {
-    try {
-      // 在插件中加载资源时，先尝试从主应用加载
-      ByteData data;
-      try {
-        data = await rootBundle.load(assetsPath);
-      } catch (e) {
-        // 如果主应用中没有，则从 flutter_roleplay 包中加载
-        debugPrint(
-          "Asset not found in main app, loading from package: $assetsPath",
-        );
-        final packagePath = 'packages/flutter_roleplay/$assetsPath';
-        data = await rootBundle.load(packagePath);
-      }
-
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File(path.join(tempDir.path, targetPath ?? assetsPath));
-      await tempFile.create(recursive: true);
-      await tempFile.writeAsBytes(data.buffer.asUint8List());
-      return tempFile.path;
-    } catch (e) {
-      debugPrint("Error loading asset $assetsPath: $e");
-      return "";
-    }
   }
 
   /// 清空状态
