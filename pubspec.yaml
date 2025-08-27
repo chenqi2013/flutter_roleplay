@@ -46,6 +46,7 @@ flutter:
     # - assets/lib/qnn/
     - assets/model/chat/
     - assets/config/chat/
+    - assets/config/tts/
     # - assets/filter.txt
 
   #

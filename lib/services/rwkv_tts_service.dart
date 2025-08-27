@@ -39,7 +39,7 @@ class RWKVModelService extends GetxController {
     decodeSpeed.value = 0;
 
     final tokenizerPath = await CommonUtil.fromAssetsToTemp(
-      "assets/config/chat/b_rwkv_vocab_v20230424_sparktts.txt",
+      "assets/config/tts/b_rwkv_vocab_v20230424_sparktts.txt",
     );
     // await _ensureQNNCopied();
     final rootIsolateToken = RootIsolateToken.instance;
@@ -95,13 +95,13 @@ class RWKVModelService extends GetxController {
     );
 
     final ttsTextNormalizerDatePath = await CommonUtil.fromAssetsToTemp(
-      "assets/config/chat/date-zh.fst",
+      "assets/config/tts/date-zh.fst",
     );
     final ttsTextNormalizerNumberPath = await CommonUtil.fromAssetsToTemp(
-      "assets/config/chat/number-zh.fst",
+      "assets/config/tts/number-zh.fst",
     );
     final ttsTextNormalizerPhonePath = await CommonUtil.fromAssetsToTemp(
-      "assets/config/chat/phone-zh.fst",
+      "assets/config/tts/phone-zh.fst",
     );
     // note: order matters here
     send(to_rwkv.LoadTTSTextNormalizer(ttsTextNormalizerDatePath));
