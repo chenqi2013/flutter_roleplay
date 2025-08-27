@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:get/get.dart';
 import 'dart:async';

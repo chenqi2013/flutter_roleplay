@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:ui';
 import 'package:get/get.dart';
 
 import 'package:flutter_roleplay/constant/constant.dart';
@@ -271,31 +272,137 @@ class ChatPageBuilders {
       ),
       centerTitle: true,
       actions: [
-        // 清空历史记录按钮
-        IconButton(
-          icon: const Icon(Icons.delete_forever, color: Colors.white, size: 24),
-          onPressed: () async {
-            final confirmed = await ChatDialogs.showDeleteHistoryDialog(
-              context,
-            );
-            if (confirmed == true) {
-              onClearHistory();
+        // 现代优雅的下拉菜单按钮
+        PopupMenuButton<String>(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 0.5,
+              ),
+            ),
+            child: const Icon(
+              Icons.more_vert,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          surfaceTintColor: Colors.transparent,
+          color: Colors.white,
+          elevation: 8,
+          shadowColor: Colors.black.withValues(alpha: 0.1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          offset: const Offset(-20, 50),
+          itemBuilder: (BuildContext context) => [
+            _buildSimplePopupMenuItem(
+              value: 'clear_history',
+              icon: Icons.delete_forever,
+              text: '清空聊天记录',
+            ),
+            _buildSimplePopupMenuItem(
+              value: 'role_list',
+              icon: Icons.list,
+              text: '角色列表',
+            ),
+            _buildSimplePopupMenuItem(
+              value: 'create_role',
+              icon: Icons.add,
+              text: '创建角色',
+            ),
+            _buildSimplePopupMenuItem(
+              value: 'change_model',
+              icon: Icons.settings,
+              text: '更换模型',
+            ),
+          ],
+          onSelected: (String value) async {
+            switch (value) {
+              case 'clear_history':
+                final confirmed = await ChatDialogs.showDeleteHistoryDialog(
+                  context,
+                );
+                if (confirmed == true) {
+                  onClearHistory();
+                }
+                break;
+              case 'role_list':
+                onNavigateToRolesList();
+                break;
+              case 'create_role':
+                onNavigateToCreateRole();
+                break;
+              case 'change_model':
+                onNavigateToChangeModel();
+                break;
             }
           },
         ),
-        IconButton(
-          icon: const Icon(Icons.list, color: Colors.white, size: 28),
-          onPressed: onNavigateToRolesList,
-        ),
-        IconButton(
-          icon: const Icon(Icons.add, color: Colors.white, size: 28),
-          onPressed: onNavigateToCreateRole,
-        ),
-        IconButton(
-          icon: const Icon(Icons.change_circle, color: Colors.white, size: 28),
-          onPressed: onNavigateToChangeModel,
-        ),
       ],
+    );
+  }
+
+  /// 构建现代优雅的弹出菜单项
+  static PopupMenuItem<String> _buildSimplePopupMenuItem({
+    required String value,
+    required IconData icon,
+    required String text,
+  }) {
+    return PopupMenuItem<String>(
+      value: value,
+      padding: EdgeInsets.zero,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  width: 0.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: Colors.grey.shade600,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      text,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
