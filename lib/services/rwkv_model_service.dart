@@ -110,12 +110,25 @@ class RWKVModelService extends GetxController {
     // 设置模型下载完成回调，当外部应用通知下载完成时重新加载模型
     setGlobalModelDownloadCompleteCallback((ModelInfo? info) async {
       debugPrint('modelDownloadCompleteCallback: ${info?.toString()}');
-      controller?.modelInfo = modelInfo;
+      if (controller?.modelInfo != null &&
+          controller?.modelInfo?.modelPath != info?.modelPath) {
+        debugPrint('切换了模型');
+        loadChatModel();
+      } else if (controller?.modelInfo != null &&
+          controller?.modelInfo?.modelPath == info?.modelPath &&
+          controller?.modelInfo?.statePath != info?.statePath) {
+        ///仅仅切换了state文件
+        debugPrint('仅仅切换了state文件');
+        clearStates(statePath: info?.statePath);
+      } else {
+        debugPrint('第一次下载，切换了模型');
+        loadChatModel();
+      }
+      controller?.modelInfo = info;
       if (info != null) {
         // 把当前的 modelinfo 保存到本地
         await _saveModelInfoToLocal(info);
       }
-      loadChatModel();
     });
 
     setGlobalStateFileChangeCallback((ModelInfo? info) {
@@ -269,7 +282,7 @@ class RWKVModelService extends GetxController {
   }
 
   /// 清空状态
-  Future<void> clearStates() async {
+  Future<void> clearStates({String? statePath}) async {
     prefillSpeed.value = 0;
     decodeSpeed.value = 0;
 
@@ -283,6 +296,9 @@ class RWKVModelService extends GetxController {
       return;
     }
     send(to_rwkv.ClearStates());
+    if (statePath != null) {
+      rmpack = statePath;
+    }
     if (rmpack != null) {
       send(to_rwkv.LoadInitialStates(rmpack!));
     }

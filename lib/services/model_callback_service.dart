@@ -58,7 +58,8 @@ void notifyModelChangeRequired() {
     } else {
       _controller = Get.put(RolePlayChatController());
     }
-    _globalModelChangeCallback!(_controller!.modelInfo);
+    debugPrint('通知外部应用需要切换模型: ${_controller!.modelInfo?.toString()}');
+    _globalModelChangeCallback!(_controller.modelInfo);
   } else {
     debugPrint('未设置模型切换回调，无法通知外部应用');
   }
