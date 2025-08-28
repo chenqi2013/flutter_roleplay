@@ -8,7 +8,7 @@ import 'package:rwkv_mobile_flutter/rwkv_mobile_flutter.dart';
 import 'package:rwkv_mobile_flutter/to_rwkv.dart' as to_rwkv;
 import 'package:rwkv_mobile_flutter/types.dart';
 
-/// RWKV 模型管理服务
+/// RWKV tts模型管理服务
 class RWKVTTSService extends GetxController {
   /// Send message to RWKV isolate
   SendPort? _sendPort;

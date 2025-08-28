@@ -7,7 +7,7 @@ import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
-import 'package:flutter_roleplay/services/rwkv_model_service.dart';
+import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
 import 'package:flutter_roleplay/services/chat_stream_service.dart';
 
 class RolePlayChatController extends GetxController {
@@ -23,7 +23,7 @@ class RolePlayChatController extends GetxController {
   BuildContext? get currentContext => _context ?? Get.context;
 
   // 服务实例
-  final RWKVModelService _modelService = Get.put(RWKVModelService());
+  final RWKVChatService _modelService = Get.put(RWKVChatService());
   final ChatStreamService _streamService = ChatStreamService();
   final DatabaseHelper _dbHelper = DatabaseHelper();
 

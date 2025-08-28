@@ -20,8 +20,8 @@ import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/download_dialog.dart';
 
-/// RWKV 模型管理服务
-class RWKVModelService extends GetxController {
+/// RWKV 聊天模型管理服务
+class RWKVChatService extends GetxController {
   /// Send message to RWKV isolate
   SendPort? _sendPort;
 
