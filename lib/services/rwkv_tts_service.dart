@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
@@ -7,6 +9,8 @@ import 'dart:async';
 import 'package:rwkv_mobile_flutter/rwkv_mobile_flutter.dart';
 import 'package:rwkv_mobile_flutter/to_rwkv.dart' as to_rwkv;
 import 'package:rwkv_mobile_flutter/types.dart';
+import 'package:mp_audio_stream/mp_audio_stream.dart' as mp_audio_stream;
+import 'package:rwkv_mobile_flutter/from_rwkv.dart' as from_rwkv;
 
 /// RWKV tts模型管理服务
 class RWKVTTSService extends GetxController {
@@ -27,6 +31,15 @@ class RWKVTTSService extends GetxController {
 
   StreamController<String>? localChatController;
   bool isNeedSaveAiMessage = false;
+
+  mp_audio_stream.AudioStream? audioStream;
+  final asFull = 0.obs;
+  final asExhaust = 0.obs;
+  Timer? _asTimer;
+
+  Timer? _queryTimer;
+  final generating = false.obs;
+  final latestBufferLength = 0.obs;
 
   Future<void> loadSparkTTS({
     required String modelPath,
@@ -139,5 +152,113 @@ class RWKVTTSService extends GetxController {
       ),
     );
     return _initRuntimeCompleter.future;
+  }
+
+  void _startQueryTimer() {
+    _queryTimer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (timer) => _pulse(),
+    );
+  }
+
+  void _pulse() {
+    // P.rwkv.send(to_rwkv.GetTTSGenerationProgress());
+    send(to_rwkv.GetPrefillAndDecodeSpeed());
+    send(to_rwkv.GetTTSStreamingBuffer());
+    // P.rwkv.send(to_rwkv.GetTTSOutputFileList());
+  }
+
+  void _stopQueryTimer() {
+    _queryTimer?.cancel();
+    _queryTimer = null;
+  }
+
+  Future<void> _runTTS({
+    required String ttsText,
+    required String instructionText,
+    required String promptWavPath,
+    required String outputWavPath,
+    required String promptSpeechText,
+  }) async {
+    final audioStream = mp_audio_stream.getAudioStream();
+    final res = audioStream.init(
+      sampleRate: 16000,
+      channels: 1,
+      bufferMilliSec: 60000,
+      waitingBufferMilliSec: 200,
+    );
+    audioStream.resetStat();
+    if (res != 0) {
+      debugPrint("audioStream init failed: $res");
+    } else {
+      audioStream.resume();
+    }
+
+    _asTimer?.cancel();
+    _asTimer = null;
+    _asTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      final stat = audioStream.stat();
+      asFull.value = stat.full;
+      asExhaust.value = stat.exhaust;
+    });
+
+    this.audioStream = audioStream;
+
+    send(
+      to_rwkv.StartTTS(
+        ttsText: ttsText,
+        instructionText: instructionText,
+        promptWavPath: promptWavPath,
+        outputWavPath: outputWavPath,
+        promptSpeechText: promptSpeechText,
+      ),
+    );
+
+    latestBufferLength.value = 0;
+    generating.value = true;
+
+    _stopQueryTimer();
+    _startQueryTimer();
+  }
+
+  void _onStreamEvent(from_rwkv.FromRWKV event) {
+    switch (event) {
+      case from_rwkv.TTSStreamingBuffer res:
+        _onTTSStreamingBuffer(res);
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _onTTSStreamingBuffer(from_rwkv.TTSStreamingBuffer res) async {
+    final buffer = res.ttsStreamingBuffer;
+    final length = res.ttsStreamingBufferLength;
+    final generating = res.generating;
+    final allReceived = !generating && this.generating.value;
+    final addedLength = length - latestBufferLength.value;
+    final rawFloatList = res.rawFloatList.map((e) => e.toDouble() * 1).toList();
+
+    if (addedLength != 0) {
+      final float32Data = Float32List.fromList(
+        rawFloatList,
+      ).sublist(latestBufferLength.value, length);
+      audioStream?.push(float32Data);
+    }
+
+    this.generating.value = generating;
+    latestBufferLength.value = length;
+
+    if (!allReceived) return;
+    _stopQueryTimer();
+  }
+
+  void _onStreamDone() {
+    debugPrint("onStreamDone");
+  }
+
+  void _onStreamError(Object error, StackTrace stackTrace) {
+    debugPrint("error: $error");
+    // if (!kDebugMode) Sentry.captureException(error, stackTrace: stackTrace);
   }
 }
