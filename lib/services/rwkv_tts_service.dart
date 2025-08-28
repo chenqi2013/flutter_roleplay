@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
+import 'package:rwkv_mobile_flutter/from_rwkv.dart';
 import 'dart:isolate';
 import 'dart:async';
 import 'package:rwkv_mobile_flutter/rwkv_mobile_flutter.dart';
@@ -41,6 +44,75 @@ class RWKVTTSService extends GetxController {
   final generating = false.obs;
   final latestBufferLength = 0.obs;
 
+  @override
+  void onInit() async {
+    super.onInit();
+    _setupReceivePortListener();
+    loadSparkTTS(
+      modelPath:
+          "/data/user/0/com.rwkvzone.chat/app_flutter/respark-0.4B-210ksteps-a16w8-8gen3_combined.bin",
+      wav2vec2Path:
+          "/data/user/0/com.rwkvzone.chat/app_flutter/wav2vec2-large-xlsr-53.mnn",
+      detokenizePath:
+          "/data/user/0/com.rwkvzone.chat/app_flutter/BiCodecDetokenize.mnn",
+      bicodecTokenzerPath:
+          "/data/user/0/com.rwkvzone.chat/app_flutter/BiCodecTokenize.mnn",
+      backend: Backend.qnn,
+    );
+  }
+
+  void testTTS() async {
+    // ttsText: 贫穷限制了我的想象力
+    // I/flutter (26008): instructionText:
+    // I/flutter (26008): promptWavPath: /data/user/0/com.rwkv.tts/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav
+    // I/flutter (26008): promptSpeechText: ——我们并不是通过物理移动手段找到「星核」的。
+    // I/flutter (26008): outputWavPath: /data/user/0/com.rwkv.tts/cache/1756368658614.output.wav
+    final Kafka_8wav = await CommonUtil.fromAssetsToTemp(
+      "assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
+    );
+    final Kafka_8json = await CommonUtil.fromAssetsToTemp(
+      "assets/lib/tts/Chinese(PRC)_Kafka_8.json",
+    );
+    _runTTS(
+      ttsText: "作为一个开源项目，RWKV 曾接受 Stability AI、EleutherAI 提供的大量 GPU 资源和研究支持。",
+      instructionText: "",
+      promptWavPath:
+          "/data/user/0/com.rwkvzone.chat/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
+      outputWavPath:
+          "/data/user/0/com.rwkvzone.chat/cache/1234567890.output.wav",
+      promptSpeechText: "——我们并不是通过物理移动手段找到「星核」的。",
+    );
+  }
+
+  /// 设置接收端口监听器
+  void _setupReceivePortListener() {
+    _receivePort.listen((message) {
+      if (message is SendPort) {
+        _sendPort = message;
+        debugPrint("receive SendPort: $message");
+      } else {
+        if (message is ResponseBufferContent) {
+          // String result = message.responseBufferContent;
+        } else if (message is Speed) {
+          // 处理速度信息
+        } else if (message is TTSStreamingBuffer) {
+          debugPrint("receive TTSStreamingBuffer: $message");
+          _onTTSStreamingBuffer(message);
+        } else if (message is IsGenerating) {
+          var generating = message.isGenerating;
+          isGenerating.value = generating;
+          if (!generating && isNeedSaveAiMessage) {
+            debugPrint('receive IsGenerating: $generating');
+          }
+        }
+      }
+    });
+  }
+
+  // loadSparkTTS: /data/user/0/com.rwkv.tts/app_flutter/respark-0.4B-210ksteps-a16w8-8gen3_combined.bin,
+  // /data/user/0/com.rwkv.tts/app_flutter/wav2vec2-large-xlsr-53.mnn,
+  // /data/user/0/com.rwkv.tts/app_flutter/BiCodecDetokenize.mnn,
+  // /data/user/0/com.rwkv.tts/app_flutter/BiCodecTokenize.mnn, Backend.qnn
   Future<void> loadSparkTTS({
     required String modelPath,
     required String wav2vec2Path,
@@ -50,7 +122,14 @@ class RWKVTTSService extends GetxController {
   }) async {
     prefillSpeed.value = 0;
     decodeSpeed.value = 0;
-
+    if (Platform.isAndroid && backend == Backend.qnn) {
+      for (final lib in qnnLibList) {
+        await CommonUtil.fromAssetsToTemp(
+          "assets/lib/qnn/$lib",
+          targetPath: "assets/lib/$lib",
+        );
+      }
+    }
     final tokenizerPath = await CommonUtil.fromAssetsToTemp(
       "assets/config/tts/b_rwkv_vocab_v20230424_sparktts.txt",
     );
@@ -219,16 +298,6 @@ class RWKVTTSService extends GetxController {
 
     _stopQueryTimer();
     _startQueryTimer();
-  }
-
-  void _onStreamEvent(from_rwkv.FromRWKV event) {
-    switch (event) {
-      case from_rwkv.TTSStreamingBuffer res:
-        _onTTSStreamingBuffer(res);
-        break;
-      default:
-        break;
-    }
   }
 
   void _onTTSStreamingBuffer(from_rwkv.TTSStreamingBuffer res) async {

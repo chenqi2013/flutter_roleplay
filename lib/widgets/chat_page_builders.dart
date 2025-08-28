@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'dart:ui';
 import 'package:get/get.dart';
 
@@ -98,6 +99,17 @@ class ChatPageBuilders {
             onNavigateToRolesList: onNavigateToRolesList,
             onNavigateToCreateRole: onNavigateToCreateRole,
             onNavigateToChangeModel: onNavigateToChangeModel,
+            onTTS: () {
+              RWKVTTSService? _ttsService;
+              if (Get.isRegistered<RWKVTTSService>()) {
+                _ttsService = Get.find<RWKVTTSService>();
+              } else {
+                _ttsService = Get.put(RWKVTTSService());
+              }
+              Future.delayed(const Duration(seconds: 12), () {
+                _ttsService?.testTTS();
+              });
+            },
           ),
           body: SafeArea(
             top: false,
@@ -255,6 +267,7 @@ class ChatPageBuilders {
     required Function() onNavigateToRolesList,
     required Function() onNavigateToCreateRole,
     required Function() onNavigateToChangeModel,
+    required Function() onTTS,
   }) {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -284,11 +297,7 @@ class ChatPageBuilders {
                 width: 0.5,
               ),
             ),
-            child: const Icon(
-              Icons.more_vert,
-              color: Colors.white,
-              size: 20,
-            ),
+            child: const Icon(Icons.more_vert, color: Colors.white, size: 20),
           ),
           surfaceTintColor: Colors.transparent,
           color: Colors.white,
@@ -319,6 +328,11 @@ class ChatPageBuilders {
               icon: Icons.settings,
               text: '更换模型',
             ),
+            _buildSimplePopupMenuItem(
+              value: 'tts',
+              icon: Icons.voice_chat,
+              text: 'tts',
+            ),
           ],
           onSelected: (String value) async {
             switch (value) {
@@ -338,6 +352,9 @@ class ChatPageBuilders {
                 break;
               case 'change_model':
                 onNavigateToChangeModel();
+                break;
+              case 'tts':
+                onTTS();
                 break;
             }
           },
@@ -381,11 +398,7 @@ class ChatPageBuilders {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    icon,
-                    color: Colors.grey.shade600,
-                    size: 20,
-                  ),
+                  Icon(icon, color: Colors.grey.shade600, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

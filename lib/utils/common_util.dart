@@ -135,6 +135,12 @@ class CommonUtil {
     String? targetPath,
   }) async {
     try {
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File(path.join(tempDir.path, targetPath ?? assetsPath));
+      if (tempFile.existsSync()) {
+        debugPrint("file exists: ${tempFile.path}");
+        return tempFile.path;
+      }
       // 在插件中加载资源时，先尝试从主应用加载
       ByteData data;
       try {
@@ -148,8 +154,6 @@ class CommonUtil {
         data = await rootBundle.load(packagePath);
       }
 
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File(path.join(tempDir.path, targetPath ?? assetsPath));
       await tempFile.create(recursive: true);
       await tempFile.writeAsBytes(data.buffer.asUint8List());
       return tempFile.path;

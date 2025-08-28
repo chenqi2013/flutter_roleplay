@@ -44,6 +44,7 @@ flutter:
  assets:
     - assets/images/
     - assets/lib/chat/
+    - assets/lib/tts/
     # - assets/lib/qnn/
     - assets/model/chat/
     - assets/config/chat/
