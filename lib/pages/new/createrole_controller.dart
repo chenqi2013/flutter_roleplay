@@ -45,6 +45,19 @@ class CreateRoleController extends GetxController {
   // 切换语言选择
   void selectLanguage(String language) {
     selectedLanguage.value = language;
+    if (language == 'zh-CN') {
+      Get.snackbar(
+        '提示',
+        '请确认角色名称和角色设定也是使用的中文输入，否则会影响角色扮演效果',
+        colorText: Colors.redAccent,
+      );
+    } else {
+      Get.snackbar(
+        '提示',
+        '请确认角色名称和角色设定也是使用的英文输入，否则会影响角色扮演效果',
+        colorText: Colors.redAccent,
+      );
+    }
   }
 
   Future<void> onConfirm() async {
