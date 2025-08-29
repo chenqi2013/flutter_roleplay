@@ -65,7 +65,7 @@ class RoleModel {
       description: description,
       image:
           image ??
-          'https://via.placeholder.com/300x400/4A90E2/FFFFFF?text=${Uri.encodeComponent(name)}', // 默认占位图
+          'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common.webp', // 默认占位图
       language: language ?? 'zh-CN', // 默认中文
       isCustom: true,
     );

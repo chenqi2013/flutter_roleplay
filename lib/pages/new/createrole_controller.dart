@@ -13,6 +13,7 @@ class CreateRoleController extends GetxController {
   final RxBool canSubmit = false.obs;
   final RxBool isCreating = false.obs; // 创建状态
   final RxInt descLength = 0.obs;
+  final RxString selectedLanguage = 'zh-CN'.obs; // 默认中文
   static const int descMaxLength = 600;
 
   // 数据库辅助类
@@ -41,6 +42,11 @@ class CreateRoleController extends GetxController {
     canSubmit.value = n.isNotEmpty && d.isNotEmpty;
   }
 
+  // 切换语言选择
+  void selectLanguage(String language) {
+    selectedLanguage.value = language;
+  }
+
   Future<void> onConfirm() async {
     final String n = nameController.text.trim();
     final String d = descController.text.trim();
@@ -67,7 +73,7 @@ class CreateRoleController extends GetxController {
         id: 0, // 临时ID，保存时会生成真实ID
         name: n,
         description: d,
-        language: 'zh-CN', // 默认中文
+        language: selectedLanguage.value,
       );
 
       // 保存到本地数据库
