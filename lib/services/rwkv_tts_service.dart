@@ -61,7 +61,7 @@ class RWKVTTSService extends GetxController {
     );
   }
 
-  void testTTS() async {
+  void playTTS(String ttsText) async {
     // ttsText: 贫穷限制了我的想象力
     // I/flutter (26008): instructionText:
     // I/flutter (26008): promptWavPath: /data/user/0/com.rwkv.tts/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav
@@ -74,7 +74,7 @@ class RWKVTTSService extends GetxController {
       "assets/lib/tts/Chinese(PRC)_Kafka_8.json",
     );
     _runTTS(
-      ttsText: "作为一个开源项目，RWKV 曾接受 Stability AI、EleutherAI 提供的大量 GPU 资源和研究支持。",
+      ttsText: ttsText,
       instructionText: "",
       promptWavPath:
           "/data/user/0/com.rwkvzone.chat/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",

@@ -99,17 +99,7 @@ class ChatPageBuilders {
             onNavigateToRolesList: onNavigateToRolesList,
             onNavigateToCreateRole: onNavigateToCreateRole,
             onNavigateToChangeModel: onNavigateToChangeModel,
-            onTTS: () {
-              RWKVTTSService? _ttsService;
-              if (Get.isRegistered<RWKVTTSService>()) {
-                _ttsService = Get.find<RWKVTTSService>();
-              } else {
-                _ttsService = Get.put(RWKVTTSService());
-              }
-              Future.delayed(const Duration(seconds: 12), () {
-                _ttsService?.testTTS();
-              });
-            },
+            onTTS: () {},
           ),
           body: SafeArea(
             top: false,

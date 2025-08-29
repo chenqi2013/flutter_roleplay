@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
+import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'dart:io';
@@ -45,11 +46,14 @@ class RWKVChatService extends GetxController {
   Function(String)? _onMessageGenerated;
   Function()? _onGenerationComplete;
   RolePlayChatController? _controller;
+  RWKVTTSService? _ttsService;
+  StringBuffer ttsTextBuffer = StringBuffer();
   @override
   void onInit() async {
     super.onInit();
     _setupReceivePortListener();
     await _checkAndLoadModel();
+    _ttsService = Get.put(RWKVTTSService());
   }
 
   /// 设置消息生成回调
@@ -71,6 +75,7 @@ class RWKVChatService extends GetxController {
       } else {
         if (message is ResponseBufferContent) {
           String result = message.responseBufferContent;
+          ttsTextBuffer.write(result);
           if (localChatController != null && !localChatController!.isClosed) {
             localChatController!.add(result);
             _onMessageGenerated?.call(result);
@@ -84,6 +89,8 @@ class RWKVChatService extends GetxController {
           isGenerating.value = generating;
           if (!generating && isNeedSaveAiMessage) {
             debugPrint('receive IsGenerating: $generating');
+            _ttsService?.playTTS(ttsTextBuffer.toString());
+            ttsTextBuffer.clear();
             isNeedSaveAiMessage = false;
             _onGenerationComplete?.call();
             if (_getTokensTimer != null) {
