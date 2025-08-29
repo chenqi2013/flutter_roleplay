@@ -323,7 +323,7 @@ class DatabaseHelper {
       final db = await database;
       final List<Map<String, dynamic>> maps = await db.query(
         'roles',
-        orderBy: 'is_custom DESC, id ASC', // 自定义角色在前，然后按ID排序
+        orderBy: 'is_custom DESC', // 自定义角色在前
       );
 
       final roles = List.generate(maps.length, (i) {
