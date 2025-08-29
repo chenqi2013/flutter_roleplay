@@ -84,6 +84,7 @@ class CreateRoleController extends GetxController {
       roleName.value = n;
       roleDescription.value = d;
       roleImage.value = customRole.image; // 设置默认头像
+      roleLanguage.value = selectedLanguage.value;
 
       // 创建角色映射数据
       final roleMap = {

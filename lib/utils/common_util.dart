@@ -81,6 +81,7 @@ class CommonUtil {
     roleName.value = role['name'] as String;
     roleDescription.value = role['description'] as String;
     roleImage.value = role['image'] as String;
+    roleLanguage.value = role['language'] as String;
     // debugPrint(
     //   'switchToRole: ${role['name']},${role['description']},${role['image']}',
     // );

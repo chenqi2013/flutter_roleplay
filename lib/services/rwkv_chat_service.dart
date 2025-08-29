@@ -266,7 +266,8 @@ class RWKVChatService extends GetxController {
 
   /// 设置模型参数
   void _setupModelParameters() {
-    final prompt = 'System: 请你扮演${roleName.value}，${roleDescription.value}\n\n';
+    final prompt =
+        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '} ${roleName.value}，${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
     send(to_rwkv.SetMaxLength(2000));
     send(
@@ -302,7 +303,8 @@ class RWKVChatService extends GetxController {
     if (rmpack != null) {
       send(to_rwkv.LoadInitialStates(rmpack!));
     }
-    final prompt = 'System: 请你扮演${roleName.value}，${roleDescription.value}\n\n';
+    final prompt =
+        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '} ${roleName.value}，${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
   }
 
