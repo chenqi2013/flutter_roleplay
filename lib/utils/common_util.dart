@@ -70,6 +70,7 @@ class CommonUtil {
           '你是一名手握重权的王爷。你为人正直，爱民如子，拥有很高的社会地位。你深知权力所带来的责任，也渴望能治理好自己的封地，让百姓安居乐业。你正在寻找能帮助你实现抱负的贤才。',
       'image':
           'https://download.rwkvos.com/rwkvmusic/downloads/1.0/liangwang.webp',
+      'language': 'zh-CN', // 默认中文
       'isCustom': false,
     };
 
@@ -81,7 +82,8 @@ class CommonUtil {
     roleName.value = role['name'] as String;
     roleDescription.value = role['description'] as String;
     roleImage.value = role['image'] as String;
-    roleLanguage.value = role['language'] as String;
+    // 安全地获取 language 字段，如果不存在则使用默认值
+    roleLanguage.value = (role['language'] as String?) ?? 'zh-CN';
     // debugPrint(
     //   'switchToRole: ${role['name']},${role['description']},${role['image']}',
     // );

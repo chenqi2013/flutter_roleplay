@@ -104,6 +104,7 @@ class CreateRoleController extends GetxController {
         'name': n,
         'description': d,
         'image': customRole.image,
+        'language': selectedLanguage.value,
         'isCustom': true,
         'id': roleId,
       };
