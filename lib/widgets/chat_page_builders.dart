@@ -276,19 +276,15 @@ class ChatPageBuilders {
         PopupMenuButton<String>(
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 0.5,
-              ),
-            ),
-            child: const Icon(
-              Icons.more_vert,
-              color: Colors.white,
-              size: 20,
-            ),
+            // decoration: BoxDecoration(
+            //   color: Colors.white.withValues(alpha: 0.15),
+            //   borderRadius: BorderRadius.circular(8),
+            //   border: Border.all(
+            //     color: Colors.white.withValues(alpha: 0.2),
+            //     width: 0.5,
+            //   ),
+            // ),
+            child: const Icon(Icons.more_vert, color: Colors.white, size: 20),
           ),
           surfaceTintColor: Colors.transparent,
           color: Colors.white,
@@ -381,11 +377,7 @@ class ChatPageBuilders {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    icon,
-                    color: Colors.grey.shade600,
-                    size: 20,
-                  ),
+                  Icon(icon, color: Colors.grey.shade600, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
