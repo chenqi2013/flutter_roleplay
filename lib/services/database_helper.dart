@@ -24,7 +24,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'flutter_roleplay.db');
     return await openDatabase(
       path,
-      version: 3, // 升级版本以添加模型信息表
+      version: 4, // 升级版本以添加 language 字段
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -49,6 +49,7 @@ class DatabaseHelper {
         name TEXT NOT NULL,
         description TEXT NOT NULL,
         image TEXT NOT NULL,
+        language TEXT NOT NULL DEFAULT 'zh-CN',
         is_custom INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
@@ -112,6 +113,7 @@ class DatabaseHelper {
           name TEXT NOT NULL,
           description TEXT NOT NULL,
           image TEXT NOT NULL,
+          language TEXT NOT NULL DEFAULT 'zh-CN',
           is_custom INTEGER NOT NULL DEFAULT 0,
           created_at INTEGER NOT NULL,
           updated_at INTEGER NOT NULL
@@ -151,6 +153,15 @@ class DatabaseHelper {
       );
 
       debugPrint('已添加模型信息表和相关索引');
+    }
+
+    if (oldVersion < 4) {
+      // 从版本3升级到版本4: 为 roles 表添加 language 字段
+      await db.execute('''
+        ALTER TABLE roles ADD COLUMN language TEXT NOT NULL DEFAULT 'zh-CN'
+      ''');
+
+      debugPrint('已为 roles 表添加 language 字段');
     }
   }
 
@@ -296,6 +307,7 @@ class DatabaseHelper {
           'name': role.name,
           'description': role.description,
           'image': role.image,
+          'language': role.language,
           'is_custom': role.isCustom ? 1 : 0,
           'created_at': now,
           'updated_at': now,
@@ -400,6 +412,7 @@ class DatabaseHelper {
         name: role.name,
         description: role.description,
         image: role.image,
+        language: role.language,
       );
 
       await db.insert('roles', roleWithId.toDbMap());

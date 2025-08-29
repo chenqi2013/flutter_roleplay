@@ -67,6 +67,7 @@ class CreateRoleController extends GetxController {
         id: 0, // 临时ID，保存时会生成真实ID
         name: n,
         description: d,
+        language: 'zh-CN', // 默认中文
       );
 
       // 保存到本地数据库
