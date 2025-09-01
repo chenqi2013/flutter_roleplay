@@ -24,8 +24,29 @@ class CommonUtil {
     try {
       debugPrint('开始初始化默认角色...');
 
-      // 1. 先尝试从本地存储获取角色
+      // 1. 首先尝试从聊天历史中获取最近聊天的角色
       final dbHelper = DatabaseHelper();
+      final lastChatRole = await dbHelper.getLastChatRole();
+
+      if (lastChatRole != null) {
+        debugPrint('找到最近聊天的角色: $lastChatRole');
+
+        // 从角色列表中查找对应的角色信息
+        final localRoles = await dbHelper.getRoles();
+        final matchedRole = localRoles
+            .where((role) => role.name == lastChatRole)
+            .firstOrNull;
+
+        if (matchedRole != null) {
+          debugPrint('成功加载最近聊天的角色: ${matchedRole.name}');
+          switchToRole(matchedRole.toMap());
+          return;
+        } else {
+          debugPrint('最近聊天的角色在角色列表中未找到，使用默认角色');
+        }
+      }
+
+      // 2. 如果没有聊天历史，从本地存储获取角色
       final localRoles = await dbHelper.getRoles();
 
       if (localRoles.isNotEmpty) {
@@ -37,7 +58,7 @@ class CommonUtil {
 
       debugPrint('本地存储无角色，尝试从网络获取...');
 
-      // 2. 本地没有角色，从网络获取
+      // 3. 本地没有角色，从网络获取
       final apiRoles = await RoleApiService.getRoles();
 
       if (apiRoles.isNotEmpty) {

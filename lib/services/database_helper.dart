@@ -264,6 +264,40 @@ class DatabaseHelper {
     return maps.map((map) => map['role_name'] as String).toList();
   }
 
+  // 获取最近聊天的角色（按最后聊天时间排序）
+  Future<String?> getLastChatRole() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT role_name, MAX(timestamp) as last_chat_time 
+      FROM chat_messages 
+      GROUP BY role_name 
+      ORDER BY last_chat_time DESC 
+      LIMIT 1
+    ''');
+
+    if (maps.isNotEmpty) {
+      return maps.first['role_name'] as String;
+    }
+    return null;
+  }
+
+  // 获取最近聊天的角色列表（按最后聊天时间排序）
+  Future<List<String>> getRecentChatRoles({int limit = 10}) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+      '''
+      SELECT role_name, MAX(timestamp) as last_chat_time 
+      FROM chat_messages 
+      GROUP BY role_name 
+      ORDER BY last_chat_time DESC 
+      LIMIT ?
+    ''',
+      [limit],
+    );
+
+    return maps.map((map) => map['role_name'] as String).toList();
+  }
+
   // 获取指定角色的消息数量
   Future<int> getMessageCountByRole(String roleName) async {
     final db = await database;
