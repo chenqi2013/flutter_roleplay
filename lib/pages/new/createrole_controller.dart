@@ -47,14 +47,14 @@ class CreateRoleController extends GetxController {
     selectedLanguage.value = language;
     if (language == 'zh-CN') {
       Get.snackbar(
-        '提示',
-        '请确认角色名称和角色设定也是使用的中文输入，否则会影响角色扮演效果',
+        'tip_title'.tr,
+        'language_switch_chinese'.tr,
         colorText: Colors.redAccent,
       );
     } else {
       Get.snackbar(
-        '提示',
-        '请确认角色名称和角色设定也是使用的英文输入，否则会影响角色扮演效果',
+        'tip_title'.tr,
+        'language_switch_english'.tr,
         colorText: Colors.redAccent,
       );
     }
@@ -65,14 +65,18 @@ class CreateRoleController extends GetxController {
     final String d = descController.text.trim();
 
     if (n.isEmpty || d.isEmpty) {
-      Get.snackbar('提示', '请完整填写角色名称与设定', duration: Duration(seconds: 2));
+      Get.snackbar(
+        'tip_title'.tr,
+        'incomplete_info'.tr,
+        duration: Duration(seconds: 2),
+      );
       return;
     }
 
     if (descLength.value > descMaxLength) {
       Get.snackbar(
-        '提示',
-        '角色设定过长，建议精炼至 $descMaxLength 字以内',
+        'tip_title'.tr,
+        'description_too_long'.trParams({'count': descMaxLength.toString()}),
         duration: Duration(seconds: 2),
       );
       return;
@@ -125,8 +129,8 @@ class CreateRoleController extends GetxController {
       Get.back(result: roleMap);
 
       Get.snackbar(
-        '创建成功',
-        '新角色"$n"已创建并保存到本地',
+        'create_success_title'.tr,
+        'create_success_message'.trParams({'name': n}),
         duration: Duration(seconds: 3),
         backgroundColor: Get.theme.colorScheme.primary.withValues(alpha: 0.8),
         colorText: Get.theme.colorScheme.onPrimary,
@@ -134,8 +138,8 @@ class CreateRoleController extends GetxController {
     } catch (e) {
       debugPrint('创建角色失败: $e');
       Get.snackbar(
-        '创建失败',
-        '角色创建失败: ${e.toString()}',
+        'create_failed_title'.tr,
+        'create_failed_message'.trParams({'error': e.toString()}),
         duration: Duration(seconds: 3),
         backgroundColor: Get.theme.colorScheme.error.withValues(alpha: 0.8),
         colorText: Get.theme.colorScheme.onError,

@@ -16,7 +16,7 @@ class CreateRolePage extends GetView<CreateRoleController> {
       child: Scaffold(
         backgroundColor: Colors.black,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(title: const Text('创建新角色'), centerTitle: true),
+        appBar: AppBar(title: Text('create_role_title'.tr), centerTitle: true),
         body: Stack(
           children: [
             Positioned.fill(
@@ -29,9 +29,9 @@ class CreateRolePage extends GetView<CreateRoleController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            '新角色名称',
-                            style: TextStyle(
+                          Text(
+                            'role_name_label'.tr,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -44,7 +44,7 @@ class CreateRolePage extends GetView<CreateRoleController> {
                               color: Colors.white,
                               fontSize: 16,
                             ),
-                            decoration: _inputDecoration('请输入新角色名称'),
+                            decoration: _inputDecoration('role_name_hint'.tr),
                             textInputAction: TextInputAction.next,
                           ),
                         ],
@@ -55,18 +55,18 @@ class CreateRolePage extends GetView<CreateRoleController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            '角色语言',
-                            style: TextStyle(
+                          Text(
+                            'role_language_label'.tr,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            '此设置会影响角色扮演时输出的语言',
-                            style: TextStyle(
+                          Text(
+                            'role_language_hint'.tr,
+                            style: const TextStyle(
                               color: Colors.white54,
                               fontSize: 12,
                             ),
@@ -77,7 +77,7 @@ class CreateRolePage extends GetView<CreateRoleController> {
                               children: [
                                 Expanded(
                                   child: _LanguageOption(
-                                    label: '中文',
+                                    label: 'language_chinese'.tr,
                                     value: 'zh-CN',
                                     isSelected:
                                         controller.selectedLanguage.value ==
@@ -89,7 +89,7 @@ class CreateRolePage extends GetView<CreateRoleController> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: _LanguageOption(
-                                    label: 'English',
+                                    label: 'language_english'.tr,
                                     value: 'en',
                                     isSelected:
                                         controller.selectedLanguage.value ==
@@ -111,9 +111,9 @@ class CreateRolePage extends GetView<CreateRoleController> {
                         children: [
                           Row(
                             children: [
-                              const Text(
-                                '新角色设定',
-                                style: TextStyle(
+                              Text(
+                                'role_description_label'.tr,
+                                style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -142,7 +142,7 @@ class CreateRolePage extends GetView<CreateRoleController> {
                               height: 1.4,
                             ),
                             decoration: _inputDecoration(
-                              '请详细描述新角色的背景、性格、说话方式与边界...',
+                              'role_description_hint'.tr,
                             ),
                           ),
                         ],
@@ -189,7 +189,7 @@ class CreateRolePage extends GetView<CreateRoleController> {
                                 onTap: controller.canSubmit.value
                                     ? controller.onConfirm
                                     : null,
-                                label: '创建角色',
+                                label: 'create_role_button'.tr,
                                 enabled: controller.canSubmit.value,
                               ),
                             ),
