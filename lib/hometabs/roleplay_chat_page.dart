@@ -78,29 +78,23 @@ class _RolePlayChatState extends State<RolePlayChat>
       }
     });
 
-    // 监听角色切换，同步PageView位置并加载历史记录
+    // 监听角色切换，同步PageView位置
     ever(roleName, (String newRoleName) {
-      if (newRoleName.isNotEmpty) {
-        // 加载新角色的聊天历史记录
-        Future.microtask(() async {
-          await _stateManager.loadMessagesFromDatabase(newRoleName);
-          setState(() {
-            // 触发UI更新以显示历史记录
-          });
-          debugPrint('Loaded chat history for role change: $newRoleName');
-        });
-      }
-
-      if (usedRoles.isNotEmpty) {
+      if (newRoleName.isNotEmpty && usedRoles.isNotEmpty) {
         final index = usedRoles.indexWhere(
           (role) => role['name'] == newRoleName,
         );
         if (index != -1 && _pageController.hasClients) {
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
+          // 检查当前页面是否已经是目标页面，避免不必要的动画
+          final currentPage = _pageController.page?.round() ?? 0;
+          if (currentPage != index) {
+            debugPrint('同步PageView到角色: $newRoleName (页面 $index)');
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
         }
       }
     });
@@ -331,37 +325,55 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   // 页面切换处理
   void _onPageChanged(int index) async {
-    final role = usedRoles[index];
-    if (role['name'] != roleName.value) {
-      // 如果AI正在回复，需要确认
-      if (_controller != null && _controller!.isGenerating.value) {
-        final confirmed = await ChatDialogs.showRoleSwitchDialog(
-          context,
-          role['name'] as String,
-        );
+    if (index < 0 || index >= usedRoles.length) {
+      debugPrint('页面索引超出范围: $index');
+      return;
+    }
 
-        if (confirmed == true) {
-          _streamSub?.cancel();
-          _streamSub = null;
-          _controller!.stop();
-          // 延迟切换角色，避免界面更新冲突
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            CommonUtil.switchToRole(role);
-          });
-        } else {
-          // 用户取消，回到原来的页面
+    final role = usedRoles[index];
+    final targetRoleName = role['name'] as String;
+
+    // 检查是否真的需要切换角色
+    if (targetRoleName == roleName.value) {
+      debugPrint('PageView切换到相同角色，跳过: $targetRoleName');
+      return;
+    }
+
+    debugPrint('PageView切换角色: ${roleName.value} -> $targetRoleName');
+
+    // 如果AI正在回复，需要确认
+    if (_controller != null && _controller!.isGenerating.value) {
+      final confirmed = await ChatDialogs.showRoleSwitchDialog(
+        context,
+        targetRoleName,
+      );
+
+      if (confirmed == true) {
+        _streamSub?.cancel();
+        _streamSub = null;
+        _controller!.stop();
+        // 延迟切换角色，避免界面更新冲突
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          CommonUtil.switchToRole(role);
+        });
+      } else {
+        // 用户取消，回到原来的页面
+        final currentRoleIndex = usedRoles.indexWhere(
+          (r) => r['name'] == roleName.value,
+        );
+        if (currentRoleIndex != -1) {
           _pageController.animateToPage(
-            usedRoles.indexWhere((r) => r['name'] == roleName.value),
+            currentRoleIndex,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );
         }
-      } else {
-        // AI没有在回复，直接切换
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          CommonUtil.switchToRole(role);
-        });
       }
+    } else {
+      // AI没有在回复，直接切换
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        CommonUtil.switchToRole(role);
+      });
     }
   }
 

@@ -98,49 +98,75 @@ class CommonUtil {
     switchToRole(fallbackRole);
   }
 
+  // 防止重复切换的标志
+  static bool _isSwitching = false;
+
   // 切换角色
   static void switchToRole(Map<String, dynamic> role) {
-    roleName.value = role['name'] as String;
-    roleDescription.value = role['description'] as String;
-    roleImage.value = role['image'] as String;
-    // 安全地获取 language 字段，如果不存在则使用默认值
-    roleLanguage.value = (role['language'] as String?) ?? 'zh-CN';
-    // debugPrint(
-    //   'switchToRole: ${role['name']},${role['description']},${role['image']}',
-    // );
+    final newRoleName = role['name'] as String;
 
-    // 检查角色是否已经在列表中
-    final existingIndex = usedRoles.indexWhere(
-      (usedRole) => usedRole['name'] == role['name'],
-    );
-
-    if (existingIndex == -1) {
-      // 如果角色不在列表中，添加到末尾
-      usedRoles.add(Map<String, dynamic>.from(role));
-
-      // // 限制已使用角色列表的长度（最多保存10个）
-      // if (usedRoles.length > 10) {
-      //   usedRoles.removeAt(0); // 移除最早的角色
-      // }
-    }
-    // 如果角色已存在，不需要重新添加，只更新当前状态
-    RolePlayChatController? controller;
-    if (Get.isRegistered<RolePlayChatController>()) {
-      controller = Get.find<RolePlayChatController>();
-    } else {
-      controller = Get.put(RolePlayChatController());
+    // 防止重复切换到同一个角色
+    if (_isSwitching || roleName.value == newRoleName) {
+      debugPrint('角色切换已在进行中或角色相同，跳过: $newRoleName');
+      return;
     }
 
-    // 清空当前状态（只清空内存，不删除数据库记录）
-    controller?.clearStates();
+    _isSwitching = true;
+    debugPrint('开始切换角色: ${roleName.value} -> $newRoleName');
 
-    // 异步加载该角色的聊天历史记录
+    try {
+      // 原子性更新所有角色状态
+      roleName.value = newRoleName;
+      roleDescription.value = role['description'] as String;
+      roleImage.value = role['image'] as String;
+      roleLanguage.value = (role['language'] as String?) ?? 'zh-CN';
+
+      // 检查角色是否已经在列表中
+      final existingIndex = usedRoles.indexWhere(
+        (usedRole) => usedRole['name'] == newRoleName,
+      );
+
+      if (existingIndex == -1) {
+        // 如果角色不在列表中，添加到末尾
+        usedRoles.add(Map<String, dynamic>.from(role));
+      }
+
+      // 获取或创建控制器
+      RolePlayChatController? controller;
+      if (Get.isRegistered<RolePlayChatController>()) {
+        controller = Get.find<RolePlayChatController>();
+      } else {
+        controller = Get.put(RolePlayChatController());
+      }
+
+      // 清空当前状态（只清空内存，不删除数据库记录）
+      controller?.clearStates();
+
+      // 同步加载聊天历史记录（避免异步时序问题）
+      _loadChatHistorySync(newRoleName, controller);
+
+      debugPrint('角色切换完成: $newRoleName');
+    } catch (e) {
+      debugPrint('角色切换失败: $e');
+    } finally {
+      // 延迟重置标志，避免过快的重复切换
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _isSwitching = false;
+      });
+    }
+  }
+
+  // 同步加载聊天历史记录
+  static void _loadChatHistorySync(
+    String roleName,
+    RolePlayChatController? controller,
+  ) {
     Future.microtask(() async {
       try {
         final chatStateManager = ChatStateManager();
-        await chatStateManager.loadMessagesFromDatabase(role['name'] as String);
+        await chatStateManager.loadMessagesFromDatabase(roleName);
         debugPrint(
-          'Loaded chat history for ${role['name']}, message count: ${chatStateManager.getMessages(role['name'] as String).length}',
+          'Loaded chat history for $roleName, message count: ${chatStateManager.getMessages(roleName).length}',
         );
 
         // 通知UI更新
