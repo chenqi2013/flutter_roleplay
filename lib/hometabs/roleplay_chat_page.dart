@@ -404,7 +404,7 @@ class _RolePlayChatState extends State<RolePlayChat>
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
+          ).showSnackBar(SnackBar(content: Text('chat_history_cleared'.tr)));
         }
       },
       onNavigateToRolesList: () async {

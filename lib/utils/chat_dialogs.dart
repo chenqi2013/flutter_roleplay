@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Utility class containing reusable dialog components for chat functionality
 class ChatDialogs {
@@ -77,8 +78,8 @@ class ChatDialogs {
                       const SizedBox(height: 24),
 
                       // Title
-                      const Text(
-                        '确认操作',
+                      Text(
+                        'confirm_operation'.tr,
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -90,7 +91,7 @@ class ChatDialogs {
 
                       // Content
                       Text(
-                        'AI正在回复中，离开页面将中断回复。\n确定要继续吗？',
+                        'ai_interruption_message'.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
@@ -126,8 +127,8 @@ class ChatDialogs {
                                   ),
                                   elevation: 0,
                                 ),
-                                child: const Text(
-                                  '取消',
+                                child: Text(
+                                  'cancel'.tr,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -171,8 +172,8 @@ class ChatDialogs {
                                   ),
                                   elevation: 0,
                                 ),
-                                child: const Text(
-                                  '确定',
+                                child: Text(
+                                  'confirm'.tr,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -272,8 +273,8 @@ class ChatDialogs {
                       const SizedBox(height: 24),
 
                       // Title
-                      const Text(
-                        '切换角色',
+                      Text(
+                        'role_switch_dialog_title'.tr,
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -284,26 +285,16 @@ class ChatDialogs {
                       const SizedBox(height: 16),
 
                       // Content
-                      RichText(
+                      Text(
+                        'role_switch_confirm_message'.trParams({
+                          'name': roleName,
+                        }),
                         textAlign: TextAlign.center,
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade600,
-                            height: 1.5,
-                            letterSpacing: 0.2,
-                          ),
-                          children: [
-                            const TextSpan(text: 'AI正在回复中，切换到 '),
-                            TextSpan(
-                              text: '"$roleName"',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade600,
-                              ),
-                            ),
-                            const TextSpan(text: ' 将中断回复。\n确定要继续吗？'),
-                          ],
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                          height: 1.5,
+                          letterSpacing: 0.2,
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -333,8 +324,8 @@ class ChatDialogs {
                                   ),
                                   elevation: 0,
                                 ),
-                                child: const Text(
-                                  '取消',
+                                child: Text(
+                                  'cancel'.tr,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -378,8 +369,8 @@ class ChatDialogs {
                                   ),
                                   elevation: 0,
                                 ),
-                                child: const Text(
-                                  '确定',
+                                child: Text(
+                                  'confirm'.tr,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -444,7 +435,7 @@ class ChatDialogs {
 
                 // Title
                 Text(
-                  '确认删除',
+                  'delete_history_title'.tr,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -455,7 +446,7 @@ class ChatDialogs {
 
                 // Content
                 Text(
-                  '确定要删除当前角色的所有聊天记录吗？',
+                  'delete_history_message'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -465,7 +456,7 @@ class ChatDialogs {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '此操作不可恢复',
+                  'delete_irreversible'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -534,8 +525,8 @@ class ChatDialogs {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            '删除',
+                          child: Text(
+                            'delete'.tr,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
