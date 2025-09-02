@@ -16,6 +16,7 @@ dependencies:
   get: ^4.6.6
   http: ^1.2.1
   sqflite: ^2.4.2
+  shared_preferences: ^2.5.3
   # dio: ^5.9.0
   rwkv_downloader:
     # path: ../rwkv_downloader

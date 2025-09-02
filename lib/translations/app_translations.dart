@@ -26,6 +26,36 @@ class AppTranslations extends Translations {
       'create_success_message': '新角色"@name"已创建并保存到本地',
       'create_failed_title': '创建失败',
       'create_failed_message': '角色创建失败: @error',
+
+      // RolesListPage 相关翻译
+      'roles_list_title': '角色列表',
+      'loading_roles': '加载中...',
+      'load_failed': '加载失败',
+      'retry_button': '重试',
+      'tap_to_select': '点击选择',
+      'offline_mode': '离线模式',
+      'cache_loaded': '已从本地缓存加载 @count 个角色',
+      'network_failed_cache': '网络连接失败，且本地无缓存数据',
+
+      // RolePlayChat 相关翻译
+      'chat_history_cleared': '聊天记录已清空',
+      'role_switch_dialog_title': '切换角色',
+      'role_switch_dialog_message': 'AI正在回复中，确定要切换到"@name"吗？',
+      'confirm': '确定',
+      'cancel': '取消',
+      'clear_history': '清空历史',
+      'change_model': '切换模型',
+      'create_role': '创建角色',
+      'role_list': '角色列表',
+
+      // 对话框相关翻译
+      'confirm_operation': '确认操作',
+      'ai_interruption_message': 'AI正在回复中，离开页面将中断回复。\n确定要继续吗？',
+      'role_switch_confirm_message': 'AI正在回复中，切换到 "@name" 将中断回复。\n确定要继续吗？',
+      'delete_history_title': '确认删除',
+      'delete_history_message': '确定要删除当前角色的所有聊天记录吗？',
+      'delete_irreversible': '此操作不可恢复',
+      'delete': '删除',
     },
     'en_US': {
       // CreateRolePage related translations
@@ -56,6 +86,41 @@ class AppTranslations extends Translations {
           'New role "@name" has been created and saved locally',
       'create_failed_title': 'Creation Failed',
       'create_failed_message': 'Role creation failed: @error',
+
+      // RolesListPage related translations
+      'roles_list_title': 'Role List',
+      'loading_roles': 'Loading...',
+      'load_failed': 'Load Failed',
+      'retry_button': 'Retry',
+      'tap_to_select': 'Tap to Select',
+      'offline_mode': 'Offline Mode',
+      'cache_loaded': 'Loaded @count roles from local cache',
+      'network_failed_cache':
+          'Network connection failed and no local cache available',
+
+      // RolePlayChat related translations
+      'chat_history_cleared': 'Chat history cleared',
+      'role_switch_dialog_title': 'Switch Role',
+      'role_switch_dialog_message':
+          'AI is replying, are you sure to switch to "@name"?',
+      'confirm': 'Confirm',
+      'cancel': 'Cancel',
+      'clear_history': 'Clear History',
+      'change_model': 'Change Model',
+      'create_role': 'Create Role',
+      'role_list': 'Role List',
+
+      // Dialog related translations
+      'confirm_operation': 'Confirm Operation',
+      'ai_interruption_message':
+          'AI is replying, leaving the page will interrupt the reply.\nAre you sure to continue?',
+      'role_switch_confirm_message':
+          'AI is replying, switching to "@name" will interrupt the reply.\nAre you sure to continue?',
+      'delete_history_title': 'Confirm Delete',
+      'delete_history_message':
+          'Are you sure to delete all chat records of the current role?',
+      'delete_irreversible': 'This operation cannot be undone',
+      'delete': 'Delete',
     },
   };
 }

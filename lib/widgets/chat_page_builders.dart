@@ -298,22 +298,22 @@ class ChatPageBuilders {
             _buildSimplePopupMenuItem(
               value: 'clear_history',
               icon: Icons.delete_forever,
-              text: '清空聊天记录',
+              text: 'clear_history'.tr,
             ),
             _buildSimplePopupMenuItem(
               value: 'role_list',
               icon: Icons.list,
-              text: '角色列表',
+              text: 'role_list'.tr,
             ),
             _buildSimplePopupMenuItem(
               value: 'create_role',
               icon: Icons.add,
-              text: '创建角色',
+              text: 'create_role'.tr,
             ),
             _buildSimplePopupMenuItem(
               value: 'change_model',
               icon: Icons.settings,
-              text: '更换模型',
+              text: 'change_model'.tr,
             ),
           ],
           onSelected: (String value) async {

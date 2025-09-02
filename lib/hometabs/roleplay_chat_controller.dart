@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/services/language_service.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 
@@ -34,14 +35,27 @@ class RolePlayChatController extends GetxController {
 
   // 获取生成状态
   RxBool get isGenerating => _modelService.isGenerating;
+
+  LanguageService? languageService;
+
   @override
   void onInit() async {
     super.onInit();
-
+    debugPrint('RolePlayChatController onInit');
     // 设置模型服务回调
     _modelService.setOnGenerationComplete(() {
       _saveCurrentAiMessage();
     });
+  }
+
+  void changeLanguage() async {
+    debugPrint('changeLanguage');
+    if (Get.isRegistered<LanguageService>()) {
+      languageService = Get.find<LanguageService>();
+    } else {
+      languageService = Get.put(LanguageService());
+    }
+    languageService?.loadSavedLanguage();
   }
 
   // 加载模型 - 委托给模型服务

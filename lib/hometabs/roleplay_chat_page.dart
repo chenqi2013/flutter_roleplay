@@ -55,7 +55,7 @@ class _RolePlayChatState extends State<RolePlayChat>
   @override
   void initState() {
     super.initState();
-
+    debugPrint('RolePlayChat initState');
     // 注册生命周期观察者
     WidgetsBinding.instance.addObserver(this);
 
@@ -117,6 +117,13 @@ class _RolePlayChatState extends State<RolePlayChat>
         });
       }
     });
+
+    if (Get.isRegistered<RolePlayChatController>()) {
+      _controller = Get.find<RolePlayChatController>();
+    } else {
+      _controller = Get.put(RolePlayChatController());
+    }
+    _controller?.changeLanguage();
   }
 
   // 异步初始化默认角色
@@ -397,7 +404,7 @@ class _RolePlayChatState extends State<RolePlayChat>
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('聊天记录已清空')));
+          ).showSnackBar(SnackBar(content: Text('chat_history_cleared'.tr)));
         }
       },
       onNavigateToRolesList: () async {

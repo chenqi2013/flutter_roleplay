@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_page.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/services/language_service.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/translations/app_translations.dart';
 import 'package:get/get.dart';
 
 BuildContext? currentContext;
+LanguageService? languageService;
 
 class RoleplayManage {
   static Widget createRolePlayChatPage(
@@ -44,11 +46,20 @@ class RoleplayManage {
 
   ///语言切换
   static void changeLocale(Locale locale) {
-    Get.updateLocale(locale);
-    // // 切换到中文
-    // Get.updateLocale(const Locale('zh', 'CN'));
+    debugPrint('切换语言: ${locale.countryCode} ${locale.languageCode}');
 
-    // // 切换到英文
-    // Get.updateLocale(const Locale('en', 'US'));
+    if (Get.isRegistered<LanguageService>()) {
+      languageService = Get.find<LanguageService>();
+    } else {
+      languageService = Get.put(LanguageService());
+    }
+    languageService?.saveLanguage(locale);
+
+    // // Get.updateLocale(locale);
+    // // // 切换到中文
+    // // Get.updateLocale(const Locale('zh', 'CN'));
+
+    // // // 切换到英文
+    // // Get.updateLocale(const Locale('en', 'US'));
   }
 }

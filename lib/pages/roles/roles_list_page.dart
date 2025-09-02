@@ -12,7 +12,7 @@ class RolesListPage extends GetView<RolesListController> {
     Get.put(RolesListController());
     return Scaffold(
       appBar: AppBar(
-        title: const Text('角色列表'),
+        title: Text('roles_list_title'.tr),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -64,7 +64,7 @@ class RolesListPage extends GetView<RolesListController> {
               Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
               const SizedBox(height: 16),
               Text(
-                '加载失败',
+                'load_failed'.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -87,7 +87,7 @@ class RolesListPage extends GetView<RolesListController> {
                   backgroundColor: Colors.purple,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('重试'),
+                child: Text('retry_button'.tr),
               ),
             ],
           ),
@@ -199,7 +199,7 @@ class _RoleCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    '点击选择',
+                    'tap_to_select'.tr,
                     style: TextStyle(
                       color: Colors.blue.shade600,
                       fontSize: 12,
