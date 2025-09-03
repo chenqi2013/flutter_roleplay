@@ -139,7 +139,7 @@ class _GlassInput extends StatelessWidget {
                 child: TextField(
                   enabled: !isLoading, // 加载时禁用输入
                   style: TextStyle(
-                    color: isLoading ? Colors.white38 : Colors.white,
+                    color: isLoading ? Colors.black54 : Colors.black,
                     fontSize: 16,
                   ),
                   decoration: InputDecoration(
@@ -147,7 +147,7 @@ class _GlassInput extends StatelessWidget {
                         ? 'AI正在回复中...'
                         : '发送消息给${roleName.isNotEmpty ? roleName : "AI"}',
                     hintStyle: TextStyle(
-                      color: isLoading ? Colors.white38 : Colors.white54,
+                      color: isLoading ? Colors.black54 : Colors.black87,
                       fontSize: 16,
                     ),
                     border: InputBorder.none,

@@ -128,7 +128,7 @@ class ChatPageBuilders {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.black.withValues(alpha: 0.2),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.list, color: Colors.white, size: 28),
@@ -257,7 +257,7 @@ class ChatPageBuilders {
     required Function() onNavigateToChangeModel,
   }) {
     return AppBar(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.black.withValues(alpha: 0.2),
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
@@ -272,20 +272,8 @@ class ChatPageBuilders {
       ),
       centerTitle: true,
       actions: [
-        // 现代优雅的下拉菜单按钮
         PopupMenuButton<String>(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            // decoration: BoxDecoration(
-            //   color: Colors.white.withValues(alpha: 0.15),
-            //   borderRadius: BorderRadius.circular(8),
-            //   border: Border.all(
-            //     color: Colors.white.withValues(alpha: 0.2),
-            //     width: 0.5,
-            //   ),
-            // ),
-            child: const Icon(Icons.more_vert, color: Colors.white, size: 20),
-          ),
+          icon: const Icon(Icons.more_vert, color: Colors.white, size: 28),
           surfaceTintColor: Colors.transparent,
           color: Colors.white,
           elevation: 8,
