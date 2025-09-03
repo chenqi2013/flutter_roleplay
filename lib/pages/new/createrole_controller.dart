@@ -214,32 +214,6 @@ class CreateRoleController extends GetxController {
       final roleId = await _dbHelper.saveCustomRole(customRole);
       debugPrint('自定义角色已保存，ID: $roleId');
 
-      // 更新全局状态 - 直接使用本地图片路径，不依赖 customRole.image
-      roleName.value = n;
-      roleDescription.value = d;
-      roleImage.value =
-          finalImagePath ??
-          'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common.webp';
-      roleLanguage.value = selectedLanguage.value;
-
-      debugPrint('CreateRoleController: 角色创建完成');
-      debugPrint('CreateRoleController: 角色名称: $n');
-      debugPrint('CreateRoleController: finalImagePath: $finalImagePath');
-      debugPrint('CreateRoleController: customRole.image: ${customRole.image}');
-      debugPrint('CreateRoleController: 本地图片URL: ${imageUrl.value}');
-      debugPrint(
-        'CreateRoleController: 设置的roleImage.value: ${roleImage.value}',
-      );
-
-      // 验证图片文件是否存在
-      if (imageUrl.value.isNotEmpty) {
-        final file = File(imageUrl.value);
-        debugPrint('CreateRoleController: 图片文件是否存在: ${file.existsSync()}');
-        if (!file.existsSync()) {
-          debugPrint('CreateRoleController: 警告 - 图片文件不存在: ${imageUrl.value}');
-        }
-      }
-
       // 创建角色映射数据 - 使用与全局状态相同的图片路径
       final String finalRoleImage =
           finalImagePath ??
@@ -258,6 +232,30 @@ class CreateRoleController extends GetxController {
       debugPrint('  - finalRoleImage: $finalRoleImage');
       debugPrint('  - roleMap[image]: ${roleMap['image']}');
       debugPrint('  - customRole.image: ${customRole.image}');
+
+      // 先切换到新创建的角色，这会更新全局状态和usedRoles列表
+      CommonUtil.switchToRole(roleMap);
+
+      // switchToRole 内部已经处理了控制器的清理，这里不需要重复清理
+      debugPrint('CreateRoleController: 角色切换完成，准备跳转到聊天页面');
+
+      debugPrint('CreateRoleController: 角色创建完成');
+      debugPrint('CreateRoleController: 角色名称: $n');
+      debugPrint('CreateRoleController: finalImagePath: $finalImagePath');
+      debugPrint('CreateRoleController: customRole.image: ${customRole.image}');
+      debugPrint('CreateRoleController: 本地图片URL: ${imageUrl.value}');
+      debugPrint(
+        'CreateRoleController: 设置的roleImage.value: ${roleImage.value}',
+      );
+
+      // 验证图片文件是否存在
+      if (imageUrl.value.isNotEmpty) {
+        final file = File(imageUrl.value);
+        debugPrint('CreateRoleController: 图片文件是否存在: ${file.existsSync()}');
+        if (!file.existsSync()) {
+          debugPrint('CreateRoleController: 警告 - 图片文件不存在: ${imageUrl.value}');
+        }
+      }
 
       // 切换到新创建的角色
       CommonUtil.switchToRole(roleMap);

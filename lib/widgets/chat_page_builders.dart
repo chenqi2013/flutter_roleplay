@@ -122,44 +122,56 @@ class ChatPageBuilders {
     required Widget chatListView,
     required Widget inputBar,
   }) {
-    final role = usedRoles[index];
-    final roleImagePath = role['image'] as String;
+    return Obx(() {
+      final role = usedRoles[index];
+      // 如果是当前激活的角色，使用全局响应式状态，否则使用列表中的静态数据
+      final bool isCurrentRole = role['name'] == roleName.value;
+      final String currentRoleName = isCurrentRole
+          ? roleName.value
+          : role['name'] as String;
+      final String currentRoleImage = isCurrentRole
+          ? roleImage.value
+          : role['image'] as String;
 
-    debugPrint('buildPageContent: 页面索引 = $index');
-    debugPrint('buildPageContent: 角色名称 = ${role['name']}');
-    debugPrint('buildPageContent: 角色图片路径 = $roleImagePath');
+      debugPrint('buildPageContent: 页面索引 = $index');
+      debugPrint('buildPageContent: 是否为当前角色 = $isCurrentRole');
+      debugPrint('buildPageContent: 显示角色名称 = $currentRoleName');
+      debugPrint('buildPageContent: 显示角色图片 = $currentRoleImage');
 
-    return Stack(
-      key: ValueKey('page_content_${role['name']}_$roleImagePath'), // 添加key确保重建
-      fit: StackFit.expand,
-      children: [
-        // 背景图片 - 使用当前页面的角色图片
-        Positioned.fill(child: _buildImageWidget(roleImagePath)),
-        // 前景内容
-        Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: _buildAppBar(
-            context: context,
-            roleName: role['name'] as String,
-            onBackPressed: onBackPressed,
-            onClearHistory: onClearHistory,
-            onNavigateToRolesList: onNavigateToRolesList,
-            onNavigateToCreateRole: onNavigateToCreateRole,
-            onNavigateToChangeModel: onNavigateToChangeModel,
-          ),
-          body: SafeArea(
-            top: false,
-            bottom: false,
-            child: Column(
-              children: [
-                Expanded(child: chatListView),
-                inputBar,
-              ],
+      return Stack(
+        key: ValueKey(
+          'page_content_${currentRoleName}_$currentRoleImage',
+        ), // 使用实时数据作为key
+        fit: StackFit.expand,
+        children: [
+          // 背景图片 - 使用实时更新的角色图片
+          Positioned.fill(child: _buildImageWidget(currentRoleImage)),
+          // 前景内容
+          Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: _buildAppBar(
+              context: context,
+              roleName: currentRoleName, // 使用实时更新的角色名称
+              onBackPressed: onBackPressed,
+              onClearHistory: onClearHistory,
+              onNavigateToRolesList: onNavigateToRolesList,
+              onNavigateToCreateRole: onNavigateToCreateRole,
+              onNavigateToChangeModel: onNavigateToChangeModel,
+            ),
+            body: SafeArea(
+              top: false,
+              bottom: false,
+              child: Column(
+                children: [
+                  Expanded(child: chatListView),
+                  inputBar,
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   /// 构建聊天脚手架

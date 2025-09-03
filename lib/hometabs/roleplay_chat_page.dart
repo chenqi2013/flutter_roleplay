@@ -550,6 +550,23 @@ class _RolePlayChatState extends State<RolePlayChat>
         debugPrint('    currentRoleIndex: $currentRoleIndex');
         if (currentRoleIndex >= 0) {
           debugPrint('    当前角色图片: ${usedRoles[currentRoleIndex]['image']}');
+
+          // 确保PageController跳转到正确的页面
+          if (_pageController.hasClients) {
+            final currentPage = _pageController.page?.round() ?? 0;
+            if (currentPage != currentRoleIndex) {
+              debugPrint(
+                '    PageController需要从页面 $currentPage 跳转到 $currentRoleIndex',
+              );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _pageController.animateToPage(
+                  currentRoleIndex,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              });
+            }
+          }
         }
 
         result = ChatPageBuilders.buildSwipeableChatPages(
