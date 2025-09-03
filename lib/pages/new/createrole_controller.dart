@@ -76,11 +76,13 @@ class CreateRoleController extends GetxController {
         maxHeight: 1024,
         imageQuality: 85,
       );
-      
+
       if (pickedFile != null) {
         selectedImage.value = File(pickedFile.path);
         // 保存图片到应用目录
-        final savedImagePath = await _saveImageToAppDirectory(File(pickedFile.path));
+        final savedImagePath = await _saveImageToAppDirectory(
+          File(pickedFile.path),
+        );
         imageUrl.value = savedImagePath;
         Get.snackbar(
           'tip_title'.tr,
@@ -101,17 +103,18 @@ class CreateRoleController extends GetxController {
   Future<String> _saveImageToAppDirectory(File imageFile) async {
     final Directory appDir = await getApplicationDocumentsDirectory();
     final String roleImagesDir = path.join(appDir.path, 'role_images');
-    
+
     // 创建目录如果不存在
     final Directory dir = Directory(roleImagesDir);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
-    
+
     // 生成唯一文件名
-    final String fileName = '${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}';
+    final String fileName =
+        '${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}';
     final String newPath = path.join(roleImagesDir, fileName);
-    
+
     // 复制文件
     await imageFile.copy(newPath);
     return newPath;
@@ -123,24 +126,32 @@ class CreateRoleController extends GetxController {
     imageUrl.value = '';
   }
 
-  Future<void> onConfirm() async {
+  Future<void> onConfirm(BuildContext context) async {
     final String n = nameController.text.trim();
     final String d = descController.text.trim();
 
     if (n.isEmpty || d.isEmpty) {
-      Get.snackbar(
-        'tip_title'.tr,
-        'incomplete_info'.tr,
-        duration: Duration(seconds: 2),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('incomplete_info'.tr),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
 
     if (descLength.value > descMaxLength) {
-      Get.snackbar(
-        'tip_title'.tr,
-        'description_too_long'.trParams({'count': descMaxLength.toString()}),
-        duration: Duration(seconds: 2),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'description_too_long'.trParams({
+              'count': descMaxLength.toString(),
+            }),
+          ),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -166,7 +177,7 @@ class CreateRoleController extends GetxController {
       roleDescription.value = d;
       roleImage.value = customRole.image; // 设置默认头像
       roleLanguage.value = selectedLanguage.value;
-      
+
       debugPrint('CreateRoleController: 角色图片路径设置为: ${customRole.image}');
       debugPrint('CreateRoleController: 本地图片URL: ${imageUrl.value}');
 
@@ -193,23 +204,27 @@ class CreateRoleController extends GetxController {
       controller?.clearStates();
 
       // 返回结果并显示成功提示
-      Get.back(result: roleMap);
+      Navigator.of(context).pop(roleMap);
 
-      Get.snackbar(
-        'create_success_title'.tr,
-        'create_success_message'.trParams({'name': n}),
-        duration: Duration(seconds: 3),
-        backgroundColor: Get.theme.colorScheme.primary.withValues(alpha: 0.8),
-        colorText: Get.theme.colorScheme.onPrimary,
+      // 使用ScaffoldMessenger显示成功提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('create_success_message'.trParams({'name': n})),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e) {
       debugPrint('创建角色失败: $e');
-      Get.snackbar(
-        'create_failed_title'.tr,
-        'create_failed_message'.trParams({'error': e.toString()}),
-        duration: Duration(seconds: 3),
-        backgroundColor: Get.theme.colorScheme.error.withValues(alpha: 0.8),
-        colorText: Get.theme.colorScheme.onError,
+      // 使用ScaffoldMessenger显示错误提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'create_failed_message'.trParams({'error': e.toString()}),
+          ),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       isCreating.value = false;

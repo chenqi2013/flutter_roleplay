@@ -23,12 +23,49 @@ class RoleplayManage {
     // 设置全局模型切换回调
     setGlobalModelChangeCallback(changeModelCallback);
 
-    return GetMaterialApp(
-      home: RolePlayChat(),
-      translations: AppTranslations(),
-      locale: const Locale('zh', 'CN'),
-      fallbackLocale: const Locale('zh', 'CN'),
-    );
+    // 初始化语言服务
+    _initializeLanguageService();
+
+    // 直接返回RolePlayChat页面，不创建新的MaterialApp
+    // 让宿主应用的导航栈管理所有页面
+    return RolePlayChat();
+  }
+
+  // 防止重复初始化的标志
+  static bool _isInitialized = false;
+
+  /// 初始化语言服务和翻译
+  static void _initializeLanguageService() {
+    if (_isInitialized) {
+      debugPrint('语言服务已初始化，跳过重复初始化');
+      return;
+    }
+
+    try {
+      // 手动设置GetX翻译，即使没有GetMaterialApp
+      Get.addTranslations(AppTranslations().keys);
+      debugPrint('翻译已添加到GetX');
+
+      // 初始化语言服务
+      if (!Get.isRegistered<LanguageService>()) {
+        languageService = Get.put(LanguageService());
+        debugPrint('LanguageService已注册');
+        // 异步加载保存的语言设置
+        Future.microtask(() async {
+          final savedLocale = await languageService!.getSavedLanguage();
+          Get.updateLocale(savedLocale);
+          debugPrint('已应用保存的语言: $savedLocale');
+        });
+      } else {
+        languageService = Get.find<LanguageService>();
+        debugPrint('LanguageService已存在，直接使用');
+      }
+
+      _isInitialized = true;
+      debugPrint('语言服务初始化完成');
+    } catch (e) {
+      debugPrint('语言服务初始化失败: $e');
+    }
   }
 
   /// 通知插件模型下载完成，插件将重新加载模型
@@ -54,12 +91,11 @@ class RoleplayManage {
       languageService = Get.put(LanguageService());
     }
     languageService?.saveLanguage(locale);
+  }
 
-    // // Get.updateLocale(locale);
-    // // // 切换到中文
-    // // Get.updateLocale(const Locale('zh', 'CN'));
-
-    // // // 切换到英文
-    // // Get.updateLocale(const Locale('en', 'US'));
+  /// 重置插件状态（用于调试或重新初始化）
+  static void resetPlugin() {
+    _isInitialized = false;
+    debugPrint('插件状态已重置');
   }
 }

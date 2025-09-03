@@ -1,4 +1,5 @@
 import 'package:flutter_roleplay/utils/common_util.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
@@ -101,21 +102,19 @@ class RolesListController extends GetxController {
   }
 
   /// 选择角色
-  void selectRole(RoleModel role) {
+  void selectRole(RoleModel role, BuildContext context) {
     // 使用统一的切换角色函数
     CommonUtil.switchToRole(role.toMap());
 
-    // 返回上一页
-    Get.back();
+    // 使用Flutter原生导航返回上一页
+    Navigator.of(context).pop();
 
     // // 显示选择成功的提示
-    // Get.snackbar(
-    //   '角色切换',
-    //   '已切换到 ${role.name}',
-    //   snackPosition: SnackPosition.TOP,
-    //   duration: const Duration(seconds: 2),
-    //   backgroundColor: Get.theme.colorScheme.primary.withValues(alpha: 0.8),
-    //   colorText: Get.theme.colorScheme.onPrimary,
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(
+    //     content: Text('已切换到 ${role.name}'),
+    //     duration: const Duration(seconds: 2),
+    //   ),
     // );
   }
 

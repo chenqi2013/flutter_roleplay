@@ -104,7 +104,7 @@ class RolesListPage extends GetView<RolesListController> {
             return _RoleCard(
               name: role.name,
               description: role.description,
-              onTap: () => controller.selectRole(role),
+              onTap: () => controller.selectRole(role, context),
             );
           },
         ),
