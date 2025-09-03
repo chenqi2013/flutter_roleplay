@@ -38,6 +38,7 @@ class AppTranslations extends Translations {
       'create_failed_message': '角色创建失败: @error',
       'image_selected_success': '图片选择成功',
       'image_select_failed': '图片选择失败: @error',
+      'duplicate_role_name': '角色名称已存在，请使用不同的名称',
 
       // RolesListPage 相关翻译
       'roles_list_title': '角色列表',
@@ -131,6 +132,7 @@ class AppTranslations extends Translations {
       'create_failed_message': 'Role creation failed: @error',
       'image_selected_success': 'Image selected successfully',
       'image_select_failed': 'Image selection failed: @error',
+      'duplicate_role_name': 'Role name already exists, please use a different name',
 
       // RolesListPage related translations
       'roles_list_title': 'Role List',

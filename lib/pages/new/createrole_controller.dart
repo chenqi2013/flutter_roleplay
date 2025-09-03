@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
-import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
+
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -56,13 +56,19 @@ class CreateRoleController extends GetxController {
       Get.snackbar(
         'tip_title'.tr,
         'language_switch_chinese'.tr,
-        colorText: Colors.redAccent,
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.blue.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
       );
     } else {
       Get.snackbar(
         'tip_title'.tr,
         'language_switch_english'.tr,
-        colorText: Colors.redAccent,
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.blue.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }
@@ -88,6 +94,9 @@ class CreateRoleController extends GetxController {
           'tip_title'.tr,
           'image_selected_success'.tr,
           duration: Duration(seconds: 2),
+          backgroundColor: Colors.green.withValues(alpha: 0.9),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {
@@ -95,6 +104,9 @@ class CreateRoleController extends GetxController {
         'tip_title'.tr,
         'image_select_failed'.trParams({'error': e.toString()}),
         duration: Duration(seconds: 2),
+        backgroundColor: Colors.red.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }
@@ -131,27 +143,42 @@ class CreateRoleController extends GetxController {
     final String d = descController.text.trim();
 
     if (n.isEmpty || d.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('incomplete_info'.tr),
-          duration: const Duration(seconds: 2),
-          backgroundColor: Colors.orange,
-        ),
+      Get.snackbar(
+        'tip_title'.tr,
+        'incomplete_info'.tr,
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.orange.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+      return;
+    }
+
+    // 检查是否已存在同名角色
+    final existingRoles = await _dbHelper.getRoles();
+    final duplicateRole = existingRoles.firstWhereOrNull(
+      (role) => role.name == n,
+    );
+    if (duplicateRole != null) {
+      Get.snackbar(
+        'tip_title'.tr,
+        'duplicate_role_name'.tr,
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.red.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
 
     if (descLength.value > descMaxLength) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'description_too_long'.trParams({
-              'count': descMaxLength.toString(),
-            }),
-          ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: Colors.orange,
-        ),
+      Get.snackbar(
+        'tip_title'.tr,
+        'description_too_long'.trParams({'count': descMaxLength.toString()}),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.orange.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -160,71 +187,119 @@ class CreateRoleController extends GetxController {
       isCreating.value = true;
 
       // 创建自定义角色模型
+      debugPrint('CreateRoleController: 准备创建角色');
+      debugPrint('  - 角色名称: $n');
+      debugPrint('  - 角色描述长度: ${d.length}');
+      debugPrint('  - 选择的图片路径: ${imageUrl.value}');
+      debugPrint('  - 图片路径是否为空: ${imageUrl.value.isEmpty}');
+
+      // 确保图片路径正确传递，如果没有选择图片则传递null
+      final String? finalImagePath = imageUrl.value.isNotEmpty
+          ? imageUrl.value
+          : null;
+      debugPrint('  - 最终图片路径: $finalImagePath');
+
       final customRole = RoleModel.createCustom(
         id: 0, // 临时ID，保存时会生成真实ID
         name: n,
         description: d,
         language: selectedLanguage.value,
-        image: imageUrl.value.isNotEmpty ? imageUrl.value : null,
+        image: finalImagePath,
       );
+
+      debugPrint('CreateRoleController: 创建的角色模型');
+      debugPrint('  - 角色图片路径: ${customRole.image}');
 
       // 保存到本地数据库
       final roleId = await _dbHelper.saveCustomRole(customRole);
       debugPrint('自定义角色已保存，ID: $roleId');
 
-      // 更新全局状态
+      // 更新全局状态 - 直接使用本地图片路径，不依赖 customRole.image
       roleName.value = n;
       roleDescription.value = d;
-      roleImage.value = customRole.image; // 设置默认头像
+      roleImage.value =
+          finalImagePath ??
+          'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common.webp';
       roleLanguage.value = selectedLanguage.value;
 
-      debugPrint('CreateRoleController: 角色图片路径设置为: ${customRole.image}');
+      debugPrint('CreateRoleController: 角色创建完成');
+      debugPrint('CreateRoleController: 角色名称: $n');
+      debugPrint('CreateRoleController: finalImagePath: $finalImagePath');
+      debugPrint('CreateRoleController: customRole.image: ${customRole.image}');
       debugPrint('CreateRoleController: 本地图片URL: ${imageUrl.value}');
+      debugPrint(
+        'CreateRoleController: 设置的roleImage.value: ${roleImage.value}',
+      );
 
-      // 创建角色映射数据
+      // 验证图片文件是否存在
+      if (imageUrl.value.isNotEmpty) {
+        final file = File(imageUrl.value);
+        debugPrint('CreateRoleController: 图片文件是否存在: ${file.existsSync()}');
+        if (!file.existsSync()) {
+          debugPrint('CreateRoleController: 警告 - 图片文件不存在: ${imageUrl.value}');
+        }
+      }
+
+      // 创建角色映射数据 - 使用与全局状态相同的图片路径
+      final String finalRoleImage =
+          finalImagePath ??
+          'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common.webp';
       final roleMap = {
         'name': n,
         'description': d,
-        'image': customRole.image,
+        'image': finalRoleImage,
         'language': selectedLanguage.value,
         'isCustom': true,
         'id': roleId,
       };
 
+      debugPrint('CreateRoleController: 创建角色映射数据');
+      debugPrint('  - finalImagePath: $finalImagePath');
+      debugPrint('  - finalRoleImage: $finalRoleImage');
+      debugPrint('  - roleMap[image]: ${roleMap['image']}');
+      debugPrint('  - customRole.image: ${customRole.image}');
+
       // 切换到新创建的角色
       CommonUtil.switchToRole(roleMap);
 
-      // 清理聊天状态
-      RolePlayChatController? controller;
-      if (Get.isRegistered<RolePlayChatController>()) {
-        controller = Get.find<RolePlayChatController>();
-      } else {
-        controller = Get.put(RolePlayChatController());
-      }
-      controller?.clearStates();
+      // switchToRole 内部已经处理了控制器的清理，这里不需要重复清理
+      debugPrint('CreateRoleController: 角色切换完成，准备跳转到聊天页面');
 
-      // 返回结果并显示成功提示
-      Navigator.of(context).pop(roleMap);
+      // 强制触发响应式更新
+      usedRoles.refresh();
+      roleName.refresh();
+      roleImage.refresh();
+      roleDescription.refresh();
 
-      // 使用ScaffoldMessenger显示成功提示
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('create_success_message'.trParams({'name': n})),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.green,
-        ),
+      // 显示成功提示
+      Get.snackbar(
+        'create_success_title'.tr,
+        'create_success_message'.trParams({'name': n}),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.green.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
       );
+
+      // 延迟一点时间确保状态更新完成，然后返回到聊天页面
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      debugPrint('CreateRoleController: 准备返回到聊天页面');
+      debugPrint('  - 返回前 roleName.value: ${roleName.value}');
+      debugPrint('  - 返回前 roleImage.value: ${roleImage.value}');
+      debugPrint('  - 返回前 usedRoles.length: ${usedRoles.length}');
+
+      // 使用Flutter原生导航返回，不清除导航栈
+      Navigator.of(context).pop(roleMap);
     } catch (e) {
       debugPrint('创建角色失败: $e');
-      // 使用ScaffoldMessenger显示错误提示
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'create_failed_message'.trParams({'error': e.toString()}),
-          ),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ),
+      Get.snackbar(
+        'create_failed_title'.tr,
+        'create_failed_message'.trParams({'error': e.toString()}),
+        duration: Duration(seconds: 3),
+        backgroundColor: Colors.red.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isCreating.value = false;
