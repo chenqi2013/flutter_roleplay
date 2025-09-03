@@ -322,7 +322,8 @@ class RWKVChatService extends GetxController {
   Future<void> stop() async => send(to_rwkv.Stop());
 
   /// 生成聊天回复流
-  Stream<String> streamLocalChatCompletions({String content = '介绍下自己'}) {
+  Stream<String> streamLocalChatCompletions({String? content}) {
+    content ??= 'introduce_yourself'.tr;
     debugPrint('streamLocalChatCompletions called with content: $content');
     if (localChatController != null) {
       localChatController!.close();

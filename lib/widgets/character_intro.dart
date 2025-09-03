@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CharacterIntro extends StatefulWidget {
   final String title;
@@ -32,24 +33,21 @@ class _CharacterIntroState extends State<CharacterIntro> {
   /// 检查文本是否需要展开功能
   bool _shouldShowExpandButton() {
     if (!widget.showExpandIcon) return false;
-    
+
     final textPainter = TextPainter(
       text: TextSpan(
         text: widget.description,
-        style: const TextStyle(
-          fontSize: 15,
-          height: 1.35,
-        ),
+        style: const TextStyle(fontSize: 15, height: 1.35),
       ),
       textDirection: TextDirection.ltr,
       maxLines: widget.maxLines,
     );
-    
+
     // 动态获取屏幕宽度并计算容器最大宽度
     final screenWidth = MediaQuery.of(context).size.width;
     final maxWidth = screenWidth * 0.85 - 24; // 85%宽度减去左右padding 12*2
     textPainter.layout(maxWidth: maxWidth);
-    
+
     // 检查文本是否被截断
     return textPainter.didExceedMaxLines;
   }
@@ -91,9 +89,9 @@ class _CharacterIntroState extends State<CharacterIntro> {
               children: [
                 Icon(Icons.info_outline, color: Colors.white70, size: 14),
                 const SizedBox(width: 6),
-                const Text(
-                  'AI生成内容，请遵守社区公约',
-                  style: TextStyle(
+                Text(
+                  'ai_generated_content'.tr,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
                     height: 1.3,

@@ -216,7 +216,7 @@ class ChatPageBuilders {
     // 如果没有消息，显示角色介绍
     if (messages.isEmpty) {
       return CharacterIntro(
-        title: '简介',
+        title: 'introduction'.tr,
         description: roleDescription,
         firstMessage: '',
         maxLines: 4,
@@ -238,7 +238,7 @@ class ChatPageBuilders {
 
     // 列表最上方显示角色介绍
     return CharacterIntro(
-      title: '简介',
+      title: 'introduction'.tr,
       description: roleDescription,
       firstMessage: '',
       maxLines: 4,
