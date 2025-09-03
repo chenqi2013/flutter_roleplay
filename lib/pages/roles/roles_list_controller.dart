@@ -86,7 +86,7 @@ class RolesListController extends GetxController {
 
         debugPrint('成功从本地缓存加载 ${cachedRoles.length} 个角色');
       } else {
-        error.value = '网络连接失败，且本地无缓存数据';
+        error.value = 'network_failed_cache'.tr;
         debugPrint('本地缓存为空，无法加载角色');
       }
 
@@ -94,7 +94,7 @@ class RolesListController extends GetxController {
       isLoadingFromCache.value = false;
     } catch (e) {
       debugPrint('从本地缓存加载角色失败: $e');
-      error.value = '加载失败: ${e.toString()}';
+      error.value = '${'load_failed'.tr}: ${e.toString()}';
       isLoading.value = false;
       isLoadingFromCache.value = false;
     }

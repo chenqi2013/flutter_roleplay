@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 var roleName = ''.obs;
 var roleDescription = ''.obs;
 var roleImage = ''.obs;
+var roleLanguage = ''.obs;
 
 // 用户使用过的角色列表（按使用顺序）
 var usedRoles = <Map<String, dynamic>>[].obs;

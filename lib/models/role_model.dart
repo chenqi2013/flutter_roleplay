@@ -28,6 +28,7 @@ class RoleModel {
   final String name;
   final String description;
   final String image;
+  final String language;
   final bool isCustom; // true: 用户自定义角色, false: API获取的角色
 
   RoleModel({
@@ -35,6 +36,7 @@ class RoleModel {
     required this.name,
     required this.description,
     required this.image,
+    required this.language,
     this.isCustom = false, // 默认为API角色
   });
 
@@ -44,6 +46,7 @@ class RoleModel {
       name: json['name'] as String,
       description: json['description'] as String,
       image: json['image'] as String,
+      language: json['language'] as String? ?? 'zh-CN', // 默认中文
       isCustom: json['isCustom'] as bool? ?? false, // API数据默认为false
     );
   }
@@ -54,6 +57,7 @@ class RoleModel {
     required String name,
     required String description,
     String? image,
+    String? language,
   }) {
     return RoleModel(
       id: id,
@@ -61,7 +65,8 @@ class RoleModel {
       description: description,
       image:
           image ??
-          'https://via.placeholder.com/300x400/4A90E2/FFFFFF?text=${Uri.encodeComponent(name)}', // 默认占位图
+          'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common.webp', // 默认占位图
+      language: language ?? 'zh-CN', // 默认中文
       isCustom: true,
     );
   }
@@ -72,6 +77,7 @@ class RoleModel {
       'name': name,
       'description': description,
       'image': image,
+      'language': language,
       'isCustom': isCustom,
     };
   }
@@ -82,6 +88,7 @@ class RoleModel {
       'name': name,
       'description': description,
       'image': image,
+      'language': language,
       'isCustom': isCustom,
     };
   }
@@ -93,6 +100,7 @@ class RoleModel {
       'name': name,
       'description': description,
       'image': image,
+      'language': language,
       'is_custom': isCustom ? 1 : 0, // SQLite使用整数表示布尔值
       'created_at': DateTime.now().millisecondsSinceEpoch,
       'updated_at': DateTime.now().millisecondsSinceEpoch,
@@ -106,6 +114,7 @@ class RoleModel {
       name: map['name'] as String,
       description: map['description'] as String,
       image: map['image'] as String,
+      language: map['language'] as String? ?? 'zh-CN', // 默认中文，兼容旧数据
       isCustom: (map['is_custom'] as int) == 1,
     );
   }

@@ -24,8 +24,29 @@ class CommonUtil {
     try {
       debugPrint('开始初始化默认角色...');
 
-      // 1. 先尝试从本地存储获取角色
+      // 1. 首先尝试从聊天历史中获取最近聊天的角色
       final dbHelper = DatabaseHelper();
+      final lastChatRole = await dbHelper.getLastChatRole();
+
+      if (lastChatRole != null) {
+        debugPrint('找到最近聊天的角色: $lastChatRole');
+
+        // 从角色列表中查找对应的角色信息
+        final localRoles = await dbHelper.getRoles();
+        final matchedRole = localRoles
+            .where((role) => role.name == lastChatRole)
+            .firstOrNull;
+
+        if (matchedRole != null) {
+          debugPrint('成功加载最近聊天的角色: ${matchedRole.name}');
+          switchToRole(matchedRole.toMap());
+          return;
+        } else {
+          debugPrint('最近聊天的角色在角色列表中未找到，使用默认角色');
+        }
+      }
+
+      // 2. 如果没有聊天历史，从本地存储获取角色
       final localRoles = await dbHelper.getRoles();
 
       if (localRoles.isNotEmpty) {
@@ -37,7 +58,7 @@ class CommonUtil {
 
       debugPrint('本地存储无角色，尝试从网络获取...');
 
-      // 2. 本地没有角色，从网络获取
+      // 3. 本地没有角色，从网络获取
       final apiRoles = await RoleApiService.getRoles();
 
       if (apiRoles.isNotEmpty) {
@@ -70,53 +91,82 @@ class CommonUtil {
           '你是一名手握重权的王爷。你为人正直，爱民如子，拥有很高的社会地位。你深知权力所带来的责任，也渴望能治理好自己的封地，让百姓安居乐业。你正在寻找能帮助你实现抱负的贤才。',
       'image':
           'https://download.rwkvos.com/rwkvmusic/downloads/1.0/liangwang.webp',
+      'language': 'zh-CN', // 默认中文
       'isCustom': false,
     };
 
     switchToRole(fallbackRole);
   }
 
+  // 防止重复切换的标志
+  static bool _isSwitching = false;
+
   // 切换角色
   static void switchToRole(Map<String, dynamic> role) {
-    roleName.value = role['name'] as String;
-    roleDescription.value = role['description'] as String;
-    roleImage.value = role['image'] as String;
-    // debugPrint(
-    //   'switchToRole: ${role['name']},${role['description']},${role['image']}',
-    // );
+    final newRoleName = role['name'] as String;
 
-    // 检查角色是否已经在列表中
-    final existingIndex = usedRoles.indexWhere(
-      (usedRole) => usedRole['name'] == role['name'],
-    );
-
-    if (existingIndex == -1) {
-      // 如果角色不在列表中，添加到末尾
-      usedRoles.add(Map<String, dynamic>.from(role));
-
-      // // 限制已使用角色列表的长度（最多保存10个）
-      // if (usedRoles.length > 10) {
-      //   usedRoles.removeAt(0); // 移除最早的角色
-      // }
-    }
-    // 如果角色已存在，不需要重新添加，只更新当前状态
-    RolePlayChatController? controller;
-    if (Get.isRegistered<RolePlayChatController>()) {
-      controller = Get.find<RolePlayChatController>();
-    } else {
-      controller = Get.put(RolePlayChatController());
+    // 防止重复切换到同一个角色
+    if (_isSwitching || roleName.value == newRoleName) {
+      debugPrint('角色切换已在进行中或角色相同，跳过: $newRoleName');
+      return;
     }
 
-    // 清空当前状态（只清空内存，不删除数据库记录）
-    controller?.clearStates();
+    _isSwitching = true;
+    debugPrint('开始切换角色: ${roleName.value} -> $newRoleName');
 
-    // 异步加载该角色的聊天历史记录
+    try {
+      // 原子性更新所有角色状态
+      roleName.value = newRoleName;
+      roleDescription.value = role['description'] as String;
+      roleImage.value = role['image'] as String;
+      roleLanguage.value = (role['language'] as String?) ?? 'zh-CN';
+
+      // 检查角色是否已经在列表中
+      final existingIndex = usedRoles.indexWhere(
+        (usedRole) => usedRole['name'] == newRoleName,
+      );
+
+      if (existingIndex == -1) {
+        // 如果角色不在列表中，添加到末尾
+        usedRoles.add(Map<String, dynamic>.from(role));
+      }
+
+      // 获取或创建控制器
+      RolePlayChatController? controller;
+      if (Get.isRegistered<RolePlayChatController>()) {
+        controller = Get.find<RolePlayChatController>();
+      } else {
+        controller = Get.put(RolePlayChatController());
+      }
+
+      // 清空当前状态（只清空内存，不删除数据库记录）
+      controller?.clearStates();
+
+      // 同步加载聊天历史记录（避免异步时序问题）
+      _loadChatHistorySync(newRoleName, controller);
+
+      debugPrint('角色切换完成: $newRoleName');
+    } catch (e) {
+      debugPrint('角色切换失败: $e');
+    } finally {
+      // 延迟重置标志，避免过快的重复切换
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _isSwitching = false;
+      });
+    }
+  }
+
+  // 同步加载聊天历史记录
+  static void _loadChatHistorySync(
+    String roleName,
+    RolePlayChatController? controller,
+  ) {
     Future.microtask(() async {
       try {
         final chatStateManager = ChatStateManager();
-        await chatStateManager.loadMessagesFromDatabase(role['name'] as String);
+        await chatStateManager.loadMessagesFromDatabase(roleName);
         debugPrint(
-          'Loaded chat history for ${role['name']}, message count: ${chatStateManager.getMessages(role['name'] as String).length}',
+          'Loaded chat history for $roleName, message count: ${chatStateManager.getMessages(roleName).length}',
         );
 
         // 通知UI更新

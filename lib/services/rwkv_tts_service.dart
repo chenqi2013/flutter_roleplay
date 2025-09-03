@@ -50,13 +50,13 @@ class RWKVTTSService extends GetxController {
     _setupReceivePortListener();
     loadSparkTTS(
       modelPath:
-          "/data/user/0/com.rwkvzone.chat/app_flutter/respark-0.4B-210ksteps-a16w8-8gen3_combined.bin",
+          "/data/user/0/com.rwkvzone.roleplay/app_flutter/respark-0.4B-210ksteps-a16w8-8gen3_combined.bin",
       wav2vec2Path:
-          "/data/user/0/com.rwkvzone.chat/app_flutter/wav2vec2-large-xlsr-53.mnn",
+          "/data/user/0/com.rwkvzone.roleplay/app_flutter/wav2vec2-large-xlsr-53.mnn",
       detokenizePath:
-          "/data/user/0/com.rwkvzone.chat/app_flutter/BiCodecDetokenize.mnn",
+          "/data/user/0/com.rwkvzone.roleplay/app_flutter/BiCodecDetokenize.mnn",
       bicodecTokenzerPath:
-          "/data/user/0/com.rwkvzone.chat/app_flutter/BiCodecTokenize.mnn",
+          "/data/user/0/com.rwkvzone.roleplay/app_flutter/BiCodecTokenize.mnn",
       backend: Backend.qnn,
     );
   }
@@ -67,6 +67,7 @@ class RWKVTTSService extends GetxController {
     // I/flutter (26008): promptWavPath: /data/user/0/com.rwkv.tts/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav
     // I/flutter (26008): promptSpeechText: ——我们并不是通过物理移动手段找到「星核」的。
     // I/flutter (26008): outputWavPath: /data/user/0/com.rwkv.tts/cache/1756368658614.output.wav
+    debugPrint("playTTS: $ttsText");
     final Kafka_8wav = await CommonUtil.fromAssetsToTemp(
       "assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
     );
@@ -77,9 +78,9 @@ class RWKVTTSService extends GetxController {
       ttsText: ttsText,
       instructionText: "",
       promptWavPath:
-          "/data/user/0/com.rwkvzone.chat/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
+          "/data/user/0/com.rwkvzone.roleplay/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
       outputWavPath:
-          "/data/user/0/com.rwkvzone.chat/cache/1234567890.output.wav",
+          "/data/user/0/com.rwkvzone.roleplay/cache/1234567890.output.wav",
       promptSpeechText: "——我们并不是通过物理移动手段找到「星核」的。",
     );
   }

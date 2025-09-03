@@ -16,7 +16,7 @@ class CreateRolePage extends GetView<CreateRoleController> {
       child: Scaffold(
         backgroundColor: Colors.black,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(title: const Text('创建新角色'), centerTitle: true),
+        appBar: AppBar(title: Text('create_role_title'.tr), centerTitle: true),
         body: Stack(
           children: [
             Positioned.fill(
@@ -29,9 +29,9 @@ class CreateRolePage extends GetView<CreateRoleController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            '新角色名称',
-                            style: TextStyle(
+                          Text(
+                            'role_name_label'.tr,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -44,8 +44,62 @@ class CreateRolePage extends GetView<CreateRoleController> {
                               color: Colors.white,
                               fontSize: 16,
                             ),
-                            decoration: _inputDecoration('请输入新角色名称'),
+                            decoration: _inputDecoration('role_name_hint'.tr),
                             textInputAction: TextInputAction.next,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _GlassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'role_language_label'.tr,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'role_language_hint'.tr,
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Obx(
+                            () => Row(
+                              children: [
+                                Expanded(
+                                  child: _LanguageOption(
+                                    label: 'language_chinese'.tr,
+                                    value: 'zh-CN',
+                                    isSelected:
+                                        controller.selectedLanguage.value ==
+                                        'zh-CN',
+                                    onTap: () =>
+                                        controller.selectLanguage('zh-CN'),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _LanguageOption(
+                                    label: 'language_english'.tr,
+                                    value: 'en',
+                                    isSelected:
+                                        controller.selectedLanguage.value ==
+                                        'en',
+                                    onTap: () =>
+                                        controller.selectLanguage('en'),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -57,9 +111,9 @@ class CreateRolePage extends GetView<CreateRoleController> {
                         children: [
                           Row(
                             children: [
-                              const Text(
-                                '新角色设定',
-                                style: TextStyle(
+                              Text(
+                                'role_description_label'.tr,
+                                style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -88,7 +142,7 @@ class CreateRolePage extends GetView<CreateRoleController> {
                               height: 1.4,
                             ),
                             decoration: _inputDecoration(
-                              '请详细描述新角色的背景、性格、说话方式与边界...',
+                              'role_description_hint'.tr,
                             ),
                           ),
                         ],
@@ -135,7 +189,7 @@ class CreateRolePage extends GetView<CreateRoleController> {
                                 onTap: controller.canSubmit.value
                                     ? controller.onConfirm
                                     : null,
-                                label: '创建角色',
+                                label: 'create_role_button'.tr,
                                 enabled: controller.canSubmit.value,
                               ),
                             ),
@@ -287,5 +341,61 @@ class _PrimaryButton extends StatelessWidget {
     if (!enabled) return content;
 
     return GestureDetector(onTap: onTap, child: content);
+  }
+}
+
+class _LanguageOption extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LanguageOption({
+    required this.label,
+    required this.value,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 44,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isSelected
+                ? [
+                    const Color(0xFF6A8DFF).withValues(alpha: 0.3),
+                    const Color(0xFF9B7BFF).withValues(alpha: 0.3),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.05),
+                    Colors.black.withValues(alpha: 0.05),
+                  ],
+          ),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF6A8DFF).withValues(alpha: 0.6)
+                : Colors.white.withValues(alpha: 0.15),
+            width: isSelected ? 1.2 : 0.8,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.white70,
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

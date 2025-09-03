@@ -24,7 +24,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'flutter_roleplay.db');
     return await openDatabase(
       path,
-      version: 3, // 升级版本以添加模型信息表
+      version: 4, // 升级版本以添加 language 字段
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -49,6 +49,7 @@ class DatabaseHelper {
         name TEXT NOT NULL,
         description TEXT NOT NULL,
         image TEXT NOT NULL,
+        language TEXT NOT NULL DEFAULT 'zh-CN',
         is_custom INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
@@ -112,6 +113,7 @@ class DatabaseHelper {
           name TEXT NOT NULL,
           description TEXT NOT NULL,
           image TEXT NOT NULL,
+          language TEXT NOT NULL DEFAULT 'zh-CN',
           is_custom INTEGER NOT NULL DEFAULT 0,
           created_at INTEGER NOT NULL,
           updated_at INTEGER NOT NULL
@@ -151,6 +153,15 @@ class DatabaseHelper {
       );
 
       debugPrint('已添加模型信息表和相关索引');
+    }
+
+    if (oldVersion < 4) {
+      // 从版本3升级到版本4: 为 roles 表添加 language 字段
+      await db.execute('''
+        ALTER TABLE roles ADD COLUMN language TEXT NOT NULL DEFAULT 'zh-CN'
+      ''');
+
+      debugPrint('已为 roles 表添加 language 字段');
     }
   }
 
@@ -253,6 +264,40 @@ class DatabaseHelper {
     return maps.map((map) => map['role_name'] as String).toList();
   }
 
+  // 获取最近聊天的角色（按最后聊天时间排序）
+  Future<String?> getLastChatRole() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT role_name, MAX(timestamp) as last_chat_time 
+      FROM chat_messages 
+      GROUP BY role_name 
+      ORDER BY last_chat_time DESC 
+      LIMIT 1
+    ''');
+
+    if (maps.isNotEmpty) {
+      return maps.first['role_name'] as String;
+    }
+    return null;
+  }
+
+  // 获取最近聊天的角色列表（按最后聊天时间排序）
+  Future<List<String>> getRecentChatRoles({int limit = 10}) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+      '''
+      SELECT role_name, MAX(timestamp) as last_chat_time 
+      FROM chat_messages 
+      GROUP BY role_name 
+      ORDER BY last_chat_time DESC 
+      LIMIT ?
+    ''',
+      [limit],
+    );
+
+    return maps.map((map) => map['role_name'] as String).toList();
+  }
+
   // 获取指定角色的消息数量
   Future<int> getMessageCountByRole(String roleName) async {
     final db = await database;
@@ -296,6 +341,7 @@ class DatabaseHelper {
           'name': role.name,
           'description': role.description,
           'image': role.image,
+          'language': role.language,
           'is_custom': role.isCustom ? 1 : 0,
           'created_at': now,
           'updated_at': now,
@@ -323,7 +369,7 @@ class DatabaseHelper {
       final db = await database;
       final List<Map<String, dynamic>> maps = await db.query(
         'roles',
-        orderBy: 'is_custom DESC, id ASC', // 自定义角色在前，然后按ID排序
+        orderBy: 'is_custom DESC', // 自定义角色在前
       );
 
       final roles = List.generate(maps.length, (i) {
@@ -400,6 +446,7 @@ class DatabaseHelper {
         name: role.name,
         description: role.description,
         image: role.image,
+        language: role.language,
       );
 
       await db.insert('roles', roleWithId.toDbMap());
