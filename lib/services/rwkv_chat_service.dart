@@ -272,9 +272,9 @@ class RWKVChatService extends GetxController {
     send(to_rwkv.SetMaxLength(2000));
     send(
       to_rwkv.SetSamplerParams(
-        temperature: 1.5,
+        temperature: 1.8,
         topK: 500,
-        topP: 0,
+        topP: 0.2,
         presencePenalty: 0,
         frequencyPenalty: 0,
         penaltyDecay: 0.996,
