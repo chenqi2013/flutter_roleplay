@@ -441,16 +441,18 @@ class DatabaseHelper {
       // 生成新的自定义角色ID (负数，避免与API角色冲突)
       final customRoleId = await _generateCustomRoleId();
 
-      final roleWithId = RoleModel.createCustom(
+      // 创建带有正确ID的角色实例，保持原有的image路径
+      final roleWithId = RoleModel(
         id: customRoleId,
         name: role.name,
         description: role.description,
-        image: role.image,
+        image: role.image, // 保持原有的图片路径，不使用默认值
         language: role.language,
+        isCustom: true,
       );
 
       await db.insert('roles', roleWithId.toDbMap());
-      debugPrint('成功保存自定义角色: ${roleWithId.name} (ID: $customRoleId)');
+      debugPrint('成功保存自定义角色: ${roleWithId.name} (ID: $customRoleId, Image: ${roleWithId.image})');
       return customRoleId;
     } catch (e) {
       debugPrint('保存自定义角色失败: $e');

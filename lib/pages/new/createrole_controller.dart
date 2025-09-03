@@ -1,9 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../../constant/constant.dart';
 
 class CreateRoleController extends GetxController {
@@ -14,10 +18,13 @@ class CreateRoleController extends GetxController {
   final RxBool isCreating = false.obs; // 创建状态
   final RxInt descLength = 0.obs;
   final RxString selectedLanguage = 'zh-CN'.obs; // 默认中文
+  final Rx<File?> selectedImage = Rx<File?>(null);
+  final RxString imageUrl = ''.obs;
   static const int descMaxLength = 600;
 
   // 数据库辅助类
   final DatabaseHelper _dbHelper = DatabaseHelper();
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void onInit() {
@@ -60,6 +67,62 @@ class CreateRoleController extends GetxController {
     }
   }
 
+  // 选择图片
+  Future<void> selectImage() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      
+      if (pickedFile != null) {
+        selectedImage.value = File(pickedFile.path);
+        // 保存图片到应用目录
+        final savedImagePath = await _saveImageToAppDirectory(File(pickedFile.path));
+        imageUrl.value = savedImagePath;
+        Get.snackbar(
+          'tip_title'.tr,
+          'image_selected_success'.tr,
+          duration: Duration(seconds: 2),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'tip_title'.tr,
+        'image_select_failed'.trParams({'error': e.toString()}),
+        duration: Duration(seconds: 2),
+      );
+    }
+  }
+
+  // 保存图片到应用目录
+  Future<String> _saveImageToAppDirectory(File imageFile) async {
+    final Directory appDir = await getApplicationDocumentsDirectory();
+    final String roleImagesDir = path.join(appDir.path, 'role_images');
+    
+    // 创建目录如果不存在
+    final Directory dir = Directory(roleImagesDir);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    
+    // 生成唯一文件名
+    final String fileName = '${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}';
+    final String newPath = path.join(roleImagesDir, fileName);
+    
+    // 复制文件
+    await imageFile.copy(newPath);
+    return newPath;
+  }
+
+  // 移除选中的图片
+  void removeSelectedImage() {
+    selectedImage.value = null;
+    imageUrl.value = '';
+  }
+
   Future<void> onConfirm() async {
     final String n = nameController.text.trim();
     final String d = descController.text.trim();
@@ -91,6 +154,7 @@ class CreateRoleController extends GetxController {
         name: n,
         description: d,
         language: selectedLanguage.value,
+        image: imageUrl.value.isNotEmpty ? imageUrl.value : null,
       );
 
       // 保存到本地数据库
@@ -102,6 +166,9 @@ class CreateRoleController extends GetxController {
       roleDescription.value = d;
       roleImage.value = customRole.image; // 设置默认头像
       roleLanguage.value = selectedLanguage.value;
+      
+      debugPrint('CreateRoleController: 角色图片路径设置为: ${customRole.image}');
+      debugPrint('CreateRoleController: 本地图片URL: ${imageUrl.value}');
 
       // 创建角色映射数据
       final roleMap = {
