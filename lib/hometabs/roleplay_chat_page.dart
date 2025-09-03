@@ -454,7 +454,14 @@ class _RolePlayChatState extends State<RolePlayChat>
           final count = await _stateManager.getMessageCount(currentRoleName);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('数据库中$currentRoleName的消息数: $count')),
+              SnackBar(
+                content: Text(
+                  'message_count_debug'.trParams({
+                    'roleName': currentRoleName,
+                    'count': count.toString(),
+                  }),
+                ),
+              ),
             );
           }
         },

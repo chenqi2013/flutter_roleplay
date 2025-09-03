@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 // 全局贴底输入框组件：自动避让键盘 + 底部导航
 class GlobalInputBar extends StatelessWidget {
@@ -134,8 +135,10 @@ class _GlassInput extends StatelessWidget {
                   ),
                   decoration: InputDecoration(
                     hintText: isLoading
-                        ? 'AI正在回复中...'
-                        : '发送消息给${roleName.isNotEmpty ? roleName : "AI"}',
+                        ? 'ai_replying'.tr
+                        : (roleName.isNotEmpty
+                              ? 'send_message_to'.trParams({'name': roleName})
+                              : 'send_message_to_ai'.tr),
                     hintStyle: TextStyle(
                       color: isLoading ? Colors.white38 : Colors.white,
                       fontSize: 16,

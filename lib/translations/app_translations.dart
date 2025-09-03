@@ -60,6 +60,27 @@ class AppTranslations extends Translations {
       'create_role': '创建角色',
       'role_list': '角色列表',
 
+      // 输入框相关翻译
+      'ai_replying': 'AI正在回复中...',
+      'send_message_to': '发送消息给@name',
+      'send_message_to_ai': '发送消息给AI',
+
+      // 角色介绍相关翻译
+      'introduction': '简介',
+      'ai_generated_content': 'AI生成内容，请遵守社区公约',
+
+      // 下载对话框相关翻译
+      'downloading': '正在下载中...',
+      'download_model': '下载模型文件',
+      'download_patience': '文件比较大，请耐心等待下载完成',
+      'start_download': '开始下载',
+
+      // 默认聊天内容
+      'introduce_yourself': '介绍下自己',
+
+      // 调试信息（虽然用户通常看不到，但为了完整性）
+      'message_count_debug': '数据库中@roleName的消息数: @count',
+
       // 对话框相关翻译
       'confirm_operation': '确认操作',
       'ai_interruption_message': 'AI正在回复中，离开页面将中断回复。\n确定要继续吗？',
@@ -133,6 +154,29 @@ class AppTranslations extends Translations {
       'change_model': 'Change Model',
       'create_role': 'Create Role',
       'role_list': 'Role List',
+
+      // Input bar related translations
+      'ai_replying': 'AI is replying...',
+      'send_message_to': 'Send message to @name',
+      'send_message_to_ai': 'Send message to AI',
+
+      // Character introduction related translations
+      'introduction': 'Introduction',
+      'ai_generated_content':
+          'AI generated content, please follow community guidelines',
+
+      // Download dialog related translations
+      'downloading': 'Downloading...',
+      'download_model': 'Download Model File',
+      'download_patience':
+          'File is large, please wait patiently for download to complete',
+      'start_download': 'Start Download',
+
+      // Default chat content
+      'introduce_yourself': 'Introduce yourself',
+
+      // Debug info (though users usually don't see it, for completeness)
+      'message_count_debug': 'Message count for @roleName in database: @count',
 
       // Dialog related translations
       'confirm_operation': 'Confirm Operation',
