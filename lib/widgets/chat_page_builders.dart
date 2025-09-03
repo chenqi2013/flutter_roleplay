@@ -261,7 +261,7 @@ class ChatPageBuilders {
     required List<ChatMessage> messages,
     required String roleDescription,
   }) {
-    // 如果没有消息，显示角色介绍
+    // 如果没有消息，只显示角色介绍
     if (messages.isEmpty) {
       return CharacterIntro(
         title: 'introduction'.tr,
@@ -272,7 +272,9 @@ class ChatPageBuilders {
       );
     }
 
+    // 有消息时的逻辑
     if (index < messages.length) {
+      // 显示消息气泡
       final int reversedIdx = messages.length - 1 - index;
       final ChatMessage msg = messages[reversedIdx];
       return Padding(
@@ -282,16 +284,19 @@ class ChatPageBuilders {
           message: msg,
         ),
       );
+    } else if (index == messages.length) {
+      // 在消息列表的最上方（最后一个index）显示角色介绍
+      return CharacterIntro(
+        title: 'introduction'.tr,
+        description: roleDescription,
+        firstMessage: '',
+        maxLines: 4,
+        showExpandIcon: _shouldShowExpandIcon(roleDescription, context),
+      );
     }
 
-    // 列表最上方显示角色介绍
-    return CharacterIntro(
-      title: 'introduction'.tr,
-      description: roleDescription,
-      firstMessage: '',
-      maxLines: 4,
-      showExpandIcon: _shouldShowExpandIcon(roleDescription, context),
-    );
+    // 不应该到达这里，返回空容器
+    return const SizedBox.shrink();
   }
 
   /// 构建应用栏
