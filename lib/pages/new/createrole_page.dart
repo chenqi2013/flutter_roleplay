@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/constant/theme.dart';
@@ -373,10 +372,7 @@ class _ImageSelector extends GetView<CreateRoleController> {
         children: [
           Text(
             'role_image_hint'.tr,
-            style: const TextStyle(
-              color: Colors.white54,
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
           ),
           const SizedBox(height: 12),
           Row(
@@ -558,8 +554,6 @@ class _ImageSelector extends GetView<CreateRoleController> {
     );
   }
 }
-
-
 
 class _LanguageOption extends StatelessWidget {
   final String label;

@@ -15,18 +15,24 @@ class ChatPageBuilders {
   static const double inputBarHeight = 56.0;
 
   /// 构建图片组件，支持网络图片和本地图片
-  static Widget _buildImageWidget(String imagePath, {BoxFit fit = BoxFit.cover}) {
+  static Widget _buildImageWidget(
+    String imagePath, {
+    BoxFit fit = BoxFit.cover,
+  }) {
     debugPrint('ChatPageBuilders: 尝试加载图片: $imagePath');
-    
+
     // 判断是否为本地文件路径
     if (imagePath.startsWith('/') || imagePath.startsWith('file://')) {
       final file = File(imagePath.replaceFirst('file://', ''));
-      debugPrint('ChatPageBuilders: 本地文件路径 - ${file.path}, 存在: ${file.existsSync()}');
-      
+      debugPrint(
+        'ChatPageBuilders: 本地文件路径 - ${file.path}, 存在: ${file.existsSync()}',
+      );
+
       if (file.existsSync()) {
         return Image.file(
           file,
           fit: fit,
+          key: ValueKey(imagePath), // 添加key强制重建
           errorBuilder: (context, error, stackTrace) {
             debugPrint('ChatPageBuilders: 本地图片加载失败: $error');
             return Image.asset(
@@ -43,12 +49,13 @@ class ChatPageBuilders {
         );
       }
     }
-    
+
     // 网络图片或默认处理
     debugPrint('ChatPageBuilders: 加载网络图片: $imagePath');
     return Image.network(
       imagePath,
       fit: fit,
+      key: ValueKey(imagePath), // 添加key强制重建
       errorBuilder: (context, error, stackTrace) {
         debugPrint('ChatPageBuilders: 网络图片加载失败: $error');
         return Image.asset(
@@ -61,21 +68,28 @@ class ChatPageBuilders {
 
   /// 构建单个聊天页面
   static Widget buildSingleChatPage({required Widget chatScaffold}) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // 动态背景图片
-        Positioned.fill(
-          child: Obx(
-            () => roleImage.value.isEmpty
+    return Obx(() {
+      final imageUrl = roleImage.value;
+      debugPrint('buildSingleChatPage: 当前图片URL = $imageUrl');
+      debugPrint('buildSingleChatPage: 当前角色名 = ${roleName.value}');
+
+      return Stack(
+        key: ValueKey(
+          'single_chat_${roleName.value}_$imageUrl',
+        ), // 使用角色名和图片URL作为key
+        fit: StackFit.expand,
+        children: [
+          // 动态背景图片
+          Positioned.fill(
+            child: imageUrl.isEmpty
                 ? Container(color: Colors.grey.shade300)
-                : _buildImageWidget(roleImage.value),
+                : _buildImageWidget(imageUrl),
           ),
-        ),
-        // 前景内容
-        chatScaffold,
-      ],
-    );
+          // 前景内容
+          chatScaffold,
+        ],
+      );
+    });
   }
 
   /// 构建可滑动的聊天页面
@@ -109,14 +123,18 @@ class ChatPageBuilders {
     required Widget inputBar,
   }) {
     final role = usedRoles[index];
+    final roleImagePath = role['image'] as String;
+
+    debugPrint('buildPageContent: 页面索引 = $index');
+    debugPrint('buildPageContent: 角色名称 = ${role['name']}');
+    debugPrint('buildPageContent: 角色图片路径 = $roleImagePath');
 
     return Stack(
+      key: ValueKey('page_content_${role['name']}_$roleImagePath'), // 添加key确保重建
       fit: StackFit.expand,
       children: [
         // 背景图片 - 使用当前页面的角色图片
-        Positioned.fill(
-          child: _buildImageWidget(role['image'] as String),
-        ),
+        Positioned.fill(child: _buildImageWidget(roleImagePath)),
         // 前景内容
         Scaffold(
           backgroundColor: Colors.transparent,

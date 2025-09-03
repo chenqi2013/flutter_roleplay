@@ -17,9 +17,13 @@ class CommonUtil {
   static Future<void> initializeDefaultRole() async {
     // 如果已经有角色，不需要重复初始化
     if (roleName.value.isNotEmpty) {
-      debugPrint('角色已初始化: ${roleName.value}');
+      debugPrint(
+        'initializeDefaultRole: 角色已初始化: ${roleName.value}, 图片: ${roleImage.value}',
+      );
       return;
     }
+
+    debugPrint('initializeDefaultRole: 开始初始化默认角色');
 
     try {
       debugPrint('开始初始化默认角色...');
@@ -39,7 +43,10 @@ class CommonUtil {
 
         if (matchedRole != null) {
           debugPrint('成功加载最近聊天的角色: ${matchedRole.name}');
-          switchToRole(matchedRole.toMap());
+          debugPrint('  - 角色图片: ${matchedRole.image}');
+          final roleMap = matchedRole.toMap();
+          debugPrint('  - toMap()结果图片: ${roleMap['image']}');
+          switchToRole(roleMap);
           return;
         } else {
           debugPrint('最近聊天的角色在角色列表中未找到，使用默认角色');
@@ -52,7 +59,11 @@ class CommonUtil {
       if (localRoles.isNotEmpty) {
         debugPrint('从本地存储找到 ${localRoles.length} 个角色，使用第一个作为默认角色');
         final defaultRole = localRoles.first;
-        switchToRole(defaultRole.toMap());
+        debugPrint('  - 默认角色: ${defaultRole.name}');
+        debugPrint('  - 默认角色图片: ${defaultRole.image}');
+        final roleMap = defaultRole.toMap();
+        debugPrint('  - toMap()结果图片: ${roleMap['image']}');
+        switchToRole(roleMap);
         return;
       }
 
@@ -105,21 +116,49 @@ class CommonUtil {
   static void switchToRole(Map<String, dynamic> role) {
     final newRoleName = role['name'] as String;
 
-    // 防止重复切换到同一个角色
-    if (_isSwitching || roleName.value == newRoleName) {
-      debugPrint('角色切换已在进行中或角色相同，跳过: $newRoleName');
+    // 防止重复切换到同一个角色，但允许从空角色切换到新角色
+    if (_isSwitching) {
+      debugPrint('角色切换已在进行中，跳过: $newRoleName');
+      return;
+    }
+
+    // 只有当前角色不为空且与新角色相同时才跳过
+    if (roleName.value.isNotEmpty && roleName.value == newRoleName) {
+      debugPrint('角色相同，跳过切换: $newRoleName');
       return;
     }
 
     _isSwitching = true;
-    debugPrint('开始切换角色: ${roleName.value} -> $newRoleName');
+    debugPrint(
+      '开始切换角色: ${roleName.value.isEmpty ? "空" : roleName.value} -> $newRoleName',
+    );
 
     try {
+      debugPrint('CommonUtil.switchToRole: 开始更新全局变量');
+      debugPrint('  - 更新前 roleName.value: ${roleName.value}');
+      debugPrint('  - 更新前 roleImage.value: ${roleImage.value}');
+
       // 原子性更新所有角色状态
       roleName.value = newRoleName;
       roleDescription.value = role['description'] as String;
       roleImage.value = role['image'] as String;
       roleLanguage.value = (role['language'] as String?) ?? 'zh-CN';
+
+      debugPrint('CommonUtil.switchToRole: 更新后详细信息');
+      debugPrint('  - 角色名称: $newRoleName');
+      debugPrint('  - 角色描述: ${role['description']}');
+      debugPrint('  - 传入的角色图片: ${role['image']}');
+      debugPrint('  - 更新后 roleImage.value: ${roleImage.value}');
+      debugPrint('  - 图片路径是否相等: ${role['image'] == roleImage.value}');
+
+      // 验证图片文件
+      final imageUrl = role['image'] as String;
+      if (imageUrl.isNotEmpty &&
+          (imageUrl.startsWith('/') || imageUrl.startsWith('file://'))) {
+        final file = File(imageUrl.replaceFirst('file://', ''));
+        debugPrint('  - 本地图片文件存在: ${file.existsSync()}');
+        debugPrint('  - 文件路径: ${file.path}');
+      }
 
       // 检查角色是否已经在列表中
       final existingIndex = usedRoles.indexWhere(
@@ -129,6 +168,17 @@ class CommonUtil {
       if (existingIndex == -1) {
         // 如果角色不在列表中，添加到末尾
         usedRoles.add(Map<String, dynamic>.from(role));
+        debugPrint('  - 角色已添加到usedRoles列表');
+      } else {
+        // 如果角色已存在，更新其信息
+        usedRoles[existingIndex] = Map<String, dynamic>.from(role);
+        debugPrint('  - 角色信息已更新在usedRoles列表中');
+      }
+
+      debugPrint('  - usedRoles列表长度: ${usedRoles.length}');
+      for (int i = 0; i < usedRoles.length; i++) {
+        final r = usedRoles[i];
+        debugPrint('    [$i] ${r['name']}: ${r['image']}');
       }
 
       // 获取或创建控制器

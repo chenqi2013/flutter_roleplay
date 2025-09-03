@@ -25,10 +25,7 @@ class RolePlayChat extends StatefulWidget {
 }
 
 class _RolePlayChatState extends State<RolePlayChat>
-    with
-        AutomaticKeepAliveClientMixin,
-        WidgetsBindingObserver,
-        ScrollManagementMixin {
+    with WidgetsBindingObserver, ScrollManagementMixin {
   final ChatStateManager _stateManager = ChatStateManager();
   StreamSubscription<String>? _streamSub;
   final TextEditingController _textController = TextEditingController();
@@ -48,9 +45,6 @@ class _RolePlayChatState extends State<RolePlayChat>
   @override
   ScrollController get scrollController =>
       _stateManager.getScrollController(roleName.value);
-
-  @override
-  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -99,20 +93,29 @@ class _RolePlayChatState extends State<RolePlayChat>
       }
     });
 
-    // 监听 usedRoles 列表变化，如果有新角色添加，跳转到最后一页
+    // 监听 usedRoles 列表变化，如果有新角色添加，跳转到对应页面
     ever(usedRoles, (List<Map<String, dynamic>> newUsedRoles) {
+      debugPrint('usedRoles 列表变化: ${newUsedRoles.length} 个角色');
       if (newUsedRoles.isNotEmpty && _pageController.hasClients) {
         // 延迟执行，确保UI已更新
         WidgetsBinding.instance.addPostFrameCallback((_) {
           final currentRoleIndex = newUsedRoles.indexWhere(
             (role) => role['name'] == roleName.value,
           );
+          debugPrint('当前角色 ${roleName.value} 在列表中的索引: $currentRoleIndex');
           if (currentRoleIndex != -1) {
-            _pageController.animateToPage(
-              currentRoleIndex,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
+            final currentPage = _pageController.page?.round() ?? 0;
+            debugPrint(
+              'PageController 当前页面: $currentPage, 目标页面: $currentRoleIndex',
             );
+            if (currentPage != currentRoleIndex) {
+              debugPrint('跳转到页面: $currentRoleIndex');
+              _pageController.animateToPage(
+                currentRoleIndex,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
           }
         });
       }
@@ -509,18 +512,56 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // 必须调用，因为使用了 AutomaticKeepAliveClientMixin
-    return Obx(
-      () => usedRoles.isEmpty
-          ? ChatPageBuilders.buildSingleChatPage(
-              chatScaffold: _buildChatScaffold(),
-            )
-          : ChatPageBuilders.buildSwipeableChatPages(
-              pageController: _pageController,
-              usedRoles: usedRoles,
-              onPageChanged: _onPageChanged,
-              buildPageContent: _buildPageContent,
-            ),
-    );
+    return Obx(() {
+      debugPrint('=== RolePlayChat build 开始 ===');
+      debugPrint('RolePlayChat build: usedRoles.length = ${usedRoles.length}');
+      debugPrint('RolePlayChat build: current roleName = ${roleName.value}');
+      debugPrint('RolePlayChat build: current roleImage = ${roleImage.value}');
+      debugPrint(
+        'RolePlayChat build: current roleDescription = ${roleDescription.value}',
+      );
+
+      // 打印 usedRoles 列表内容
+      for (int i = 0; i < usedRoles.length; i++) {
+        final role = usedRoles[i];
+        debugPrint('  usedRoles[$i]: ${role['name']} -> ${role['image']}');
+      }
+
+      // 强制检查当前应该使用哪种页面构建方式
+      debugPrint('RolePlayChat build: 选择页面构建方式');
+      debugPrint('  - usedRoles.isEmpty: ${usedRoles.isEmpty}');
+      debugPrint(
+        '  - 将使用: ${usedRoles.isEmpty ? "SingleChatPage" : "SwipeableChatPages"}',
+      );
+
+      Widget result;
+      if (usedRoles.isEmpty) {
+        debugPrint(
+          '  - 构建 SingleChatPage，使用全局 roleImage.value: ${roleImage.value}',
+        );
+        result = ChatPageBuilders.buildSingleChatPage(
+          chatScaffold: _buildChatScaffold(),
+        );
+      } else {
+        debugPrint('  - 构建 SwipeableChatPages，当前角色在列表中的位置:');
+        final currentRoleIndex = usedRoles.indexWhere(
+          (role) => role['name'] == roleName.value,
+        );
+        debugPrint('    currentRoleIndex: $currentRoleIndex');
+        if (currentRoleIndex >= 0) {
+          debugPrint('    当前角色图片: ${usedRoles[currentRoleIndex]['image']}');
+        }
+
+        result = ChatPageBuilders.buildSwipeableChatPages(
+          pageController: _pageController,
+          usedRoles: usedRoles,
+          onPageChanged: _onPageChanged,
+          buildPageContent: _buildPageContent,
+        );
+      }
+
+      debugPrint('=== RolePlayChat build 结束 ===');
+      return result;
+    });
   }
 }
