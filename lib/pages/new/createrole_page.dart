@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/constant/theme.dart';
@@ -25,6 +26,25 @@ class CreateRolePage extends GetView<CreateRoleController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 角色图片选择
+                    _GlassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'role_image_label'.tr,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _ImageSelector(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     _GlassCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,6 +363,203 @@ class _PrimaryButton extends StatelessWidget {
     return GestureDetector(onTap: onTap, child: content);
   }
 }
+
+class _ImageSelector extends GetView<CreateRoleController> {
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'role_image_hint'.tr,
+            style: const TextStyle(
+              color: Colors.white54,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              // 图片预览区域
+              GestureDetector(
+                onTap: controller.selectImage,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: controller.selectedImage.value != null
+                          ? const Color(0xFF6A8DFF).withValues(alpha: 0.6)
+                          : Colors.white.withValues(alpha: 0.2),
+                      width: controller.selectedImage.value != null ? 1.5 : 1.0,
+                    ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: controller.selectedImage.value != null
+                          ? [
+                              const Color(0xFF6A8DFF).withValues(alpha: 0.1),
+                              const Color(0xFF9B7BFF).withValues(alpha: 0.1),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.1),
+                              Colors.black.withValues(alpha: 0.1),
+                            ],
+                    ),
+                  ),
+                  child: controller.selectedImage.value != null
+                      ? Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(11),
+                              child: Image.file(
+                                controller.selectedImage.value!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                            // 编辑图标覆盖层
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_photo_alternate_outlined,
+                              color: Colors.white60,
+                              size: 32,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'tap_to_add'.tr,
+                              style: TextStyle(
+                                color: Colors.white60,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // 操作说明区域
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (controller.selectedImage.value == null) ...[
+                      Text(
+                        'image_upload_tips'.tr,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'image_format_support'.tr,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ] else ...[
+                      Text(
+                        'image_selected'.tr,
+                        style: const TextStyle(
+                          color: Color(0xFF6A8DFF),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'tap_to_change_or_remove'.tr,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // 移除按钮
+                      GestureDetector(
+                        onTap: controller.removeSelectedImage,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.red.withValues(alpha: 0.4),
+                              width: 0.8,
+                            ),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.red.withValues(alpha: 0.15),
+                                Colors.red.withValues(alpha: 0.05),
+                              ],
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.delete_outline,
+                                color: Colors.red[300],
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'remove_image'.tr,
+                                style: TextStyle(
+                                  color: Colors.red[300],
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
 
 class _LanguageOption extends StatelessWidget {
   final String label;

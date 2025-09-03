@@ -10,11 +10,21 @@ class AppTranslations extends Translations {
       'role_name_hint': '请输入新角色名称',
       'role_language_label': '角色语言',
       'role_language_hint': '此设置会影响角色扮演时输出的语言',
+      'role_image_label': '角色头像',
+      'role_image_hint': '选择一张图片作为角色头像（可选）',
       'role_description_label': '新角色设定',
       'role_description_hint': '请详细描述新角色的背景、性格、说话方式与边界...',
       'create_role_button': '创建角色',
       'language_chinese': '中文',
       'language_english': 'English',
+      'add_image': '添加图片',
+      'select_image': '选择图片',
+      'remove_image': '移除图片',
+      'tap_to_add': '点击添加',
+      'image_upload_tips': '点击左侧区域选择一张图片作为角色头像',
+      'image_format_support': '支持 JPG、PNG 格式',
+      'image_selected': '图片已选择',
+      'tap_to_change_or_remove': '点击图片更换，或点击下方按钮移除',
 
       // 提示信息
       'tip_title': '提示',
@@ -26,6 +36,8 @@ class AppTranslations extends Translations {
       'create_success_message': '新角色"@name"已创建并保存到本地',
       'create_failed_title': '创建失败',
       'create_failed_message': '角色创建失败: @error',
+      'image_selected_success': '图片选择成功',
+      'image_select_failed': '图片选择失败: @error',
 
       // RolesListPage 相关翻译
       'roles_list_title': '角色列表',
@@ -86,12 +98,22 @@ class AppTranslations extends Translations {
       'role_language_label': 'Role Language',
       'role_language_hint':
           'This setting affects the language output during role-playing',
+      'role_image_label': 'Role Avatar',
+      'role_image_hint': 'Select an image as role avatar (optional)',
       'role_description_label': 'Role Description',
       'role_description_hint':
           'Please describe the role\'s background, personality, speaking style and boundaries in detail...',
       'create_role_button': 'Create Role',
       'language_chinese': '中文',
       'language_english': 'English',
+      'add_image': 'Add Image',
+      'select_image': 'Select Image',
+      'remove_image': 'Remove Image',
+      'tap_to_add': 'Tap to Add',
+      'image_upload_tips': 'Tap the left area to select an image as role avatar',
+      'image_format_support': 'Supports JPG, PNG formats',
+      'image_selected': 'Image Selected',
+      'tap_to_change_or_remove': 'Tap image to change, or tap button below to remove',
 
       // Tips and messages
       'tip_title': 'Tip',
@@ -107,6 +129,8 @@ class AppTranslations extends Translations {
           'New role "@name" has been created and saved locally',
       'create_failed_title': 'Creation Failed',
       'create_failed_message': 'Role creation failed: @error',
+      'image_selected_success': 'Image selected successfully',
+      'image_select_failed': 'Image selection failed: @error',
 
       // RolesListPage related translations
       'roles_list_title': 'Role List',

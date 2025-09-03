@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:ui';
+import 'dart:io';
 import 'package:get/get.dart';
 
 import 'package:flutter_roleplay/constant/constant.dart';
@@ -13,6 +14,51 @@ import 'package:flutter_roleplay/utils/chat_dialogs.dart';
 class ChatPageBuilders {
   static const double inputBarHeight = 56.0;
 
+  /// 构建图片组件，支持网络图片和本地图片
+  static Widget _buildImageWidget(String imagePath, {BoxFit fit = BoxFit.cover}) {
+    debugPrint('ChatPageBuilders: 尝试加载图片: $imagePath');
+    
+    // 判断是否为本地文件路径
+    if (imagePath.startsWith('/') || imagePath.startsWith('file://')) {
+      final file = File(imagePath.replaceFirst('file://', ''));
+      debugPrint('ChatPageBuilders: 本地文件路径 - ${file.path}, 存在: ${file.existsSync()}');
+      
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('ChatPageBuilders: 本地图片加载失败: $error');
+            return Image.asset(
+              'packages/flutter_roleplay/assets/images/common_bg.webp',
+              fit: fit,
+            );
+          },
+        );
+      } else {
+        debugPrint('ChatPageBuilders: 本地文件不存在，使用默认图片');
+        return Image.asset(
+          'packages/flutter_roleplay/assets/images/common_bg.webp',
+          fit: fit,
+        );
+      }
+    }
+    
+    // 网络图片或默认处理
+    debugPrint('ChatPageBuilders: 加载网络图片: $imagePath');
+    return Image.network(
+      imagePath,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) {
+        debugPrint('ChatPageBuilders: 网络图片加载失败: $error');
+        return Image.asset(
+          'packages/flutter_roleplay/assets/images/common_bg.webp',
+          fit: fit,
+        );
+      },
+    );
+  }
+
   /// 构建单个聊天页面
   static Widget buildSingleChatPage({required Widget chatScaffold}) {
     return Stack(
@@ -23,16 +69,7 @@ class ChatPageBuilders {
           child: Obx(
             () => roleImage.value.isEmpty
                 ? Container(color: Colors.grey.shade300)
-                : Image.network(
-                    roleImage.value,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: Colors.grey.shade300,
-                      child: const Center(
-                        child: Icon(Icons.error, color: Colors.grey),
-                      ),
-                    ),
-                  ),
+                : _buildImageWidget(roleImage.value),
           ),
         ),
         // 前景内容
@@ -78,14 +115,7 @@ class ChatPageBuilders {
       children: [
         // 背景图片 - 使用当前页面的角色图片
         Positioned.fill(
-          child: Image.network(
-            role['image'] as String,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Image.asset(
-              'packages/flutter_roleplay/assets/images/common_bg.webp',
-              fit: BoxFit.cover,
-            ),
-          ),
+          child: _buildImageWidget(role['image'] as String),
         ),
         // 前景内容
         Scaffold(
