@@ -89,15 +89,18 @@ class _CharacterIntroState extends State<CharacterIntro> {
               children: [
                 Icon(Icons.info_outline, color: Colors.white70, size: 14),
                 const SizedBox(width: 6),
-                Text(
-                  'ai_generated_content'.tr,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    height: 1.3,
-                    fontWeight: FontWeight.w400,
+                Expanded(
+                  child: Text(
+                    'ai_generated_content'.tr,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      height: 1.3,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),
