@@ -191,7 +191,7 @@ class _RoleCard extends StatelessWidget {
                   fontSize: 14,
                   height: 1.4,
                 ),
-                maxLines: 3,
+                maxLines: 100,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
