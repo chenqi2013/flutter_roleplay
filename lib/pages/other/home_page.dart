@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_roleplay/hometabs/roleplay_chat_page.dart';
+import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
 import '../main/main_controller.dart';
 
 class HomePage extends StatelessWidget {

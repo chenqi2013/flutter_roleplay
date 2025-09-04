@@ -4,8 +4,8 @@
 library flutter_roleplay;
 
 // Public API exports
-export 'hometabs/roleplay_chat_page.dart';
-export 'hometabs/roleplay_chat_controller.dart';
+export 'pages/chat/roleplay_chat_page.dart';
+export 'pages/chat/roleplay_chat_controller.dart';
 export 'widgets/character_intro.dart';
 export 'widgets/global_input_bar.dart';
 export 'constant/constant.dart';

@@ -4,10 +4,10 @@ import 'package:get/get.dart';
 
 import 'main_controller.dart';
 import '../new/createrole_page.dart';
-import '../tabs/home_page.dart';
-import '../tabs/messages_page.dart';
-import '../tabs/discover_page.dart';
-import '../tabs/profile_page.dart';
+import '../other/home_page.dart';
+import '../other/messages_page.dart';
+import '../other/discover_page.dart';
+import '../other/profile_page.dart';
 
 class MainPage extends GetView<MainPageController> {
   const MainPage({super.key});
