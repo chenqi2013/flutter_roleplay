@@ -274,6 +274,7 @@ class RoleParamsPage extends StatelessWidget {
                               onChanged: controller.updatePenaltyDecay,
                               displayValue: controller.penaltyDecay.value
                                   .toStringAsFixed(3),
+                              count: 3,
                             ),
                           ),
                         ],
@@ -300,6 +301,7 @@ class RoleParamsPage extends StatelessWidget {
     required int divisions,
     required Function(double) onChanged,
     required String displayValue,
+    int? count,
   }) {
     return Column(
       children: [
@@ -307,7 +309,7 @@ class RoleParamsPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              min.toStringAsFixed(1),
+              min.toStringAsFixed(count ?? 1),
               style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
             Container(
@@ -330,7 +332,7 @@ class RoleParamsPage extends StatelessWidget {
               ),
             ),
             Text(
-              max.toStringAsFixed(1),
+              max.toStringAsFixed(count ?? 1),
               style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ],
