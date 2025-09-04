@@ -100,6 +100,26 @@ class AppTranslations extends Translations {
       'delete_failed_message': '删除失败: @error',
       'cannot_delete_api_role': '无法删除API角色，只能删除自定义角色',
       'cannot_delete_current_role': '无法删除当前正在使用的角色',
+
+      // Role parameters related translations
+      'role_params': '角色参数设置',
+      'role_params_title': '角色参数设置',
+      'reset': '重置',
+      'params_info_title': '参数说明',
+      'params_info_desc': '调整这些参数可以影响AI角色的回复风格和内容质量。建议根据实际使用效果进行微调。',
+      'temperature': '温度 (Temperature)',
+      'temperature_desc': '控制回复的随机性和创造性。值越高越随机，值越低越确定。',
+      'top_p': 'Top-P',
+      'top_p_desc': '控制候选词的累积概率。值越小回复越保守，值越大回复越多样。',
+      'presence_penalty': '存在惩罚',
+      'presence_penalty_desc': '惩罚重复出现的词汇。值越高越避免重复。',
+      'frequency_penalty': '频率惩罚',
+      'frequency_penalty_desc': '惩罚高频出现的词汇。值越高越避免重复。',
+      'penalty_decay': '惩罚衰减',
+      'penalty_decay_desc': '控制惩罚的衰减速度。值越高惩罚衰减越慢。',
+      'reset_params_title': '重置参数',
+      'reset_params_desc': '确定要将所有参数重置为默认值吗？',
+      'params_reset_success': '参数已重置为默认值',
     },
     'en_US': {
       // CreateRolePage related translations
@@ -216,6 +236,33 @@ class AppTranslations extends Translations {
       'cannot_delete_api_role':
           'Cannot delete API roles, only custom roles can be deleted',
       'cannot_delete_current_role': 'Cannot delete the role currently in use',
+
+      // Role parameters related translations
+      'role_params': 'Role Parameters',
+      'role_params_title': 'Role Parameters',
+      'reset': 'Reset',
+      'params_info_title': 'Parameter Info',
+      'params_info_desc':
+          'Adjusting these parameters can affect the AI role\'s response style and content quality. It is recommended to fine-tune based on actual usage effects.',
+      'temperature': 'Temperature',
+      'temperature_desc':
+          'Controls the randomness and creativity of responses. Higher values are more random, lower values are more deterministic.',
+      'top_p': 'Top-P',
+      'top_p_desc':
+          'Controls the cumulative probability of candidate words. Smaller values make responses more conservative, larger values make responses more diverse.',
+      'presence_penalty': 'Presence Penalty',
+      'presence_penalty_desc':
+          'Penalizes repeated words. Higher values avoid more repetition.',
+      'frequency_penalty': 'Frequency Penalty',
+      'frequency_penalty_desc':
+          'Penalizes frequently occurring words. Higher values avoid more repetition.',
+      'penalty_decay': 'Penalty Decay',
+      'penalty_decay_desc':
+          'Controls the decay rate of penalties. Higher values make penalties decay slower.',
+      'reset_params_title': 'Reset Parameters',
+      'reset_params_desc':
+          'Are you sure you want to reset all parameters to default values?',
+      'params_reset_success': 'Parameters have been reset to default values',
     },
   };
 }

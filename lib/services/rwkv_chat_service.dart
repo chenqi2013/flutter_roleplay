@@ -18,6 +18,7 @@ import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
+import 'package:flutter_roleplay/pages/params/role_params_controller.dart';
 import 'package:flutter_roleplay/download_dialog.dart';
 
 /// RWKV 聊天模型管理服务
@@ -270,16 +271,37 @@ class RWKVChatService extends GetxController {
         'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '} ${roleName.value}，${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
     send(to_rwkv.SetMaxLength(2000));
-    send(
-      to_rwkv.SetSamplerParams(
-        temperature: 1.8,
-        topK: 500,
-        topP: 0.2,
-        presencePenalty: 0,
-        frequencyPenalty: 0,
-        penaltyDecay: 0.996,
-      ),
-    );
+    // 获取角色参数设置
+    try {
+      final paramsController = Get.find<RoleParamsController>();
+      final params = paramsController.getCurrentParams();
+
+      send(
+        to_rwkv.SetSamplerParams(
+          temperature: params['temperature'] as double,
+          topK: params['topK'] as int,
+          topP: params['topP'] as double,
+          presencePenalty: params['presencePenalty'] as double,
+          frequencyPenalty: params['frequencyPenalty'] as double,
+          penaltyDecay: params['penaltyDecay'] as double,
+        ),
+      );
+    } catch (e) {
+      debugPrint(
+        'RoleParamsController not found, using default parameters: $e',
+      );
+      // 使用默认参数
+      send(
+        to_rwkv.SetSamplerParams(
+          temperature: 1.8,
+          topK: 500,
+          topP: 0.2,
+          presencePenalty: 0.0,
+          frequencyPenalty: 0.0,
+          penaltyDecay: 0.996,
+        ),
+      );
+    }
   }
 
   /// 清空状态

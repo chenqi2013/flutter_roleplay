@@ -4,6 +4,7 @@ import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/language_service.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/translations/app_translations.dart';
+import 'package:flutter_roleplay/pages/params/role_params_controller.dart';
 import 'package:get/get.dart';
 
 BuildContext? currentContext;
@@ -59,6 +60,14 @@ class RoleplayManage {
       } else {
         languageService = Get.find<LanguageService>();
         debugPrint('LanguageService已存在，直接使用');
+      }
+
+      // 初始化角色参数控制器
+      if (!Get.isRegistered<RoleParamsController>()) {
+        Get.put(RoleParamsController());
+        debugPrint('RoleParamsController已注册');
+      } else {
+        debugPrint('RoleParamsController已存在，直接使用');
       }
 
       _isInitialized = true;

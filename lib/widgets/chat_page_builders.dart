@@ -119,6 +119,7 @@ class ChatPageBuilders {
     required Function() onNavigateToRolesList,
     required Function() onNavigateToCreateRole,
     required Function() onNavigateToChangeModel,
+    required Function() onNavigateToRoleParams,
     required Widget chatListView,
     required Widget inputBar,
   }) {
@@ -157,6 +158,7 @@ class ChatPageBuilders {
               onNavigateToRolesList: onNavigateToRolesList,
               onNavigateToCreateRole: onNavigateToCreateRole,
               onNavigateToChangeModel: onNavigateToChangeModel,
+              onNavigateToRoleParams: onNavigateToRoleParams,
             ),
             body: SafeArea(
               top: false,
@@ -320,6 +322,7 @@ class ChatPageBuilders {
     required Function() onNavigateToRolesList,
     required Function() onNavigateToCreateRole,
     required Function() onNavigateToChangeModel,
+    required Function() onNavigateToRoleParams,
   }) {
     return AppBar(
       backgroundColor: Colors.black.withValues(alpha: 0.2),
@@ -368,6 +371,11 @@ class ChatPageBuilders {
               icon: Icons.settings,
               text: 'change_model'.tr,
             ),
+            _buildSimplePopupMenuItem(
+              value: 'role_params',
+              icon: Icons.tune,
+              text: 'role_params'.tr,
+            ),
           ],
           onSelected: (String value) async {
             switch (value) {
@@ -387,6 +395,9 @@ class ChatPageBuilders {
                 break;
               case 'change_model':
                 onNavigateToChangeModel();
+                break;
+              case 'role_params':
+                onNavigateToRoleParams();
                 break;
             }
           },

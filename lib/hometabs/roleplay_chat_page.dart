@@ -16,6 +16,7 @@ import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
 import 'package:flutter_roleplay/mixins/scroll_management_mixin.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_page.dart';
+import 'package:flutter_roleplay/pages/params/role_params_page.dart';
 
 class RolePlayChat extends StatefulWidget {
   const RolePlayChat({super.key});
@@ -429,6 +430,14 @@ class _RolePlayChatState extends State<RolePlayChat>
       onNavigateToChangeModel: () async {
         debugPrint('onNavigateToChangeModel');
         notifyModelChangeRequired();
+      },
+      onNavigateToRoleParams: () async {
+        if (await _checkAndStopAiReply()) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const RoleParamsPage()),
+          );
+        }
       },
       chatListView: _buildChatListView(),
       inputBar: _buildInputBar(),
