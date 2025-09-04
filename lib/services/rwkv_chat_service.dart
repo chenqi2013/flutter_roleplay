@@ -19,7 +19,7 @@ import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/pages/params/role_params_controller.dart';
-import 'package:flutter_roleplay/download_dialog.dart';
+import 'package:flutter_roleplay/dialog/download_dialog.dart';
 
 /// RWKV 聊天模型管理服务
 class RWKVChatService extends GetxController {

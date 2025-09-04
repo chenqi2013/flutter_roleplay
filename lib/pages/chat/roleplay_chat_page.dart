@@ -9,7 +9,7 @@ import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
-import 'package:flutter_roleplay/utils/chat_dialogs.dart';
+import 'package:flutter_roleplay/dialog/chat_dialogs.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:flutter_roleplay/widgets/global_input_bar.dart';
 import 'package:flutter_roleplay/widgets/chat_page_builders.dart';

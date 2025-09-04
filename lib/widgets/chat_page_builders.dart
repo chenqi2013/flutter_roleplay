@@ -8,7 +8,7 @@ import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/widgets/character_intro.dart';
 import 'package:flutter_roleplay/widgets/chat_bubble.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
-import 'package:flutter_roleplay/utils/chat_dialogs.dart';
+import 'package:flutter_roleplay/dialog/chat_dialogs.dart';
 
 /// 聊天页面构建器
 class ChatPageBuilders {
