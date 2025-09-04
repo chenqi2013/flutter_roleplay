@@ -483,24 +483,24 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   Widget _buildChatListView() {
     return buildScrollNotificationListener(
-      child: ChatPageBuilders.buildChatListView(
-        scrollController: scrollController,
-        messages: _messages,
-        roleDescription: roleDescription.value,
-        onScrollNotification: (notification) {
-          // 处理滚动通知已在 mixin 中处理
-          return Container();
-        },
-        itemBuilder: (context, index) {
-          return Obx(
-            () => ChatPageBuilders.buildListItem(
+      child: Obx(
+        () => ChatPageBuilders.buildChatListView(
+          scrollController: scrollController,
+          messages: _messages,
+          roleDescription: roleDescription.value,
+          onScrollNotification: (notification) {
+            // 处理滚动通知已在 mixin 中处理
+            return Container();
+          },
+          itemBuilder: (context, index) {
+            return ChatPageBuilders.buildListItem(
               context: context,
               index: index,
               messages: _messages,
               roleDescription: roleDescription.value,
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -521,73 +521,52 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   @override
   Widget build(BuildContext context) {
+    return _buildMainContent();
+  }
+
+  /// 构建主要内容，使用精确的响应式更新
+  Widget _buildMainContent() {
     return Obx(() {
-      debugPrint('=== RolePlayChat build 开始 ===');
-      debugPrint('RolePlayChat build: usedRoles.length = ${usedRoles.length}');
-      debugPrint('RolePlayChat build: current roleName = ${roleName.value}');
-      debugPrint('RolePlayChat build: current roleImage = ${roleImage.value}');
-      debugPrint(
-        'RolePlayChat build: current roleDescription = ${roleDescription.value}',
-      );
+      // 只在 usedRoles 变化时重建页面结构
+      final roles = usedRoles;
 
-      // 打印 usedRoles 列表内容
-      for (int i = 0; i < usedRoles.length; i++) {
-        final role = usedRoles[i];
-        debugPrint('  usedRoles[$i]: ${role['name']} -> ${role['image']}');
-      }
-
-      // 强制检查当前应该使用哪种页面构建方式
-      debugPrint('RolePlayChat build: 选择页面构建方式');
-      debugPrint('  - usedRoles.isEmpty: ${usedRoles.isEmpty}');
-      debugPrint(
-        '  - 将使用: ${usedRoles.isEmpty ? "SingleChatPage" : "SwipeableChatPages"}',
-      );
-
-      Widget result;
-      if (usedRoles.isEmpty) {
-        debugPrint(
-          '  - 构建 SingleChatPage，使用全局 roleImage.value: ${roleImage.value}',
-        );
-        result = ChatPageBuilders.buildSingleChatPage(
+      if (roles.isEmpty) {
+        return ChatPageBuilders.buildSingleChatPage(
           chatScaffold: _buildChatScaffold(),
         );
       } else {
-        debugPrint('  - 构建 SwipeableChatPages，当前角色在列表中的位置:');
-        final currentRoleIndex = usedRoles.indexWhere(
-          (role) => role['name'] == roleName.value,
-        );
-        debugPrint('    currentRoleIndex: $currentRoleIndex');
-        if (currentRoleIndex >= 0) {
-          debugPrint('    当前角色图片: ${usedRoles[currentRoleIndex]['image']}');
+        // 检查当前角色位置并同步 PageController
+        _syncPageController(roles);
 
-          // 确保PageController跳转到正确的页面
-          if (_pageController.hasClients) {
-            final currentPage = _pageController.page?.round() ?? 0;
-            if (currentPage != currentRoleIndex) {
-              debugPrint(
-                '    PageController需要从页面 $currentPage 跳转到 $currentRoleIndex',
-              );
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _pageController.animateToPage(
-                  currentRoleIndex,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              });
-            }
-          }
-        }
-
-        result = ChatPageBuilders.buildSwipeableChatPages(
+        return ChatPageBuilders.buildSwipeableChatPages(
           pageController: _pageController,
-          usedRoles: usedRoles,
+          usedRoles: roles,
           onPageChanged: _onPageChanged,
           buildPageContent: _buildPageContent,
         );
       }
-
-      debugPrint('=== RolePlayChat build 结束 ===');
-      return result;
     });
+  }
+
+  /// 同步 PageController 到当前角色位置
+  void _syncPageController(List<Map<String, dynamic>> roles) {
+    final currentRoleIndex = roles.indexWhere(
+      (role) => role['name'] == roleName.value,
+    );
+
+    if (currentRoleIndex >= 0 && _pageController.hasClients) {
+      final currentPage = _pageController.page?.round() ?? 0;
+      if (currentPage != currentRoleIndex) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_pageController.hasClients) {
+            _pageController.animateToPage(
+              currentRoleIndex,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
+      }
+    }
   }
 }

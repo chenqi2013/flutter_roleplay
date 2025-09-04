@@ -14,11 +14,23 @@ import 'package:flutter_roleplay/utils/chat_dialogs.dart';
 class ChatPageBuilders {
   static const double inputBarHeight = 56.0;
 
+  // 图片组件缓存
+  static final Map<String, Widget> _imageCache = {};
+
   /// 构建图片组件，支持网络图片和本地图片
   static Widget _buildImageWidget(
     String imagePath, {
     BoxFit fit = BoxFit.cover,
+    Key? key,
   }) {
+    // 创建缓存key
+    final cacheKey = '${imagePath}_${fit.toString()}';
+
+    // 如果缓存中存在，直接返回
+    if (_imageCache.containsKey(cacheKey)) {
+      return _imageCache[cacheKey]!;
+    }
+
     debugPrint('ChatPageBuilders: 尝试加载图片: $imagePath');
 
     // 判断是否为本地文件路径
@@ -29,41 +41,50 @@ class ChatPageBuilders {
       );
 
       if (file.existsSync()) {
-        return Image.file(
+        final widget = Image.file(
           file,
           fit: fit,
-          key: ValueKey(imagePath), // 添加key强制重建
+          key: key ?? ValueKey(imagePath), // 使用传入的key或默认key
           errorBuilder: (context, error, stackTrace) {
             debugPrint('ChatPageBuilders: 本地图片加载失败: $error');
             return Image.asset(
               'packages/flutter_roleplay/assets/images/common_bg.webp',
               fit: fit,
+              key: key,
             );
           },
         );
+        _imageCache[cacheKey] = widget;
+        return widget;
       } else {
         debugPrint('ChatPageBuilders: 本地文件不存在，使用默认图片');
-        return Image.asset(
+        final widget = Image.asset(
           'packages/flutter_roleplay/assets/images/common_bg.webp',
           fit: fit,
+          key: key,
         );
+        _imageCache[cacheKey] = widget;
+        return widget;
       }
     }
 
     // 网络图片或默认处理
     debugPrint('ChatPageBuilders: 加载网络图片: $imagePath');
-    return Image.network(
+    final widget = Image.network(
       imagePath,
       fit: fit,
-      key: ValueKey(imagePath), // 添加key强制重建
+      key: key ?? ValueKey(imagePath), // 使用传入的key或默认key
       errorBuilder: (context, error, stackTrace) {
         debugPrint('ChatPageBuilders: 网络图片加载失败: $error');
         return Image.asset(
           'packages/flutter_roleplay/assets/images/common_bg.webp',
           fit: fit,
+          key: key,
         );
       },
     );
+    _imageCache[cacheKey] = widget;
+    return widget;
   }
 
   /// 构建单个聊天页面
@@ -123,57 +144,127 @@ class ChatPageBuilders {
     required Widget chatListView,
     required Widget inputBar,
   }) {
+    final role = usedRoles[index];
+
+    return Stack(
+      key: ValueKey('page_content_${role['name']}_$index'),
+      fit: StackFit.expand,
+      children: [
+        // 背景图片 - 分离出来，只在角色图片真正变化时更新
+        _buildResponsiveBackground(role, index, usedRoles),
+        // 前景内容 - 只在标题需要响应式更新时使用 Obx
+        _buildResponsiveForeground(
+          role: role,
+          index: index,
+          context: context,
+          onBackPressed: onBackPressed,
+          onClearHistory: onClearHistory,
+          onNavigateToRolesList: onNavigateToRolesList,
+          onNavigateToCreateRole: onNavigateToCreateRole,
+          onNavigateToChangeModel: onNavigateToChangeModel,
+          onNavigateToRoleParams: onNavigateToRoleParams,
+          chatListView: chatListView,
+          inputBar: inputBar,
+        ),
+      ],
+    );
+  }
+
+  /// 构建响应式背景图片
+  static Widget _buildResponsiveBackground(
+    Map<String, dynamic> role,
+    int index,
+    List<Map<String, dynamic>> usedRoles,
+  ) {
     return Obx(() {
-      final role = usedRoles[index];
-      // 如果是当前激活的角色，使用全局响应式状态，否则使用列表中的静态数据
-      final bool isCurrentRole = role['name'] == roleName.value;
-      final String currentRoleName = isCurrentRole
-          ? roleName.value
-          : role['name'] as String;
-      final String currentRoleImage = isCurrentRole
+      // 找到当前活跃角色的索引
+      final currentRoleIndex = usedRoles.indexWhere(
+        (r) => r['name'] == roleName.value,
+      );
+
+      // 只有当前活跃的角色页面才使用响应式图片，其他页面使用静态图片
+      final bool isCurrentActivePage = index == currentRoleIndex;
+      final String backgroundImage = isCurrentActivePage
           ? roleImage.value
           : role['image'] as String;
 
-      debugPrint('buildPageContent: 页面索引 = $index');
-      debugPrint('buildPageContent: 是否为当前角色 = $isCurrentRole');
-      debugPrint('buildPageContent: 显示角色名称 = $currentRoleName');
-      debugPrint('buildPageContent: 显示角色图片 = $currentRoleImage');
-
-      return Stack(
-        key: ValueKey(
-          'page_content_${currentRoleName}_$currentRoleImage',
-        ), // 使用实时数据作为key
-        fit: StackFit.expand,
-        children: [
-          // 背景图片 - 使用实时更新的角色图片
-          Positioned.fill(child: _buildImageWidget(currentRoleImage)),
-          // 前景内容
-          Scaffold(
-            backgroundColor: Colors.transparent,
-            appBar: _buildAppBar(
-              context: context,
-              roleName: currentRoleName, // 使用实时更新的角色名称
-              onBackPressed: onBackPressed,
-              onClearHistory: onClearHistory,
-              onNavigateToRolesList: onNavigateToRolesList,
-              onNavigateToCreateRole: onNavigateToCreateRole,
-              onNavigateToChangeModel: onNavigateToChangeModel,
-              onNavigateToRoleParams: onNavigateToRoleParams,
-            ),
-            body: SafeArea(
-              top: false,
-              bottom: false,
-              child: Column(
-                children: [
-                  Expanded(child: chatListView),
-                  inputBar,
-                ],
-              ),
-            ),
+      return Positioned.fill(
+        child: _buildImageWidget(
+          backgroundImage,
+          key: ValueKey(
+            'bg_${index}_${isCurrentActivePage ? 'active' : 'static'}_$backgroundImage',
           ),
-        ],
+        ),
       );
     });
+  }
+
+  /// 构建响应式前景内容
+  static Widget _buildResponsiveForeground({
+    required Map<String, dynamic> role,
+    required int index,
+    required BuildContext context,
+    required Function() onBackPressed,
+    required Function() onClearHistory,
+    required Function() onNavigateToRolesList,
+    required Function() onNavigateToCreateRole,
+    required Function() onNavigateToChangeModel,
+    required Function() onNavigateToRoleParams,
+    required Widget chatListView,
+    required Widget inputBar,
+  }) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: _buildResponsiveAppBar(
+        role: role,
+        context: context,
+        onBackPressed: onBackPressed,
+        onClearHistory: onClearHistory,
+        onNavigateToRolesList: onNavigateToRolesList,
+        onNavigateToCreateRole: onNavigateToCreateRole,
+        onNavigateToChangeModel: onNavigateToChangeModel,
+        onNavigateToRoleParams: onNavigateToRoleParams,
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(child: chatListView),
+            inputBar,
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建响应式 AppBar - 只在角色名称变化时更新
+  static PreferredSizeWidget _buildResponsiveAppBar({
+    required Map<String, dynamic> role,
+    required BuildContext context,
+    required Function() onBackPressed,
+    required Function() onClearHistory,
+    required Function() onNavigateToRolesList,
+    required Function() onNavigateToCreateRole,
+    required Function() onNavigateToChangeModel,
+    required Function() onNavigateToRoleParams,
+  }) {
+    // 只在当前角色且名称变化时才重新构建 AppBar
+    final bool isCurrentRole = role['name'] == roleName.value;
+    final String displayName = isCurrentRole
+        ? roleName.value
+        : role['name'] as String;
+
+    return _buildAppBar(
+      context: context,
+      roleName: displayName,
+      onBackPressed: onBackPressed,
+      onClearHistory: onClearHistory,
+      onNavigateToRolesList: onNavigateToRolesList,
+      onNavigateToCreateRole: onNavigateToCreateRole,
+      onNavigateToChangeModel: onNavigateToChangeModel,
+      onNavigateToRoleParams: onNavigateToRoleParams,
+    );
   }
 
   /// 构建聊天脚手架
