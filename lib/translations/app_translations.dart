@@ -90,6 +90,16 @@ class AppTranslations extends Translations {
       'delete_history_message': '确定要删除当前角色的所有聊天记录吗？',
       'delete_irreversible': '此操作不可恢复',
       'delete': '删除',
+
+      // 删除角色相关翻译
+      'delete_confirm_title': '确认删除',
+      'delete_role_confirm': '确定要删除角色"@name"吗？\n此操作不可恢复。',
+      'delete_success_title': '删除成功',
+      'role_deleted_success': '角色"@name"已删除',
+      'delete_failed_title': '删除失败',
+      'delete_failed_message': '删除失败: @error',
+      'cannot_delete_api_role': '无法删除API角色，只能删除自定义角色',
+      'cannot_delete_current_role': '无法删除当前正在使用的角色',
     },
     'en_US': {
       // CreateRolePage related translations
@@ -111,10 +121,12 @@ class AppTranslations extends Translations {
       'select_image': 'Select Image',
       'remove_image': 'Remove Image',
       'tap_to_add': 'Tap to Add',
-      'image_upload_tips': 'Tap the left area to select an image as role avatar',
+      'image_upload_tips':
+          'Tap the left area to select an image as role avatar',
       'image_format_support': 'Supports JPG, PNG formats',
       'image_selected': 'Image Selected',
-      'tap_to_change_or_remove': 'Tap image to change, or tap button below to remove',
+      'tap_to_change_or_remove':
+          'Tap image to change, or tap button below to remove',
 
       // Tips and messages
       'tip_title': 'Tip',
@@ -132,7 +144,8 @@ class AppTranslations extends Translations {
       'create_failed_message': 'Role creation failed: @error',
       'image_selected_success': 'Image selected successfully',
       'image_select_failed': 'Image selection failed: @error',
-      'duplicate_role_name': 'Role name already exists, please use a different name',
+      'duplicate_role_name':
+          'Role name already exists, please use a different name',
 
       // RolesListPage related translations
       'roles_list_title': 'Role List',
@@ -191,6 +204,18 @@ class AppTranslations extends Translations {
           'Are you sure to delete all chat records of the current role?',
       'delete_irreversible': 'This operation cannot be undone',
       'delete': 'Delete',
+
+      // Delete role related translations
+      'delete_confirm_title': 'Confirm Delete',
+      'delete_role_confirm':
+          'Are you sure to delete role "@name"?\nThis operation cannot be undone.',
+      'delete_success_title': 'Delete Successful',
+      'role_deleted_success': 'Role "@name" has been deleted',
+      'delete_failed_title': 'Delete Failed',
+      'delete_failed_message': 'Delete failed: @error',
+      'cannot_delete_api_role':
+          'Cannot delete API roles, only custom roles can be deleted',
+      'cannot_delete_current_role': 'Cannot delete the role currently in use',
     },
   };
 }
