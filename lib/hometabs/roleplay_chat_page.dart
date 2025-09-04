@@ -73,22 +73,28 @@ class _RolePlayChatState extends State<RolePlayChat>
       }
     });
 
-    // 监听角色切换，同步PageView位置
+    // 监听角色切换，同步PageView位置并加载聊天历史
     ever(roleName, (String newRoleName) {
-      if (newRoleName.isNotEmpty && usedRoles.isNotEmpty) {
-        final index = usedRoles.indexWhere(
-          (role) => role['name'] == newRoleName,
-        );
-        if (index != -1 && _pageController.hasClients) {
-          // 检查当前页面是否已经是目标页面，避免不必要的动画
-          final currentPage = _pageController.page?.round() ?? 0;
-          if (currentPage != index) {
-            debugPrint('同步PageView到角色: $newRoleName (页面 $index)');
-            _pageController.animateToPage(
-              index,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
+      if (newRoleName.isNotEmpty) {
+        debugPrint('角色切换到: $newRoleName，加载聊天历史');
+        // 加载新角色的聊天历史
+        _loadChatHistory();
+
+        if (usedRoles.isNotEmpty) {
+          final index = usedRoles.indexWhere(
+            (role) => role['name'] == newRoleName,
+          );
+          if (index != -1 && _pageController.hasClients) {
+            // 检查当前页面是否已经是目标页面，避免不必要的动画
+            final currentPage = _pageController.page?.round() ?? 0;
+            if (currentPage != index) {
+              debugPrint('同步PageView到角色: $newRoleName (页面 $index)');
+              _pageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
           }
         }
       }
@@ -136,7 +142,13 @@ class _RolePlayChatState extends State<RolePlayChat>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         await CommonUtil.initializeDefaultRole();
-        debugPrint('默认角色初始化完成');
+        debugPrint('默认角色初始化完成，当前角色: ${roleName.value}');
+
+        // 初始化完成后立即加载聊天历史
+        if (roleName.value.isNotEmpty) {
+          debugPrint('默认角色初始化后加载聊天历史');
+          await _loadChatHistory();
+        }
       } catch (e) {
         debugPrint('默认角色初始化失败: $e');
       }
@@ -175,14 +187,34 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   // 加载聊天历史记录
   Future<void> _loadChatHistory() async {
-    if (roleName.value.isEmpty) return;
+    if (roleName.value.isEmpty) {
+      debugPrint('_loadChatHistory: roleName为空，跳过加载');
+      return;
+    }
 
     try {
+      debugPrint('_loadChatHistory: 开始为角色 ${roleName.value} 加载聊天历史');
       await _stateManager.loadMessagesFromDatabase(roleName.value);
+      final messages = _stateManager.getMessages(roleName.value);
+      debugPrint('_loadChatHistory: 加载完成，消息数量: ${messages.length}');
+
       setState(() {
         // 触发UI更新
       });
-      debugPrint('Chat history loaded for role: ${roleName.value}');
+      debugPrint(
+        'Chat history loaded for role: ${roleName.value}, 消息数量: ${messages.length}',
+      );
+
+      // 输出前几条消息内容用于调试
+      if (messages.isNotEmpty) {
+        debugPrint('前几条消息:');
+        for (int i = 0; i < messages.length && i < 3; i++) {
+          final msg = messages[i];
+          debugPrint(
+            '  [$i] ${msg.isUser ? "用户" : "AI"}: ${msg.content.substring(0, msg.content.length > 50 ? 50 : msg.content.length)}...',
+          );
+        }
+      }
     } catch (e) {
       debugPrint('Failed to load chat history: $e');
     }
@@ -483,10 +515,16 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   Widget _buildChatListView() {
     return buildScrollNotificationListener(
-      child: Obx(
-        () => ChatPageBuilders.buildChatListView(
+      child: Obx(() {
+        // 确保响应式地获取当前角色的消息
+        final currentRoleName = roleName.value;
+        final messages = _stateManager.getMessages(currentRoleName);
+
+        // debugPrint('_buildChatListView: 当前角色: $currentRoleName, 消息数量: ${messages.length}');
+
+        return ChatPageBuilders.buildChatListView(
           scrollController: scrollController,
-          messages: _messages,
+          messages: messages,
           roleDescription: roleDescription.value,
           onScrollNotification: (notification) {
             // 处理滚动通知已在 mixin 中处理
@@ -496,12 +534,12 @@ class _RolePlayChatState extends State<RolePlayChat>
             return ChatPageBuilders.buildListItem(
               context: context,
               index: index,
-              messages: _messages,
+              messages: messages,
               roleDescription: roleDescription.value,
             );
           },
-        ),
-      ),
+        );
+      }),
     );
   }
 
