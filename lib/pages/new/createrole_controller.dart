@@ -50,31 +50,29 @@ class CreateRoleController extends GetxController {
   }
 
   // 切换语言选择
-  void selectLanguage(String language) {
+  void selectLanguage(String language, BuildContext context) {
     selectedLanguage.value = language;
     if (language == 'zh-CN') {
-      Get.snackbar(
-        'tip_title'.tr,
-        'language_switch_chinese'.tr,
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.blue.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('language_switch_chinese'.tr),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 2),
+        ),
       );
     } else {
-      Get.snackbar(
-        'tip_title'.tr,
-        'language_switch_english'.tr,
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.blue.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('language_switch_english'.tr),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 2),
+        ),
       );
     }
   }
 
   // 选择图片
-  Future<void> selectImage() async {
+  Future<void> selectImage(BuildContext context) async {
     try {
       final XFile? pickedFile = await _imagePicker.pickImage(
         source: ImageSource.gallery,
@@ -90,23 +88,23 @@ class CreateRoleController extends GetxController {
           File(pickedFile.path),
         );
         imageUrl.value = savedImagePath;
-        Get.snackbar(
-          'tip_title'.tr,
-          'image_selected_success'.tr,
-          duration: Duration(seconds: 2),
-          backgroundColor: Colors.green.withValues(alpha: 0.9),
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('image_selected_success'.tr),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     } catch (e) {
-      Get.snackbar(
-        'tip_title'.tr,
-        'image_select_failed'.trParams({'error': e.toString()}),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.red.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'image_select_failed'.trParams({'error': e.toString()}),
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
       );
     }
   }
@@ -143,13 +141,12 @@ class CreateRoleController extends GetxController {
     final String d = descController.text.trim();
 
     if (n.isEmpty || d.isEmpty) {
-      Get.snackbar(
-        'tip_title'.tr,
-        'incomplete_info'.tr,
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.orange.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('incomplete_info'.tr),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 2),
+        ),
       );
       return;
     }
@@ -160,25 +157,27 @@ class CreateRoleController extends GetxController {
       (role) => role.name == n,
     );
     if (duplicateRole != null) {
-      Get.snackbar(
-        'tip_title'.tr,
-        'duplicate_role_name'.tr,
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.red.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('duplicate_role_name'.tr),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
       );
       return;
     }
 
     if (descLength.value > descMaxLength) {
-      Get.snackbar(
-        'tip_title'.tr,
-        'description_too_long'.trParams({'count': descMaxLength.toString()}),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.orange.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'description_too_long'.trParams({
+              'count': descMaxLength.toString(),
+            }),
+          ),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 2),
+        ),
       );
       return;
     }
@@ -270,13 +269,12 @@ class CreateRoleController extends GetxController {
       roleDescription.refresh();
 
       // 显示成功提示
-      Get.snackbar(
-        'create_success_title'.tr,
-        'create_success_message'.trParams({'name': n}),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.green.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('create_success_message'.trParams({'name': n})),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
       );
 
       // 延迟一点时间确保状态更新完成，然后返回到聊天页面
@@ -291,13 +289,14 @@ class CreateRoleController extends GetxController {
       Navigator.of(context).pop(roleMap);
     } catch (e) {
       debugPrint('创建角色失败: $e');
-      Get.snackbar(
-        'create_failed_title'.tr,
-        'create_failed_message'.trParams({'error': e.toString()}),
-        duration: Duration(seconds: 3),
-        backgroundColor: Colors.red.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'create_failed_message'.trParams({'error': e.toString()}),
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
       );
     } finally {
       isCreating.value = false;

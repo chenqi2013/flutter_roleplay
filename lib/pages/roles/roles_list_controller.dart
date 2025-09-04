@@ -173,13 +173,13 @@ class RolesListController extends GetxController {
   }
 
   /// 清空本地缓存
-  Future<void> clearCache() async {
+  Future<void> clearCache(BuildContext context) async {
     await _dbHelper.clearRoles();
-    Get.snackbar(
-      '缓存清理',
-      '已清空本地角色缓存',
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 2),
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('已清空本地角色缓存'),
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 
@@ -189,30 +189,28 @@ class RolesListController extends GetxController {
   }
 
   /// 删除自定义角色
-  Future<void> deleteCustomRole(RoleModel role) async {
+  Future<void> deleteCustomRole(RoleModel role, BuildContext context) async {
     try {
       // 检查是否为自定义角色
       if (!role.isCustom) {
-        Get.snackbar(
-          'delete_failed_title'.tr,
-          'cannot_delete_api_role'.tr,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red.withValues(alpha: 0.9),
-          colorText: Colors.white,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('cannot_delete_api_role'.tr),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
         );
         return;
       }
 
       // 检查是否为当前使用的角色
       if (roleName.value == role.name) {
-        Get.snackbar(
-          'delete_failed_title'.tr,
-          'cannot_delete_current_role'.tr,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red.withValues(alpha: 0.9),
-          colorText: Colors.white,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('cannot_delete_current_role'.tr),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
         );
         return;
       }
@@ -226,25 +224,25 @@ class RolesListController extends GetxController {
       // 从 usedRoles 列表中移除（如果存在）
       usedRoles.removeWhere((r) => r['name'] == role.name);
 
-      Get.snackbar(
-        'delete_success_title'.tr,
-        'role_deleted_success'.trParams({'name': role.name}),
-        snackPosition: SnackPosition.TOP,
-        duration: const Duration(seconds: 2),
-        backgroundColor: Colors.green.withValues(alpha: 0.9),
-        colorText: Colors.white,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('role_deleted_success'.trParams({'name': role.name})),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
       );
 
       debugPrint('自定义角色已删除: ${role.name}');
     } catch (e) {
       debugPrint('删除自定义角色失败: $e');
-      Get.snackbar(
-        'delete_failed_title'.tr,
-        'delete_failed_message'.trParams({'error': e.toString()}),
-        snackPosition: SnackPosition.TOP,
-        duration: const Duration(seconds: 3),
-        backgroundColor: Colors.red.withValues(alpha: 0.9),
-        colorText: Colors.white,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'delete_failed_message'.trParams({'error': e.toString()}),
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
       );
     }
   }

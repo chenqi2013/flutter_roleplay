@@ -110,7 +110,7 @@ class RolesListPage extends GetView<RolesListController> {
             return _RoleCard(
               role: role,
               onTap: () => controller.selectRole(role, context),
-              onDelete: () => controller.deleteCustomRole(role),
+              onDelete: () => controller.deleteCustomRole(role, context),
             );
           },
         ),

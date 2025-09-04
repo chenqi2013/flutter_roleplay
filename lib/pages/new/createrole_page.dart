@@ -101,8 +101,10 @@ class CreateRolePage extends GetView<CreateRoleController> {
                                     isSelected:
                                         controller.selectedLanguage.value ==
                                         'zh-CN',
-                                    onTap: () =>
-                                        controller.selectLanguage('zh-CN'),
+                                    onTap: () => controller.selectLanguage(
+                                      'zh-CN',
+                                      context,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -113,8 +115,10 @@ class CreateRolePage extends GetView<CreateRoleController> {
                                     isSelected:
                                         controller.selectedLanguage.value ==
                                         'en',
-                                    onTap: () =>
-                                        controller.selectLanguage('en'),
+                                    onTap: () => controller.selectLanguage(
+                                      'en',
+                                      context,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -379,7 +383,7 @@ class _ImageSelector extends GetView<CreateRoleController> {
             children: [
               // 图片预览区域
               GestureDetector(
-                onTap: controller.selectImage,
+                onTap: () => controller.selectImage(context),
                 child: Container(
                   width: 100,
                   height: 100,

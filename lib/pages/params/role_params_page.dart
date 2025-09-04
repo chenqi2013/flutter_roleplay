@@ -294,7 +294,7 @@ class RoleParamsPage extends StatelessWidget {
               bottom: safe.bottom + 16,
               child: _PrimaryButton(
                 onTap: () {
-                  _applyParams();
+                  _applyParams(context);
                 },
                 label: 'apply'.tr,
               ),
@@ -306,27 +306,25 @@ class RoleParamsPage extends StatelessWidget {
   }
 
   /// 应用参数设置
-  void _applyParams() {
+  void _applyParams(BuildContext context) {
     try {
       final chatService = Get.find<RWKVChatService>();
       chatService.setSamplerParams();
-      // Get.snackbar(
-      //   'success'.tr,
-      //   'params_applied_success'.tr,
-      //   snackPosition: SnackPosition.TOP,
-      //   backgroundColor: Colors.green.withValues(alpha: 0.8),
-      //   colorText: Colors.white,
-      //   duration: const Duration(seconds: 2),
-      // );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('params_applied_success'.tr),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     } catch (e) {
       debugPrint('params_applied_failed: $e');
-      Get.snackbar(
-        'error'.tr,
-        'params_apply_failed'.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('params_apply_failed'.tr),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
       );
     }
   }
