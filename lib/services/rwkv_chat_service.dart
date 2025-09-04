@@ -304,6 +304,23 @@ class RWKVChatService extends GetxController {
     }
   }
 
+  /// 设置采样参数
+  void setSamplerParams() {
+    final paramsController = Get.find<RoleParamsController>();
+    final params = paramsController.getCurrentParams();
+    debugPrint('setSamplerParams: $params');
+    send(
+      to_rwkv.SetSamplerParams(
+        temperature: params['temperature'] as double,
+        topK: params['topK'] as int,
+        topP: params['topP'] as double,
+        presencePenalty: params['presencePenalty'] as double,
+        frequencyPenalty: params['frequencyPenalty'] as double,
+        penaltyDecay: params['penaltyDecay'] as double,
+      ),
+    );
+  }
+
   /// 清空状态
   Future<void> clearStates({String? statePath}) async {
     prefillSpeed.value = 0;

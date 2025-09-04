@@ -120,6 +120,11 @@ class AppTranslations extends Translations {
       'reset_params_title': '重置参数',
       'reset_params_desc': '确定要将所有参数重置为默认值吗？',
       'params_reset_success': '参数已重置为默认值',
+      'apply': '应用',
+      'success': '成功',
+      'error': '错误',
+      'params_applied_success': '参数设置已应用',
+      'params_apply_failed': '参数应用失败',
     },
     'en_US': {
       // CreateRolePage related translations
@@ -263,6 +268,11 @@ class AppTranslations extends Translations {
       'reset_params_desc':
           'Are you sure you want to reset all parameters to default values?',
       'params_reset_success': 'Parameters have been reset to default values',
+      'apply': 'Apply',
+      'success': 'Success',
+      'error': 'Error',
+      'params_applied_success': 'Parameters have been applied successfully',
+      'params_apply_failed': 'Failed to apply parameters',
     },
   };
 }

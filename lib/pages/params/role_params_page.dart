@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/constant/theme.dart';
+import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
 import 'package:get/get.dart';
 import 'role_params_controller.dart';
 
@@ -286,10 +287,48 @@ class RoleParamsPage extends StatelessWidget {
                 ),
               ),
             ),
+            // 底部确定按钮
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: safe.bottom + 16,
+              child: _PrimaryButton(
+                onTap: () {
+                  _applyParams();
+                },
+                label: 'apply'.tr,
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  /// 应用参数设置
+  void _applyParams() {
+    try {
+      final chatService = Get.find<RWKVChatService>();
+      chatService.setSamplerParams();
+      // Get.snackbar(
+      //   'success'.tr,
+      //   'params_applied_success'.tr,
+      //   snackPosition: SnackPosition.TOP,
+      //   backgroundColor: Colors.green.withValues(alpha: 0.8),
+      //   colorText: Colors.white,
+      //   duration: const Duration(seconds: 2),
+      // );
+    } catch (e) {
+      debugPrint('params_applied_failed: $e');
+      Get.snackbar(
+        'error'.tr,
+        'params_apply_failed'.tr,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red.withValues(alpha: 0.8),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    }
   }
 
   /// 构建滑块控件
@@ -449,5 +488,68 @@ class _GlassCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _PrimaryButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  final String label;
+  final bool enabled;
+  const _PrimaryButton({
+    required this.onTap,
+    required this.label,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget content = Container(
+      height: 48,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: enabled
+              ? [
+                  const Color(0xFF6A8DFF).withValues(alpha: 0.9),
+                  const Color(0xFF9B7BFF).withValues(alpha: 0.9),
+                ]
+              : [
+                  Colors.white.withValues(alpha: 0.1),
+                  Colors.black.withValues(alpha: 0.1),
+                ],
+        ),
+        border: Border.all(
+          color: enabled
+              ? Colors.white.withValues(alpha: 0.4)
+              : Colors.white.withValues(alpha: 0.15),
+          width: 0.8,
+        ),
+        boxShadow: [
+          if (enabled)
+            BoxShadow(
+              color: const Color(0xFF6A8DFF).withValues(alpha: 0.35),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: TextStyle(
+            color: enabled ? Colors.white : Colors.white70,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.4,
+          ),
+        ),
+      ),
+    );
+
+    if (!enabled) return content;
+
+    return GestureDetector(onTap: onTap, child: content);
   }
 }
