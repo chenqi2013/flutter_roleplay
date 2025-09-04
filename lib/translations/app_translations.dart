@@ -65,6 +65,7 @@ class AppTranslations extends Translations {
       'ai_replying': 'AI正在回复中...',
       'send_message_to': '发送消息给@name',
       'send_message_to_ai': '发送消息给AI',
+      'thinking': '请稍后...',
 
       // 角色介绍相关翻译
       'introduction': '简介',
@@ -199,6 +200,7 @@ class AppTranslations extends Translations {
       'ai_replying': 'AI is replying...',
       'send_message_to': 'Send message to @name',
       'send_message_to_ai': 'Send message to AI',
+      'thinking': 'Waiting...',
 
       // Character introduction related translations
       'introduction': 'Introduction',
