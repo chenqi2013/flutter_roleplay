@@ -24,7 +24,7 @@ class RolePlayChatController extends GetxController {
   BuildContext? get currentContext => _context ?? Get.context;
 
   // 服务实例
-  final RWKVChatService _modelService = Get.put(RWKVChatService());
+  final RWKVChatService modelService = Get.put(RWKVChatService());
   final ChatStreamService _streamService = ChatStreamService();
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
@@ -34,7 +34,7 @@ class RolePlayChatController extends GetxController {
   ModelInfo? modelInfo;
 
   // 获取生成状态
-  RxBool get isGenerating => _modelService.isGenerating;
+  RxBool get isGenerating => modelService.isGenerating;
 
   LanguageService? languageService;
 
@@ -43,7 +43,7 @@ class RolePlayChatController extends GetxController {
     super.onInit();
     debugPrint('RolePlayChatController onInit');
     // 设置模型服务回调
-    _modelService.setOnGenerationComplete(() {
+    modelService.setOnGenerationComplete(() {
       _saveCurrentAiMessage();
     });
   }
@@ -60,12 +60,12 @@ class RolePlayChatController extends GetxController {
 
   // 加载模型 - 委托给模型服务
   Future<void> loadChatModel() async {
-    await _modelService.loadChatModel();
+    await modelService.loadChatModel();
   }
 
   // 清空状态 - 委托给模型服务
   Future<void> clearStates() async {
-    await _modelService.clearStates();
+    await modelService.clearStates();
   }
 
   // 彻底清空聊天记录（包括数据库）- 用于用户主动清空
@@ -80,15 +80,15 @@ class RolePlayChatController extends GetxController {
     stateManager.getMessages(roleName.value).clear();
 
     // 清空模型状态
-    await _modelService.clearStates();
+    await modelService.clearStates();
   }
 
   // 停止生成 - 委托给模型服务
-  Future<void> stop() async => await _modelService.stop();
+  Future<void> stop() async => await modelService.stop();
 
   // 流式聊天完成 - 委托给模型服务
   Stream<String> streamLocalChatCompletions({String content = '介绍下自己'}) {
-    return _modelService.streamLocalChatCompletions(content: content);
+    return modelService.streamLocalChatCompletions(content: content);
   }
 
   // 清空聊天记录 - 简化版

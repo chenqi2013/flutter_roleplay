@@ -295,7 +295,7 @@ class CreateRoleController extends GetxController {
             'create_failed_message'.trParams({'error': e.toString()}),
           ),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 2),
         ),
       );
     } finally {

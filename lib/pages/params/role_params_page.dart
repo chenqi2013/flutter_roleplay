@@ -430,6 +430,7 @@ class RoleParamsPage extends StatelessWidget {
                   SnackBar(
                     content: Text('params_reset_success'.tr),
                     backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               },

@@ -128,6 +128,7 @@ class AppTranslations extends Translations {
       'error': '错误',
       'params_applied_success': '参数设置已应用',
       'params_apply_failed': '参数应用失败',
+      'model_not_loaded': '模型未加载',
     },
     'en_US': {
       // CreateRolePage related translations
@@ -279,6 +280,7 @@ class AppTranslations extends Translations {
       'error': 'Error',
       'params_applied_success': 'Parameters have been applied successfully',
       'params_apply_failed': 'Failed to apply parameters',
+      'model_not_loaded': 'Model not loaded',
     },
   };
 }

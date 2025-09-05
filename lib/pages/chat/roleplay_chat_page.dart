@@ -287,6 +287,17 @@ class _RolePlayChatState extends State<RolePlayChat>
         return;
       }
     }
+    if (!_controller!.modelService.isModelLoaded) {
+      debugPrint('Model not loaded, skipping send');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('model_not_loaded'.tr),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
 
     // 创建用户消息
     final userMessage = ChatMessage(
@@ -505,6 +516,7 @@ class _RolePlayChatState extends State<RolePlayChat>
                     'count': count.toString(),
                   }),
                 ),
+                duration: const Duration(seconds: 2),
               ),
             );
           }

@@ -197,7 +197,7 @@ class RolesListController extends GetxController {
           SnackBar(
             content: Text('cannot_delete_api_role'.tr),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 2),
           ),
         );
         return;
@@ -209,7 +209,7 @@ class RolesListController extends GetxController {
           SnackBar(
             content: Text('cannot_delete_current_role'.tr),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 2),
           ),
         );
         return;
@@ -241,7 +241,7 @@ class RolesListController extends GetxController {
             'delete_failed_message'.trParams({'error': e.toString()}),
           ),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
