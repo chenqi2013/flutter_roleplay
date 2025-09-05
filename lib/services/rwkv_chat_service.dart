@@ -123,11 +123,12 @@ class RWKVChatService extends GetxController {
         changeStatesFile(statePath: info?.statePath);
       } else {
         debugPrint('第一次下载，切换了模型');
+        controller?.modelInfo = info;
         loadChatModel();
       }
-      controller?.modelInfo = info;
       if (info != null) {
         // 把当前的 modelinfo 保存到本地
+        controller?.modelInfo = info;
         await _saveModelInfoToLocal(info);
       }
     });
