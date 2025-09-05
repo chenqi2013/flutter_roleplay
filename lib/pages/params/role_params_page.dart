@@ -188,7 +188,7 @@ class RoleParamsPage extends StatelessWidget {
                               context: context,
                               value: controller.presencePenalty.value,
                               min: 0.0,
-                              max: 1.0,
+                              max: 2.0,
                               divisions: 100,
                               onChanged: controller.updatePresencePenalty,
                               displayValue: controller.presencePenalty.value
@@ -229,7 +229,7 @@ class RoleParamsPage extends StatelessWidget {
                               context: context,
                               value: controller.frequencyPenalty.value,
                               min: 0.0,
-                              max: 1.0,
+                              max: 2.0,
                               divisions: 100,
                               onChanged: controller.updateFrequencyPenalty,
                               displayValue: controller.frequencyPenalty.value
