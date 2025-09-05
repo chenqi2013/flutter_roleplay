@@ -268,7 +268,7 @@ class RWKVChatService extends GetxController {
   /// 设置模型参数
   void _setupModelParameters() {
     final prompt =
-        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '} ${roleName.value}，${roleDescription.value}\n\n';
+        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
     send(to_rwkv.SetMaxLength(2000));
     // 获取角色参数设置
@@ -323,8 +323,8 @@ class RWKVChatService extends GetxController {
 
   /// 清空状态
   Future<void> clearStates({String? statePath}) async {
-    prefillSpeed.value = 0;
-    decodeSpeed.value = 0;
+    // prefillSpeed.value = 0;
+    // decodeSpeed.value = 0;
 
     // 只清空内存中的聊天记录，不删除数据库记录
     final stateManager = ChatStateManager();
@@ -335,15 +335,17 @@ class RWKVChatService extends GetxController {
       debugPrint("sendPort is null");
       return;
     }
-    send(to_rwkv.ClearStates());
-    if (statePath != null) {
-      rmpack = statePath;
-    }
-    if (rmpack != null) {
-      send(to_rwkv.LoadInitialStates(rmpack!));
-    }
+
+    ///切换角色不需要clearstate，只有切换了state文件才需要clearstate
+    // send(to_rwkv.ClearStates());
+    // if (statePath != null) {
+    //   rmpack = statePath;
+    // }
+    // if (rmpack != null) {
+    //   send(to_rwkv.LoadInitialStates(rmpack!));
+    // }
     final prompt =
-        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '} ${roleName.value}，${roleDescription.value}\n\n';
+        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n';
     send(to_rwkv.SetPrompt(prompt));
   }
 
