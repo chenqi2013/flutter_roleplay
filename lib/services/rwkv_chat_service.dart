@@ -293,11 +293,11 @@ class RWKVChatService extends GetxController {
       // 使用默认参数
       send(
         to_rwkv.SetSamplerParams(
-          temperature: 1.8,
+          temperature: 1.2,
           topK: 500,
-          topP: 0.2,
-          presencePenalty: 0.0,
-          frequencyPenalty: 0.0,
+          topP: 0.6,
+          presencePenalty: 1.5,
+          frequencyPenalty: 1.0,
           penaltyDecay: 0.996,
         ),
       );
