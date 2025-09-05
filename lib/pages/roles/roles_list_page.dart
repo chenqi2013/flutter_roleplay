@@ -119,7 +119,7 @@ class RolesListPage extends GetView<RolesListController> {
   }
 }
 
-class _RoleCard extends StatelessWidget {
+class _RoleCard extends StatefulWidget {
   final RoleModel role;
   final VoidCallback onTap;
   final VoidCallback onDelete;
@@ -131,47 +131,46 @@ class _RoleCard extends StatelessWidget {
   });
 
   @override
+  State<_RoleCard> createState() => _RoleCardState();
+}
+
+class _RoleCardState extends State<_RoleCard> {
+  bool _isExpanded = false;
+
+  /// 检查文本是否超过指定行数
+  bool _isTextOverflowing(
+    String text,
+    TextStyle style,
+    int maxLines,
+    double maxWidth,
+  ) {
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: maxLines,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout(maxWidth: maxWidth);
+    return textPainter.didExceedMaxLines;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: Key('role_${role.id}'),
-      direction: role.isCustom
+      key: Key('role_${widget.role.id}'),
+      direction: widget.role.isCustom
           ? DismissDirection.endToStart
           : DismissDirection.none,
       dismissThresholds: const {
         DismissDirection.endToStart: 0.25, // 侧滑到1/4位置就触发
       },
       confirmDismiss: (direction) async {
-        if (!role.isCustom) return false;
-
-        // 显示删除确认对话框
-        return await showDialog<bool>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('delete_confirm_title'.tr),
-                  content: Text(
-                    'delete_role_confirm'.trParams({'name': role.name}),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: Text('cancel'.tr),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: Text('delete'.tr),
-                    ),
-                  ],
-                );
-              },
-            ) ??
-            false;
+        if (!widget.role.isCustom) return false;
+        return await _showDeleteConfirmDialog();
       },
       onDismissed: (direction) {
-        onDelete();
+        widget.onDelete();
       },
-      background: role.isCustom
+      background: widget.role.isCustom
           ? Container(
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 20),
@@ -187,7 +186,7 @@ class _RoleCard extends StatelessWidget {
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: InkWell(
-          onTap: onTap,
+          onTap: widget.onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -219,7 +218,7 @@ class _RoleCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        role.name,
+                        widget.role.name,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -228,8 +227,9 @@ class _RoleCard extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
+                    // 当前角色选中标识
                     Obx(
-                      () => roleName.value == role.name
+                      () => roleName.value == widget.role.name
                           ? Icon(
                               Icons.check_circle,
                               color: Colors.green,
@@ -237,44 +237,155 @@ class _RoleCard extends StatelessWidget {
                             )
                           : const SizedBox.shrink(),
                     ),
+                    // 自定义角色删除按钮
+                    if (widget.role.isCustom) ...[
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => _handleDeleteButtonTap(),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Icon(
+                            Icons.delete_outline,
+                            size: 20,
+                            color: Colors.red.shade600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  role.description,
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                  maxLines: 100,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'tap_to_select'.tr,
-                      style: TextStyle(
-                        color: Colors.blue.shade600,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12,
-                      color: Colors.blue.shade600,
-                    ),
-                  ],
-                ),
+                _buildDescription(),
+                // const SizedBox(height: 8),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.end,
+                //   children: [
+                //     Text(
+                //       'tap_to_select'.tr,
+                //       style: TextStyle(
+                //         color: Colors.blue.shade600,
+                //         fontSize: 12,
+                //         fontWeight: FontWeight.w500,
+                //       ),
+                //     ),
+                //     const SizedBox(width: 4),
+                //     Icon(
+                //       Icons.arrow_forward_ios,
+                //       size: 12,
+                //       color: Colors.blue.shade600,
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  /// 显示删除角色确认对话框
+  Future<bool> _showDeleteConfirmDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('delete_confirm_title'.tr),
+              content: Text(
+                'delete_role_confirm'.trParams({'name': widget.role.name}),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('cancel'.tr),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: TextButton.styleFrom(foregroundColor: Colors.red),
+                  child: Text('delete'.tr),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
+  /// 处理右上角删除按钮点击
+  Future<void> _handleDeleteButtonTap() async {
+    final confirmed = await _showDeleteConfirmDialog();
+    if (confirmed) {
+      widget.onDelete();
+    }
+  }
+
+  /// 构建可展开的描述组件
+  Widget _buildDescription() {
+    final descriptionStyle = TextStyle(
+      color: Colors.grey.shade700,
+      fontSize: 14,
+      height: 1.4,
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 检查文本是否超过4行
+        final isOverflowing = _isTextOverflowing(
+          widget.role.description,
+          descriptionStyle,
+          4,
+          constraints.maxWidth,
+        );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.role.description,
+              style: descriptionStyle,
+              maxLines: _isExpanded ? null : 4,
+              overflow: _isExpanded
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
+            ),
+            // 只有当文本超过4行时才显示展开/收起按钮
+            if (isOverflowing)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        _isExpanded ? 'collapse'.tr : 'expand'.tr,
+                        style: TextStyle(
+                          color: Colors.blue.shade600,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        _isExpanded ? Icons.expand_less : Icons.expand_more,
+                        size: 16,
+                        color: Colors.blue.shade600,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

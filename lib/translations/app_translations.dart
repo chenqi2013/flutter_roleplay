@@ -49,6 +49,8 @@ class AppTranslations extends Translations {
       'offline_mode': '离线模式',
       'cache_loaded': '已从本地缓存加载 @count 个角色',
       'network_failed_cache': '网络连接失败，且本地无缓存数据',
+      'expand': '展开',
+      'collapse': '收起',
 
       // RolePlayChat 相关翻译
       'chat_history_cleared': '聊天记录已清空',
@@ -183,6 +185,8 @@ class AppTranslations extends Translations {
       'cache_loaded': 'Loaded @count roles from local cache',
       'network_failed_cache':
           'Network connection failed and no local cache available',
+      'expand': 'Expand',
+      'collapse': 'Collapse',
 
       // RolePlayChat related translations
       'chat_history_cleared': 'Chat history cleared',
