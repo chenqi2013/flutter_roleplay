@@ -337,8 +337,8 @@ class RWKVChatService extends GetxController {
       return;
     }
 
-    ///切换角色不需要clearstate，只有切换了state文件才需要clearstate
-    // send(to_rwkv.ClearStates());
+    ///切换角色需要clearstate，否则聊天内容会是上一次的角色的。
+    send(to_rwkv.ClearStates());
     // if (statePath != null) {
     //   rmpack = statePath;
     // }
