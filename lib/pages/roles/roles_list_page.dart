@@ -101,22 +101,118 @@ class RolesListPage extends GetView<RolesListController> {
         );
       }
 
-      return RefreshIndicator(
-        onRefresh: controller.refreshRoles,
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: controller.roles.length,
-          itemBuilder: (context, index) {
-            final role = controller.roles[index];
-            return _RoleCard(
-              role: role,
-              onTap: () => controller.selectRole(role, context),
-              onDelete: () => controller.deleteCustomRole(role, context),
-            );
-          },
-        ),
+      return Column(
+        children: [
+          // 搜索框
+          _buildSearchBar(),
+          // 角色列表
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: controller.refreshRoles,
+              child: Obx(() {
+                final displayRoles = controller.displayRoles;
+                if (displayRoles.isEmpty &&
+                    controller.searchQuery.value.isNotEmpty) {
+                  // 显示无搜索结果
+                  return _buildNoSearchResults();
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  itemCount: displayRoles.length,
+                  itemBuilder: (context, index) {
+                    final role = displayRoles[index];
+                    return _RoleCard(
+                      role: role,
+                      onTap: () => controller.selectRole(role, context),
+                      onDelete: () =>
+                          controller.deleteCustomRole(role, context),
+                    );
+                  },
+                );
+              }),
+            ),
+          ),
+        ],
       );
     });
+  }
+
+  /// 构建搜索框
+  Widget _buildSearchBar() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Obx(
+        () => TextField(
+          onChanged: controller.searchRoles,
+          decoration: InputDecoration(
+            hintText: 'search_roles_hint'.tr,
+            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+            suffixIcon: controller.searchQuery.value.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    onPressed: controller.clearSearch,
+                  )
+                : null,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 构建无搜索结果页面
+  Widget _buildNoSearchResults() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 64, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            'no_search_results'.tr,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Obx(
+            () => Text(
+              'search_query_hint'.trParams({
+                'query': controller.searchQuery.value,
+              }),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: controller.clearSearch,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('clear_search'.tr),
+          ),
+        ],
+      ),
+    );
   }
 }
 

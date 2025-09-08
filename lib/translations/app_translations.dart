@@ -51,6 +51,10 @@ class AppTranslations extends Translations {
       'network_failed_cache': '网络连接失败，且本地无缓存数据',
       'expand': '展开',
       'collapse': '收起',
+      'search_roles_hint': '搜索角色名称或描述',
+      'no_search_results': '未找到匹配的角色',
+      'search_query_hint': '没有找到包含"@query"的角色',
+      'clear_search': '清空搜索',
 
       // RolePlayChat 相关翻译
       'chat_history_cleared': '聊天记录已清空',
@@ -190,6 +194,10 @@ class AppTranslations extends Translations {
           'Network connection failed and no local cache available',
       'expand': 'Expand',
       'collapse': 'Collapse',
+      'search_roles_hint': 'Search role name or description',
+      'no_search_results': 'No matching roles found',
+      'search_query_hint': 'No roles found containing "@query"',
+      'clear_search': 'Clear Search',
 
       // RolePlayChat related translations
       'chat_history_cleared': 'Chat history cleared',

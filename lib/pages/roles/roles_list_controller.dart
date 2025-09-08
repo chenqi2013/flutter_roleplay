@@ -9,9 +9,11 @@ import 'package:flutter_roleplay/constant/constant.dart';
 class RolesListController extends GetxController {
   // 响应式状态变量
   final RxList<RoleModel> roles = <RoleModel>[].obs;
+  final RxList<RoleModel> filteredRoles = <RoleModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxString error = ''.obs;
   final RxBool isLoadingFromCache = false.obs;
+  final RxString searchQuery = ''.obs;
 
   // 数据库辅助类
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -20,6 +22,11 @@ class RolesListController extends GetxController {
   void onInit() {
     super.onInit();
     loadRoles();
+
+    // 监听搜索查询变化
+    searchQuery.listen((query) {
+      _filterRoles();
+    });
   }
 
   /// 加载角色列表 - 优先从网络获取，失败时从本地加载
@@ -50,6 +57,7 @@ class RolesListController extends GetxController {
       final allRoles = await _dbHelper.getRoles();
 
       roles.value = allRoles;
+      _filterRoles(); // 初始化过滤列表
       isLoading.value = false;
       error.value = '';
 
@@ -70,6 +78,7 @@ class RolesListController extends GetxController {
 
       if (cachedRoles.isNotEmpty) {
         roles.value = cachedRoles;
+        _filterRoles(); // 初始化过滤列表
         error.value = ''; // 清空错误信息
 
         // // 显示从缓存加载的提示
@@ -246,4 +255,30 @@ class RolesListController extends GetxController {
       );
     }
   }
+
+  /// 搜索角色
+  void searchRoles(String query) {
+    searchQuery.value = query.trim();
+  }
+
+  /// 清空搜索
+  void clearSearch() {
+    searchQuery.value = '';
+  }
+
+  /// 过滤角色列表
+  void _filterRoles() {
+    if (searchQuery.value.isEmpty) {
+      filteredRoles.value = List.from(roles);
+    } else {
+      final query = searchQuery.value.toLowerCase();
+      filteredRoles.value = roles.where((role) {
+        return role.name.toLowerCase().contains(query) ||
+            role.description.toLowerCase().contains(query);
+      }).toList();
+    }
+  }
+
+  /// 获取当前显示的角色列表
+  List<RoleModel> get displayRoles => filteredRoles;
 }
