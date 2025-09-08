@@ -3,12 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class RoleParamsController extends GetxController {
   // 参数默认值
-  static const double _defaultTemperature = 1.2;
+  static const double _defaultTemperature = 0.6;
   static const int _defaultTopK = 500;
-  static const double _defaultTopP = 0.6;
-  static const double _defaultPresencePenalty = 1.5;
-  static const double _defaultFrequencyPenalty = 1.0;
-  static const double _defaultPenaltyDecay = 0.996;
+  static const double _defaultTopP = 0.8;
+  static const double _defaultPresencePenalty = 2.0;
+  static const double _defaultFrequencyPenalty = 0.2;
+  static const double _defaultPenaltyDecay = 0.990;
 
   // 响应式参数
   final RxDouble temperature = _defaultTemperature.obs;
