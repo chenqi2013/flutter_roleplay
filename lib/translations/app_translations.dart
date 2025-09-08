@@ -129,6 +129,8 @@ class AppTranslations extends Translations {
       'params_applied_success': '参数设置已应用',
       'params_apply_failed': '参数应用失败',
       'model_not_loaded': '模型未加载',
+      'edit_role_title': '编辑角色',
+      'edit_success_message': '角色"@name"已更新',
     },
     'en_US': {
       // CreateRolePage related translations
@@ -281,6 +283,8 @@ class AppTranslations extends Translations {
       'params_applied_success': 'Parameters have been applied successfully',
       'params_apply_failed': 'Failed to apply parameters',
       'model_not_loaded': 'Model not loaded',
+      'edit_role_title': 'Edit Role',
+      'edit_success_message': 'Role "@name" has been updated',
     },
   };
 }

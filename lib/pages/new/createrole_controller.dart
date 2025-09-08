@@ -11,6 +11,8 @@ import 'package:path/path.dart' as path;
 import '../../constant/constant.dart';
 
 class CreateRoleController extends GetxController {
+  final RoleModel? editRole;
+
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descController = TextEditingController();
 
@@ -26,14 +28,29 @@ class CreateRoleController extends GetxController {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final ImagePicker _imagePicker = ImagePicker();
 
+  CreateRoleController({this.editRole});
+
   @override
   void onInit() {
     super.onInit();
-    // 输入框初始化为空，让用户从头开始创建新角色
-    nameController.text = '';
-    descController.text = '';
 
-    descLength.value = 0;
+    // 如果是编辑模式，初始化数据
+    if (editRole != null) {
+      nameController.text = editRole!.name;
+      descController.text = editRole!.description;
+      selectedLanguage.value = editRole!.language;
+
+      // 如果有图片，设置图片URL
+      if (editRole!.image.isNotEmpty) {
+        imageUrl.value = editRole!.image;
+      }
+    } else {
+      // 创建模式：输入框初始化为空
+      nameController.text = '';
+      descController.text = '';
+    }
+
+    descLength.value = descController.text.characters.length;
     _recomputeCanSubmit();
 
     nameController.addListener(_recomputeCanSubmit);
@@ -151,20 +168,22 @@ class CreateRoleController extends GetxController {
       return;
     }
 
-    // 检查是否已存在同名角色
-    final existingRoles = await _dbHelper.getRoles();
-    final duplicateRole = existingRoles.firstWhereOrNull(
-      (role) => role.name == n,
-    );
-    if (duplicateRole != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('duplicate_role_name'.tr),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
-        ),
+    // 只在创建模式下检查是否已存在同名角色
+    if (editRole == null) {
+      final existingRoles = await _dbHelper.getRoles();
+      final duplicateRole = existingRoles.firstWhereOrNull(
+        (role) => role.name == n,
       );
-      return;
+      if (duplicateRole != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('duplicate_role_name'.tr),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
     }
 
     if (descLength.value > descMaxLength) {
@@ -185,8 +204,8 @@ class CreateRoleController extends GetxController {
     try {
       isCreating.value = true;
 
-      // 创建自定义角色模型
-      debugPrint('CreateRoleController: 准备创建角色');
+      final bool isEditMode = editRole != null;
+      debugPrint('CreateRoleController: ${isEditMode ? '准备更新' : '准备创建'}角色');
       debugPrint('  - 角色名称: $n');
       debugPrint('  - 角色描述长度: ${d.length}');
       debugPrint('  - 选择的图片路径: ${imageUrl.value}');
@@ -198,20 +217,38 @@ class CreateRoleController extends GetxController {
           : null;
       debugPrint('  - 最终图片路径: $finalImagePath');
 
-      final customRole = RoleModel.createCustom(
-        id: 0, // 临时ID，保存时会生成真实ID
-        name: n,
-        description: d,
-        language: selectedLanguage.value,
-        image: finalImagePath,
-      );
+      late final RoleModel customRole;
+      late final int roleId;
 
-      debugPrint('CreateRoleController: 创建的角色模型');
+      if (isEditMode) {
+        // 编辑模式：更新现有角色
+        customRole = RoleModel.createCustom(
+          id: editRole!.id,
+          name: n,
+          description: d,
+          language: selectedLanguage.value,
+          image: finalImagePath,
+        );
+
+        await _dbHelper.updateCustomRole(customRole);
+        roleId = editRole!.id;
+        debugPrint('自定义角色已更新，ID: $roleId');
+      } else {
+        // 创建模式：新建角色
+        customRole = RoleModel.createCustom(
+          id: 0, // 临时ID，保存时会生成真实ID
+          name: n,
+          description: d,
+          language: selectedLanguage.value,
+          image: finalImagePath,
+        );
+
+        roleId = await _dbHelper.saveCustomRole(customRole);
+        debugPrint('自定义角色已保存，ID: $roleId');
+      }
+
+      debugPrint('CreateRoleController: ${isEditMode ? '更新' : '创建'}的角色模型');
       debugPrint('  - 角色图片路径: ${customRole.image}');
-
-      // 保存到本地数据库
-      final roleId = await _dbHelper.saveCustomRole(customRole);
-      debugPrint('自定义角色已保存，ID: $roleId');
 
       // 创建角色映射数据 - 使用与全局状态相同的图片路径
       final String finalRoleImage =
@@ -271,7 +308,11 @@ class CreateRoleController extends GetxController {
       // 显示成功提示
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('create_success_message'.trParams({'name': n})),
+          content: Text(
+            isEditMode
+                ? 'edit_success_message'.trParams({'name': n})
+                : 'create_success_message'.trParams({'name': n}),
+          ),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 2),
         ),

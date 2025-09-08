@@ -1,22 +1,30 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/constant/theme.dart';
+import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:get/get.dart';
 import 'createrole_controller.dart';
 
 class CreateRolePage extends GetView<CreateRoleController> {
-  const CreateRolePage({super.key});
+  final RoleModel? editRole;
+
+  const CreateRolePage({super.key, this.editRole});
 
   @override
   Widget build(BuildContext context) {
-    Get.put(CreateRoleController());
+    Get.put(CreateRoleController(editRole: editRole));
     final EdgeInsets safe = MediaQuery.of(context).padding;
     return Theme(
       data: darkTheme,
       child: Scaffold(
         backgroundColor: Colors.black,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(title: Text('create_role_title'.tr), centerTitle: true),
+        appBar: AppBar(
+          title: Text(
+            editRole != null ? 'edit_role_title'.tr : 'create_role_title'.tr,
+          ),
+          centerTitle: true,
+        ),
         body: Stack(
           children: [
             Positioned.fill(

@@ -452,7 +452,9 @@ class DatabaseHelper {
       );
 
       await db.insert('roles', roleWithId.toDbMap());
-      debugPrint('成功保存自定义角色: ${roleWithId.name} (ID: $customRoleId, Image: ${roleWithId.image})');
+      debugPrint(
+        '成功保存自定义角色: ${roleWithId.name} (ID: $customRoleId, Image: ${roleWithId.image})',
+      );
       return customRoleId;
     } catch (e) {
       debugPrint('保存自定义角色失败: $e');
@@ -477,6 +479,36 @@ class DatabaseHelper {
     } catch (e) {
       debugPrint('生成自定义角色ID失败: $e');
       return -DateTime.now().millisecondsSinceEpoch; // 使用时间戳作为备用ID
+    }
+  }
+
+  /// 更新自定义角色
+  Future<void> updateCustomRole(RoleModel role) async {
+    try {
+      final db = await database;
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      final count = await db.update(
+        'roles',
+        {
+          'name': role.name,
+          'description': role.description,
+          'image': role.image,
+          'language': role.language,
+          'updated_at': now,
+        },
+        where: 'id = ? AND is_custom = 1',
+        whereArgs: [role.id],
+      );
+
+      if (count > 0) {
+        debugPrint('成功更新自定义角色: ${role.name} (ID: ${role.id})');
+      } else {
+        debugPrint('未找到要更新的自定义角色 (ID: ${role.id})');
+      }
+    } catch (e) {
+      debugPrint('更新自定义角色失败: $e');
+      rethrow;
     }
   }
 

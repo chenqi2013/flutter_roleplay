@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
+import 'package:flutter_roleplay/pages/new/createrole_page.dart';
 
 class RolesListPage extends GetView<RolesListController> {
   const RolesListPage({super.key});
@@ -237,9 +238,27 @@ class _RoleCardState extends State<_RoleCard> {
                             )
                           : const SizedBox.shrink(),
                     ),
-                    // 自定义角色删除按钮
+                    // 自定义角色操作按钮
                     if (widget.role.isCustom) ...[
                       const SizedBox(width: 8),
+                      // 编辑按钮
+                      GestureDetector(
+                        onTap: () => _handleEditButtonTap(),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Icon(
+                            Icons.edit_outlined,
+                            size: 20,
+                            color: Colors.blue.shade600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // 删除按钮
                       GestureDetector(
                         onTap: () => _handleDeleteButtonTap(),
                         child: Container(
@@ -313,6 +332,23 @@ class _RoleCardState extends State<_RoleCard> {
           },
         ) ??
         false;
+  }
+
+  /// 处理右上角编辑按钮点击
+  void _handleEditButtonTap() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateRolePage(editRole: widget.role),
+      ),
+    );
+
+    // 如果编辑成功，刷新角色列表
+    if (result != null) {
+      // 获取控制器并刷新列表
+      final controller = Get.find<RolesListController>();
+      controller.loadRoles();
+    }
   }
 
   /// 处理右上角删除按钮点击
