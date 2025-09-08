@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +23,10 @@ class CommonUtil {
     }
 
     debugPrint('initializeDefaultRole: 开始初始化默认角色');
+
+    // 初始化时标记需要清空聊天状态
+    needsClearStatesOnNextSend.value = true;
+    debugPrint('initializeDefaultRole: 标记需要在首次发送消息时清空聊天状态');
 
     try {
       debugPrint('开始初始化默认角色...');
@@ -189,8 +192,12 @@ class CommonUtil {
         controller = Get.put(RolePlayChatController());
       }
 
-      // 清空当前状态（只清空内存，不删除数据库记录）
-      controller?.clearStates();
+      // 标记需要在下次发送消息时清空聊天状态
+      needsClearStatesOnNextSend.value = true;
+      debugPrint('标记需要在下次发送消息时清空聊天状态');
+
+      // // 清空当前状态（只清空内存，不删除数据库记录）
+      // controller?.clearStates();
 
       // 同步加载聊天历史记录（避免异步时序问题）
       _loadChatHistorySync(newRoleName, controller);

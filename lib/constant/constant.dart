@@ -12,6 +12,9 @@ var roleDescription = ''.obs;
 var roleImage = ''.obs;
 var roleLanguage = ''.obs;
 
+// 聊天状态管理标记
+var needsClearStatesOnNextSend = false.obs; // 标记是否需要在下次发送消息时清空聊天状态
+
 // 用户使用过的角色列表（按使用顺序）
 var usedRoles = <Map<String, dynamic>>[].obs;
 

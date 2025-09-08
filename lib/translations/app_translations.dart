@@ -71,7 +71,7 @@ class AppTranslations extends Translations {
       'ai_replying': 'AI正在回复中...',
       'send_message_to': '发送消息给@name',
       'send_message_to_ai': '发送消息给AI',
-      'thinking': '请稍后...',
+      'thinking': '请稍候...',
 
       // 角色介绍相关翻译
       'introduction': '简介',

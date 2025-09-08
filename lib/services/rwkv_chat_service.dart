@@ -327,9 +327,9 @@ class RWKVChatService extends GetxController {
     // prefillSpeed.value = 0;
     // decodeSpeed.value = 0;
 
-    // 只清空内存中的聊天记录，不删除数据库记录
-    final stateManager = ChatStateManager();
-    stateManager.getMessages(roleName.value).clear();
+    // // 只清空内存中的聊天记录，不删除数据库记录
+    // final stateManager = ChatStateManager();
+    // stateManager.getMessages(roleName.value).clear();
 
     final sendPort = _sendPort;
     if (sendPort == null) {
