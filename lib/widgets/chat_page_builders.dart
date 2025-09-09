@@ -696,6 +696,9 @@ class ChatPageBuilders {
     required int index,
     required List<ChatMessage> messages,
     required String roleDescription,
+    VoidCallback? onCopy,
+    Function(ChatMessage)? onRegenerate,
+    Function(ChatMessage, int)? onSwitchResponse,
   }) {
     // 如果没有消息，只显示角色介绍
     if (messages.isEmpty) {
@@ -718,6 +721,11 @@ class ChatPageBuilders {
         child: ChatBubble(
           key: ValueKey('${msg.isUser}_${msg.content.hashCode}'),
           message: msg,
+          onCopy: onCopy,
+          onRegenerate: msg.isUser ? null : () => onRegenerate?.call(msg),
+          onSwitchResponse: msg.isUser
+              ? null
+              : (index) => onSwitchResponse?.call(msg, index),
         ),
       );
     } else if (index == messages.length) {

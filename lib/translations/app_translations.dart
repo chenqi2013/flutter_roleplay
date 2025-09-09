@@ -56,6 +56,12 @@ class AppTranslations extends Translations {
       'search_query_hint': '没有找到包含"@query"的角色',
       'clear_search': '清空搜索',
 
+      // AI消息操作按钮
+      'copy_message': '复制',
+      'regenerate': '重新生成',
+      'copied_to_clipboard': '已复制到剪贴板',
+      'regenerating': '重新生成中...',
+
       // RolePlayChat 相关翻译
       'chat_history_cleared': '聊天记录已清空',
       'role_switch_dialog_title': '切换角色',
@@ -198,6 +204,12 @@ class AppTranslations extends Translations {
       'no_search_results': 'No matching roles found',
       'search_query_hint': 'No roles found containing "@query"',
       'clear_search': 'Clear Search',
+
+      // AI message action buttons
+      'copy_message': 'Copy',
+      'regenerate': 'Regenerate',
+      'copied_to_clipboard': 'Copied to clipboard',
+      'regenerating': 'Regenerating...',
 
       // RolePlayChat related translations
       'chat_history_cleared': 'Chat history cleared',

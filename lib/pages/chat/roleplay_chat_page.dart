@@ -578,11 +578,150 @@ class _RolePlayChatState extends State<RolePlayChat>
               index: index,
               messages: messages,
               roleDescription: roleDescription.value,
+              onCopy: () => _handleCopy(),
+              onRegenerate: (message) => _handleRegenerate(message),
+              onSwitchResponse: (message, responseIndex) =>
+                  _handleSwitchResponse(message, responseIndex),
             );
           },
         );
       }),
     );
+  }
+
+  /// 处理复制操作的回调（在ChatBubble中已处理具体逻辑）
+  void _handleCopy() {
+    // 复制操作已在ChatBubble组件中处理，这里只是为了保持接口一致性
+    debugPrint('消息已复制到剪贴板');
+  }
+
+  /// 处理重新生成消息
+  void _handleRegenerate(ChatMessage message) async {
+    if (_controller == null || _controller!.isGenerating.value) {
+      debugPrint('AI正在生成中，无法重新生成');
+      return;
+    }
+
+    debugPrint('开始重新生成消息...');
+
+    try {
+      // 找到对应的用户消息
+      final messages = _stateManager.getMessages(roleName.value);
+      final messageIndex = messages.indexOf(message);
+      if (messageIndex <= 0) {
+        debugPrint('未找到对应的用户消息，无法重新生成');
+        return;
+      }
+
+      final userMessage = messages[messageIndex - 1];
+      if (userMessage.isUser) {
+        // 开始重新生成
+        final aiMessage = ChatMessage(
+          roleName: roleName.value,
+          content: '',
+          isUser: false,
+          timestamp: DateTime.now(),
+        );
+
+        // 临时添加空的AI消息用于显示loading
+        _stateManager.getMessages(roleName.value).add(aiMessage);
+        setState(() {});
+        scrollToBottom();
+
+        // 执行重新生成
+        _streamSub?.cancel();
+        _streamSub = _controller!
+            .streamLocalChatCompletions(content: userMessage.content)
+            .listen(
+              (String chunk) {
+                if (_messages.isEmpty || !mounted) return;
+                if (!_messages.last.isUser) {
+                  final updatedMessage = _messages.last.copyWith(
+                    content: chunk,
+                  );
+                  _stateManager.updateLastMessageInMemory(
+                    roleName.value,
+                    updatedMessage,
+                  );
+
+                  setState(() {});
+
+                  if (!isUserScrolling) {
+                    scrollToBottom();
+                  }
+                }
+              },
+              onError: (Object e) {
+                debugPrint('重新生成失败: $e');
+                // 移除失败的消息
+                if (_messages.isNotEmpty && !_messages.last.isUser) {
+                  _stateManager.getMessages(roleName.value).removeLast();
+                  setState(() {});
+                }
+              },
+              onDone: () {
+                // 生成完成后，将新回答添加到原消息的备选回答中
+                if (_messages.isNotEmpty && !_messages.last.isUser) {
+                  final newResponse = _messages.last.content;
+                  if (newResponse.isNotEmpty) {
+                    _addAlternativeResponse(message, newResponse);
+                  }
+                  // 移除临时消息
+                  _stateManager.getMessages(roleName.value).removeLast();
+                  setState(() {});
+                }
+              },
+            );
+      }
+    } catch (e) {
+      debugPrint('重新生成消息时发生错误: $e');
+    }
+  }
+
+  /// 处理切换回答
+  void _handleSwitchResponse(ChatMessage message, int responseIndex) {
+    debugPrint('切换到回答索引: $responseIndex');
+
+    try {
+      final messages = _stateManager.getMessages(roleName.value);
+      final messageIndex = messages.indexOf(message);
+      if (messageIndex != -1) {
+        final updatedMessage = message.copyWith(
+          currentResponseIndex: responseIndex,
+        );
+        messages[messageIndex] = updatedMessage;
+
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint('切换回答时发生错误: $e');
+    }
+  }
+
+  /// 添加备选回答到消息
+  void _addAlternativeResponse(ChatMessage message, String newResponse) {
+    try {
+      final messages = _stateManager.getMessages(roleName.value);
+      final messageIndex = messages.indexOf(message);
+      if (messageIndex != -1) {
+        final updatedAlternatives = List<String>.from(
+          message.alternativeResponses,
+        );
+        updatedAlternatives.add(newResponse);
+
+        final updatedMessage = message.copyWith(
+          alternativeResponses: updatedAlternatives,
+          currentResponseIndex: updatedAlternatives.length - 1, // 切换到新生成的回答
+        );
+
+        messages[messageIndex] = updatedMessage;
+        setState(() {});
+
+        debugPrint('已添加新的备选回答，总计: ${updatedMessage.allResponses.length} 个回答');
+      }
+    } catch (e) {
+      debugPrint('添加备选回答时发生错误: $e');
+    }
   }
 
   Widget _buildInputBar() {
