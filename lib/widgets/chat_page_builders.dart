@@ -3,6 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'dart:ui';
 import 'dart:io';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/widgets/character_intro.dart';
@@ -17,7 +22,117 @@ class ChatPageBuilders {
   // 图片组件缓存
   static final Map<String, Widget> _imageCache = {};
 
-  /// 构建图片组件，支持网络图片和本地图片
+  // 图片文件缓存映射（URL -> 本地文件路径）
+  static final Map<String, String> _imageFileCache = {};
+
+  // 下载中的图片URL集合，避免重复下载
+  static final Set<String> _downloadingImages = {};
+
+  /// 获取图片缓存目录
+  static Future<Directory> _getImageCacheDir() async {
+    final appDir = await getApplicationDocumentsDirectory();
+    final cacheDir = Directory(path.join(appDir.path, 'image_cache'));
+    if (!await cacheDir.exists()) {
+      await cacheDir.create(recursive: true);
+    }
+    return cacheDir;
+  }
+
+  /// 生成缓存文件名（基于URL的MD5）
+  static String _generateCacheFileName(String url) {
+    final bytes = utf8.encode(url);
+    final digest = md5.convert(bytes);
+    final extension = path.extension(url).isEmpty
+        ? '.webp'
+        : path.extension(url);
+    return '${digest.toString()}$extension';
+  }
+
+  /// 获取缓存的图片文件路径
+  static Future<String?> _getCachedImagePath(String url) async {
+    try {
+      final cacheDir = await _getImageCacheDir();
+      final fileName = _generateCacheFileName(url);
+      final filePath = path.join(cacheDir.path, fileName);
+      final file = File(filePath);
+
+      if (await file.exists()) {
+        debugPrint('ChatPageBuilders: 找到缓存图片: $filePath');
+        return filePath;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('ChatPageBuilders: 获取缓存图片路径失败: $e');
+      return null;
+    }
+  }
+
+  /// 下载图片到缓存
+  static Future<String?> _downloadAndCacheImage(String url) async {
+    // 防止重复下载
+    if (_downloadingImages.contains(url)) {
+      debugPrint('ChatPageBuilders: 图片正在下载中，跳过: $url');
+      return null;
+    }
+
+    _downloadingImages.add(url);
+
+    try {
+      debugPrint('ChatPageBuilders: 开始下载图片: $url');
+
+      final response = await http
+          .get(Uri.parse(url), headers: {'User-Agent': 'Flutter App'})
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final cacheDir = await _getImageCacheDir();
+        final fileName = _generateCacheFileName(url);
+        final filePath = path.join(cacheDir.path, fileName);
+        final file = File(filePath);
+
+        await file.writeAsBytes(response.bodyBytes);
+
+        // 更新缓存映射
+        _imageFileCache[url] = filePath;
+
+        debugPrint('ChatPageBuilders: 图片下载成功: $filePath');
+        return filePath;
+      } else {
+        debugPrint('ChatPageBuilders: 图片下载失败，状态码: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('ChatPageBuilders: 图片下载异常: $e');
+      return null;
+    } finally {
+      _downloadingImages.remove(url);
+    }
+  }
+
+  /// 清理过期的缓存文件
+  static Future<void> cleanupExpiredCache({int maxDays = 31}) async {
+    try {
+      final cacheDir = await _getImageCacheDir();
+      final files = await cacheDir.list().toList();
+      final now = DateTime.now();
+
+      for (final entity in files) {
+        if (entity is File) {
+          final stat = await entity.stat();
+          final age = now.difference(stat.modified).inDays;
+
+          if (age > maxDays) {
+            await entity.delete();
+            debugPrint('ChatPageBuilders: 删除过期缓存文件: ${entity.path}');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('ChatPageBuilders: 清理缓存失败: $e');
+    }
+  }
+
+  /// 构建图片组件，支持网络图片和本地图片，带离线缓存
   static Widget _buildImageWidget(
     String imagePath, {
     BoxFit fit = BoxFit.cover,
@@ -26,7 +141,7 @@ class ChatPageBuilders {
     // 创建缓存key
     final cacheKey = '${imagePath}_${fit.toString()}';
 
-    // 如果缓存中存在，直接返回
+    // 如果组件缓存中存在，直接返回
     if (_imageCache.containsKey(cacheKey)) {
       return _imageCache[cacheKey]!;
     }
@@ -35,56 +150,247 @@ class ChatPageBuilders {
 
     // 判断是否为本地文件路径
     if (imagePath.startsWith('/') || imagePath.startsWith('file://')) {
-      final file = File(imagePath.replaceFirst('file://', ''));
-      debugPrint(
-        'ChatPageBuilders: 本地文件路径 - ${file.path}, 存在: ${file.existsSync()}',
-      );
+      return _buildLocalImageWidget(imagePath, fit, key, cacheKey);
+    }
 
-      if (file.existsSync()) {
+    // 判断是否为网络图片
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return _buildNetworkImageWithCache(imagePath, fit, key, cacheKey);
+    }
+
+    // 其他情况使用默认图片
+    debugPrint('ChatPageBuilders: 未知图片路径格式，使用默认图片: $imagePath');
+    return _buildDefaultImageWidget(fit, key, cacheKey);
+  }
+
+  /// 构建本地图片组件
+  static Widget _buildLocalImageWidget(
+    String imagePath,
+    BoxFit fit,
+    Key? key,
+    String cacheKey,
+  ) {
+    final file = File(imagePath.replaceFirst('file://', ''));
+    debugPrint(
+      'ChatPageBuilders: 本地文件路径 - ${file.path}, 存在: ${file.existsSync()}',
+    );
+
+    if (file.existsSync()) {
+      final widget = Image.file(
+        file,
+        fit: fit,
+        key: key ?? ValueKey(imagePath),
+        errorBuilder: (context, error, stackTrace) {
+          debugPrint('ChatPageBuilders: 本地图片加载失败: $error');
+          return _buildDefaultImageWidget(fit, key, cacheKey);
+        },
+      );
+      _imageCache[cacheKey] = widget;
+      return widget;
+    } else {
+      debugPrint('ChatPageBuilders: 本地文件不存在，使用默认图片');
+      return _buildDefaultImageWidget(fit, key, cacheKey);
+    }
+  }
+
+  /// 构建带缓存的网络图片组件
+  static Widget _buildNetworkImageWithCache(
+    String imageUrl,
+    BoxFit fit,
+    Key? key,
+    String cacheKey,
+  ) {
+    // 检查是否已有缓存文件路径
+    if (_imageFileCache.containsKey(imageUrl)) {
+      final cachedPath = _imageFileCache[imageUrl]!;
+      final cachedFile = File(cachedPath);
+      if (cachedFile.existsSync()) {
+        debugPrint('ChatPageBuilders: 使用内存中的缓存路径: $cachedPath');
         final widget = Image.file(
-          file,
+          cachedFile,
           fit: fit,
-          key: key ?? ValueKey(imagePath), // 使用传入的key或默认key
+          key: key ?? ValueKey(imageUrl),
           errorBuilder: (context, error, stackTrace) {
-            debugPrint('ChatPageBuilders: 本地图片加载失败: $error');
-            return Image.asset(
-              'packages/flutter_roleplay/assets/images/common_bg.webp',
-              fit: fit,
-              key: key,
-            );
+            debugPrint('ChatPageBuilders: 缓存图片加载失败: $error');
+            return _buildDefaultImageWidget(fit, key, cacheKey);
           },
         );
         _imageCache[cacheKey] = widget;
         return widget;
       } else {
-        debugPrint('ChatPageBuilders: 本地文件不存在，使用默认图片');
-        final widget = Image.asset(
-          'packages/flutter_roleplay/assets/images/common_bg.webp',
-          fit: fit,
-          key: key,
-        );
-        _imageCache[cacheKey] = widget;
-        return widget;
+        // 缓存文件不存在，清除映射
+        _imageFileCache.remove(imageUrl);
       }
     }
 
-    // 网络图片或默认处理
-    debugPrint('ChatPageBuilders: 加载网络图片: $imagePath');
-    final widget = Image.network(
-      imagePath,
-      fit: fit,
-      key: key ?? ValueKey(imagePath), // 使用传入的key或默认key
-      errorBuilder: (context, error, stackTrace) {
-        debugPrint('ChatPageBuilders: 网络图片加载失败: $error');
-        return Image.asset(
-          'packages/flutter_roleplay/assets/images/common_bg.webp',
+    // 先尝试加载网络图片，同时后台下载到缓存
+    _preloadAndCacheImage(imageUrl);
+
+    debugPrint('ChatPageBuilders: 加载网络图片: $imageUrl');
+    final widget = FutureBuilder<String?>(
+      future: _getCachedImagePath(imageUrl),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData &&
+            snapshot.data != null) {
+          // 有缓存文件，使用缓存
+          final cachedFile = File(snapshot.data!);
+          if (cachedFile.existsSync()) {
+            debugPrint('ChatPageBuilders: 使用缓存文件: ${snapshot.data}');
+            return Image.file(
+              cachedFile,
+              fit: fit,
+              key: key ?? ValueKey(imageUrl),
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint('ChatPageBuilders: 缓存图片加载失败: $error');
+                return _buildDefaultImageWidget(fit, key, cacheKey);
+              },
+            );
+          }
+        }
+
+        // 没有缓存或加载缓存失败，使用网络图片
+        return Image.network(
+          imageUrl,
           fit: fit,
-          key: key,
+          key: key ?? ValueKey(imageUrl),
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              color: Colors.grey.shade300,
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                      : null,
+                  strokeWidth: 2.0,
+                  color: Colors.blue.shade600,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('ChatPageBuilders: 网络图片加载失败: $error');
+            return _buildDefaultImageWidget(fit, key, cacheKey);
+          },
         );
       },
     );
+
     _imageCache[cacheKey] = widget;
     return widget;
+  }
+
+  /// 构建默认图片组件
+  static Widget _buildDefaultImageWidget(
+    BoxFit fit,
+    Key? key,
+    String cacheKey,
+  ) {
+    final widget = Image.asset(
+      'packages/flutter_roleplay/assets/images/common_bg.webp',
+      fit: fit,
+      key: key,
+    );
+    _imageCache[cacheKey] = widget;
+    return widget;
+  }
+
+  /// 预加载并缓存图片（后台进行）
+  static void _preloadAndCacheImage(String url) {
+    Future.microtask(() async {
+      try {
+        // 检查是否已经缓存
+        final cachedPath = await _getCachedImagePath(url);
+        if (cachedPath != null) {
+          _imageFileCache[url] = cachedPath;
+          return;
+        }
+
+        // 下载并缓存
+        final downloadedPath = await _downloadAndCacheImage(url);
+        if (downloadedPath != null) {
+          _imageFileCache[url] = downloadedPath;
+          debugPrint('ChatPageBuilders: 后台缓存完成: $downloadedPath');
+        }
+      } catch (e) {
+        debugPrint('ChatPageBuilders: 后台缓存失败: $e');
+      }
+    });
+  }
+
+  /// 初始化图片缓存系统
+  static Future<void> initializeImageCache() async {
+    try {
+      debugPrint('ChatPageBuilders: 初始化图片缓存系统...');
+
+      // 确保缓存目录存在
+      await _getImageCacheDir();
+
+      // 清理过期缓存（默认7天）
+      await cleanupExpiredCache();
+
+      debugPrint('ChatPageBuilders: 图片缓存系统初始化完成');
+    } catch (e) {
+      debugPrint('ChatPageBuilders: 初始化图片缓存系统失败: $e');
+    }
+  }
+
+  /// 清空所有缓存
+  static Future<void> clearAllCache() async {
+    try {
+      debugPrint('ChatPageBuilders: 开始清空所有缓存...');
+
+      // 清空内存缓存
+      _imageCache.clear();
+      _imageFileCache.clear();
+
+      // 清空文件缓存
+      final cacheDir = await _getImageCacheDir();
+      if (await cacheDir.exists()) {
+        await cacheDir.delete(recursive: true);
+        debugPrint('ChatPageBuilders: 缓存目录已删除');
+      }
+
+      debugPrint('ChatPageBuilders: 所有缓存已清空');
+    } catch (e) {
+      debugPrint('ChatPageBuilders: 清空缓存失败: $e');
+    }
+  }
+
+  /// 获取缓存统计信息
+  static Future<Map<String, dynamic>> getCacheStats() async {
+    try {
+      final cacheDir = await _getImageCacheDir();
+      final files = await cacheDir.list().toList();
+
+      int totalFiles = 0;
+      int totalSize = 0;
+
+      for (final entity in files) {
+        if (entity is File) {
+          totalFiles++;
+          final stat = await entity.stat();
+          totalSize += stat.size;
+        }
+      }
+
+      return {
+        'totalFiles': totalFiles,
+        'totalSizeMB': (totalSize / (1024 * 1024)).toStringAsFixed(2),
+        'cacheDirectory': cacheDir.path,
+        'memoryCacheSize': _imageFileCache.length,
+      };
+    } catch (e) {
+      debugPrint('ChatPageBuilders: 获取缓存统计失败: $e');
+      return {
+        'totalFiles': 0,
+        'totalSizeMB': '0.00',
+        'cacheDirectory': '',
+        'memoryCacheSize': 0,
+      };
+    }
   }
 
   /// 构建单个聊天页面
