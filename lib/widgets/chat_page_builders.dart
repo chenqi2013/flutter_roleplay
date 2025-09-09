@@ -143,10 +143,11 @@ class ChatPageBuilders {
 
     // 如果组件缓存中存在，直接返回
     if (_imageCache.containsKey(cacheKey)) {
+      debugPrint('ChatPageBuilders: 使用缓存组件: $imagePath');
       return _imageCache[cacheKey]!;
     }
 
-    debugPrint('ChatPageBuilders: 尝试加载图片: $imagePath');
+    debugPrint('ChatPageBuilders: 创建新的图片组件: $imagePath');
 
     // 判断是否为本地文件路径
     if (imagePath.startsWith('/') || imagePath.startsWith('file://')) {
@@ -357,6 +358,12 @@ class ChatPageBuilders {
     } catch (e) {
       debugPrint('ChatPageBuilders: 清空缓存失败: $e');
     }
+  }
+
+  /// 清空内存中的组件缓存（强制重新构建图片组件）
+  static void clearMemoryCache() {
+    debugPrint('ChatPageBuilders: 清空内存组件缓存，缓存数量: ${_imageCache.length}');
+    _imageCache.clear();
   }
 
   /// 获取缓存统计信息

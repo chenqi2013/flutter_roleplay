@@ -7,6 +7,7 @@ import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/services/role_api_service.dart';
+import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
 import 'package:get/get.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -141,18 +142,25 @@ class CommonUtil {
       debugPrint('  - 更新前 roleName.value: ${roleName.value}');
       debugPrint('  - 更新前 roleImage.value: ${roleImage.value}');
 
+      // 保存更新前的图片路径用于比较
+      final oldImagePath = roleImage.value;
+      final newImagePath = role['image'] as String;
+
       // 原子性更新所有角色状态
       roleName.value = newRoleName;
       roleDescription.value = role['description'] as String;
-      roleImage.value = role['image'] as String;
+      roleImage.value = newImagePath;
       roleLanguage.value = (role['language'] as String?) ?? 'zh-CN';
 
       debugPrint('CommonUtil.switchToRole: 更新后详细信息');
       debugPrint('  - 角色名称: $newRoleName');
       debugPrint('  - 角色描述: ${role['description']}');
-      debugPrint('  - 传入的角色图片: ${role['image']}');
+      debugPrint('  - 传入的角色图片: $newImagePath');
       debugPrint('  - 更新后 roleImage.value: ${roleImage.value}');
-      debugPrint('  - 图片路径是否相等: ${role['image'] == roleImage.value}');
+      debugPrint('  - 图片是否发生变化: ${oldImagePath != newImagePath}');
+      if (oldImagePath != newImagePath) {
+        debugPrint('  - 图片路径从 "$oldImagePath" 变更为 "$newImagePath"');
+      }
 
       // 验证图片文件
       final imageUrl = role['image'] as String;
@@ -195,6 +203,9 @@ class CommonUtil {
       // 标记需要在下次发送消息时清空聊天状态
       needsClearStatesOnNextSend.value = true;
       debugPrint('标记需要在下次发送消息时清空聊天状态');
+
+      // 清空图片组件缓存，确保背景图片能正确更新
+      ChatPageBuilders.clearMemoryCache();
 
       // // 清空当前状态（只清空内存，不删除数据库记录）
       // controller?.clearStates();
