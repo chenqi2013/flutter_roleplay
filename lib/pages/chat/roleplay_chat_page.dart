@@ -36,6 +36,9 @@ class _RolePlayChatState extends State<RolePlayChat>
   bool _isControllerInitialized = false;
   bool _isInitializing = false;
 
+  // 防止重复角色切换的标志
+  bool _isPageSwitching = false;
+
   List<ChatMessage> get _messages {
     final messages = _stateManager.getMessages(roleName.value);
     return messages;
@@ -80,7 +83,8 @@ class _RolePlayChatState extends State<RolePlayChat>
         // 加载新角色的聊天历史
         _loadChatHistory();
 
-        if (usedRoles.isNotEmpty) {
+        // 只有当不是由PageView滑动触发的切换时，才同步PageView位置
+        if (usedRoles.isNotEmpty && !_isPageSwitching) {
           final index = usedRoles.indexWhere(
             (role) => role['name'] == newRoleName,
           );
@@ -392,6 +396,12 @@ class _RolePlayChatState extends State<RolePlayChat>
       return;
     }
 
+    // 防止重复触发
+    if (_isPageSwitching) {
+      debugPrint('页面切换已在进行中，跳过页面变化事件: $index');
+      return;
+    }
+
     final role = usedRoles[index];
     final targetRoleName = role['name'] as String;
 
@@ -402,6 +412,9 @@ class _RolePlayChatState extends State<RolePlayChat>
     }
 
     debugPrint('PageView切换角色: ${roleName.value} -> $targetRoleName');
+
+    // 设置切换标志
+    _isPageSwitching = true;
 
     // 如果AI正在回复，需要确认
     if (_controller != null && _controller!.isGenerating.value) {
@@ -417,9 +430,14 @@ class _RolePlayChatState extends State<RolePlayChat>
         // 延迟切换角色，避免界面更新冲突
         WidgetsBinding.instance.addPostFrameCallback((_) {
           CommonUtil.switchToRole(role);
+          // 重置切换标志
+          Future.delayed(const Duration(milliseconds: 500), () {
+            _isPageSwitching = false;
+          });
         });
       } else {
         // 用户取消，回到原来的页面
+        _isPageSwitching = false; // 重置标志
         final currentRoleIndex = usedRoles.indexWhere(
           (r) => r['name'] == roleName.value,
         );
@@ -435,6 +453,10 @@ class _RolePlayChatState extends State<RolePlayChat>
       // AI没有在回复，直接切换
       WidgetsBinding.instance.addPostFrameCallback((_) {
         CommonUtil.switchToRole(role);
+        // 重置切换标志
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _isPageSwitching = false;
+        });
       });
     }
   }

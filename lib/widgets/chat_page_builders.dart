@@ -366,6 +366,24 @@ class ChatPageBuilders {
     _imageCache.clear();
   }
 
+  /// 清空特定图片的组件缓存
+  static void clearImageCache(String imagePath) {
+    final keysToRemove = <String>[];
+    for (final key in _imageCache.keys) {
+      if (key.startsWith(imagePath)) {
+        keysToRemove.add(key);
+      }
+    }
+    for (final key in keysToRemove) {
+      _imageCache.remove(key);
+    }
+    if (keysToRemove.isNotEmpty) {
+      debugPrint(
+        'ChatPageBuilders: 清空图片缓存: $imagePath，清除${keysToRemove.length}个组件',
+      );
+    }
+  }
+
   /// 获取缓存统计信息
   static Future<Map<String, dynamic>> getCacheStats() async {
     try {
