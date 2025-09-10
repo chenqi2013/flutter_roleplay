@@ -90,6 +90,13 @@ class RWKVChatService extends GetxController {
             if (_getTokensTimer != null) {
               _getTokensTimer!.cancel();
             }
+            // 关闭流控制器，触发onDone回调
+            if (localChatController != null && !localChatController!.isClosed) {
+              localChatController!.close();
+              debugPrint(
+                'localChatController closed, onDone should be triggered',
+              );
+            }
           }
         }
       }

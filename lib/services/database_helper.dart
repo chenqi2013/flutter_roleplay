@@ -24,7 +24,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'flutter_roleplay.db');
     return await openDatabase(
       path,
-      version: 4, // 升级版本以添加 language 字段
+      version: 6, // 升级版本以添加消息分叉支持
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -38,7 +38,11 @@ class DatabaseHelper {
         role_name TEXT NOT NULL,
         content TEXT NOT NULL,
         is_user INTEGER NOT NULL,
-        timestamp INTEGER NOT NULL
+        timestamp INTEGER NOT NULL,
+        parent_id TEXT,
+        branch_ids TEXT,
+        current_branch_index INTEGER DEFAULT 0,
+        is_branch INTEGER DEFAULT 0
       )
     ''');
 
@@ -163,6 +167,40 @@ class DatabaseHelper {
 
       debugPrint('已为 roles 表添加 language 字段');
     }
+
+    if (oldVersion < 5) {
+      // 从版本4升级到版本5: 为 chat_messages 表添加多回答支持字段
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN alternative_responses TEXT
+      ''');
+
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN current_response_index INTEGER DEFAULT 0
+      ''');
+
+      debugPrint('已为 chat_messages 表添加多回答支持字段');
+    }
+
+    if (oldVersion < 6) {
+      // 从版本5升级到版本6: 添加消息分叉支持
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN parent_id TEXT
+      ''');
+
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN branch_ids TEXT
+      ''');
+
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN current_branch_index INTEGER DEFAULT 0
+      ''');
+
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN is_branch INTEGER DEFAULT 0
+      ''');
+
+      debugPrint('已为 chat_messages 表添加消息分叉支持字段');
+    }
   }
 
   // 插入聊天消息
@@ -170,6 +208,18 @@ class DatabaseHelper {
     final db = await database;
     debugPrint('insertMessage: ${message.toMap()}');
     return await db.insert('chat_messages', message.toMap());
+  }
+
+  // 更新聊天消息
+  Future<int> updateMessage(ChatMessage message) async {
+    final db = await database;
+    debugPrint('updateMessage: ${message.toMap()}');
+    return await db.update(
+      'chat_messages',
+      message.toMap(),
+      where: 'id = ?',
+      whereArgs: [message.id],
+    );
   }
 
   // 批量插入消息

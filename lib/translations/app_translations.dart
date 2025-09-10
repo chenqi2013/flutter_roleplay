@@ -59,8 +59,10 @@ class AppTranslations extends Translations {
       // AI消息操作按钮
       'copy_message': '复制',
       'regenerate': '重新生成',
+      'create_branch': '创建分支',
       'copied_to_clipboard': '已复制到剪贴板',
       'regenerating': '重新生成中...',
+      'creating_branch': '创建分支中...',
 
       // RolePlayChat 相关翻译
       'chat_history_cleared': '聊天记录已清空',
@@ -208,8 +210,10 @@ class AppTranslations extends Translations {
       // AI message action buttons
       'copy_message': 'Copy',
       'regenerate': 'Regenerate',
+      'create_branch': 'Create Branch',
       'copied_to_clipboard': 'Copied to clipboard',
       'regenerating': 'Regenerating...',
+      'creating_branch': 'Creating branch...',
 
       // RolePlayChat related translations
       'chat_history_cleared': 'Chat history cleared',

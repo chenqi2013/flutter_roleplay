@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class ChatMessage {
   final int? id;
   final String roleName;
@@ -5,9 +7,11 @@ class ChatMessage {
   final bool isUser;
   final DateTime timestamp;
 
-  // 多回答支持（仅对AI消息有效）
-  final List<String> alternativeResponses;
-  final int currentResponseIndex;
+  // 消息分叉支持
+  final String? parentId; // 父消息ID（用于构建对话树）
+  final List<String> branchIds; // 分支消息ID列表
+  final int currentBranchIndex; // 当前选中的分支索引
+  final bool isBranch; // 是否为分支消息
 
   ChatMessage({
     this.id,
@@ -15,18 +19,38 @@ class ChatMessage {
     required this.content,
     required this.isUser,
     required this.timestamp,
-    this.alternativeResponses = const [],
-    this.currentResponseIndex = 0,
+    this.parentId,
+    this.branchIds = const [],
+    this.currentBranchIndex = 0,
+    this.isBranch = false,
   });
 
   // 从数据库行创建对象
   factory ChatMessage.fromMap(Map<String, dynamic> map) {
+    // 解析分支ID列表
+    List<String> branchIds = [];
+    if (map['branch_ids'] != null && map['branch_ids'] is String) {
+      try {
+        final decoded = jsonDecode(map['branch_ids'] as String);
+        if (decoded is List) {
+          branchIds = List<String>.from(decoded);
+        }
+      } catch (e) {
+        // 如果解析失败，使用空列表
+        branchIds = [];
+      }
+    }
+
     return ChatMessage(
       id: map['id'] as int?,
       roleName: map['role_name'] as String,
       content: map['content'] as String,
       isUser: (map['is_user'] as int) == 1,
       timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp'] as int),
+      parentId: map['parent_id'] as String?,
+      branchIds: branchIds,
+      currentBranchIndex: map['current_branch_index'] as int? ?? 0,
+      isBranch: (map['is_branch'] as int? ?? 0) == 1,
     );
   }
 
@@ -38,6 +62,10 @@ class ChatMessage {
       'content': content,
       'is_user': isUser ? 1 : 0,
       'timestamp': timestamp.millisecondsSinceEpoch,
+      'parent_id': parentId,
+      'branch_ids': branchIds.isNotEmpty ? jsonEncode(branchIds) : null,
+      'current_branch_index': currentBranchIndex,
+      'is_branch': isBranch ? 1 : 0,
     };
   }
 
@@ -48,8 +76,10 @@ class ChatMessage {
     String? content,
     bool? isUser,
     DateTime? timestamp,
-    List<String>? alternativeResponses,
-    int? currentResponseIndex,
+    String? parentId,
+    List<String>? branchIds,
+    int? currentBranchIndex,
+    bool? isBranch,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -57,8 +87,10 @@ class ChatMessage {
       content: content ?? this.content,
       isUser: isUser ?? this.isUser,
       timestamp: timestamp ?? this.timestamp,
-      alternativeResponses: alternativeResponses ?? this.alternativeResponses,
-      currentResponseIndex: currentResponseIndex ?? this.currentResponseIndex,
+      parentId: parentId ?? this.parentId,
+      branchIds: branchIds ?? this.branchIds,
+      currentBranchIndex: currentBranchIndex ?? this.currentBranchIndex,
+      isBranch: isBranch ?? this.isBranch,
     );
   }
 
@@ -67,33 +99,19 @@ class ChatMessage {
     return 'ChatMessage(id: $id, roleName: $roleName, content: $content, isUser: $isUser, timestamp: $timestamp)';
   }
 
-  /// 获取当前显示的内容
-  String get currentContent {
-    if (isUser || alternativeResponses.isEmpty) {
-      return content;
-    }
-
-    // 对于AI消息，如果有备选回答，优先显示当前选中的回答
-    if (currentResponseIndex < alternativeResponses.length) {
-      return alternativeResponses[currentResponseIndex];
-    }
-
-    return content; // 兜底显示原始内容
+  /// 是否有分支
+  bool get hasBranches {
+    return !isUser && branchIds.isNotEmpty;
   }
 
-  /// 获取所有回答（包括原始回答）
-  List<String> get allResponses {
-    if (isUser) return [content];
-
-    final responses = <String>[];
-    if (content.isNotEmpty) responses.add(content);
-    responses.addAll(alternativeResponses);
-    return responses;
+  /// 获取分支数量（包括原始消息）
+  int get branchCount {
+    return branchIds.length + 1; // +1 包括原始消息本身
   }
 
-  /// 是否有多个回答
-  bool get hasMultipleResponses {
-    return !isUser && allResponses.length > 1;
+  /// 生成消息的唯一标识符
+  String get messageId {
+    return '$roleName-${timestamp.millisecondsSinceEpoch}';
   }
 
   @override

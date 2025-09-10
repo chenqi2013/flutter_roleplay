@@ -143,7 +143,7 @@ class ChatPageBuilders {
 
     // 如果组件缓存中存在，直接返回
     if (_imageCache.containsKey(cacheKey)) {
-      debugPrint('ChatPageBuilders: 使用缓存组件: $imagePath');
+      // debugPrint('ChatPageBuilders: 使用缓存组件: $imagePath');
       return _imageCache[cacheKey]!;
     }
 
@@ -697,8 +697,8 @@ class ChatPageBuilders {
     required List<ChatMessage> messages,
     required String roleDescription,
     VoidCallback? onCopy,
-    Function(ChatMessage)? onRegenerate,
-    Function(ChatMessage, int)? onSwitchResponse,
+    Function(ChatMessage)? onCreateBranch,
+    Function(ChatMessage, int)? onSwitchBranch,
   }) {
     // 如果没有消息，只显示角色介绍
     if (messages.isEmpty) {
@@ -719,13 +719,16 @@ class ChatPageBuilders {
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: ChatBubble(
-          key: ValueKey('${msg.isUser}_${msg.content.hashCode}'),
+          key: ValueKey(
+            '${msg.isUser}_${msg.timestamp.millisecondsSinceEpoch}_${msg.branchIds.length}',
+          ),
           message: msg,
+          roleName: msg.roleName,
           onCopy: onCopy,
-          onRegenerate: msg.isUser ? null : () => onRegenerate?.call(msg),
-          onSwitchResponse: msg.isUser
+          onCreateBranch: msg.isUser ? null : () => onCreateBranch?.call(msg),
+          onSwitchBranch: msg.isUser
               ? null
-              : (index) => onSwitchResponse?.call(msg, index),
+              : (index) => onSwitchBranch?.call(msg, index),
         ),
       );
     } else if (index == messages.length) {

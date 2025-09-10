@@ -8,6 +8,8 @@ import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
+import 'package:flutter_roleplay/services/message_branch_manager.dart';
+import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/dialog/chat_dialogs.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
@@ -579,9 +581,9 @@ class _RolePlayChatState extends State<RolePlayChat>
               messages: messages,
               roleDescription: roleDescription.value,
               onCopy: () => _handleCopy(),
-              onRegenerate: (message) => _handleRegenerate(message),
-              onSwitchResponse: (message, responseIndex) =>
-                  _handleSwitchResponse(message, responseIndex),
+              onCreateBranch: (message) => _handleRegenerate(message),
+              onSwitchBranch: (message, branchIndex) =>
+                  _handleSwitchBranch(message, branchIndex),
             );
           },
         );
@@ -597,6 +599,10 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   /// 处理重新生成消息
   void _handleRegenerate(ChatMessage message) async {
+    debugPrint('🌿🌿🌿 分叉按钮被点击了！🌿🌿🌿');
+    debugPrint('要重新生成的消息: ${message.content.substring(0, 50)}...');
+    debugPrint('消息ID: ${message.id}');
+
     if (_controller == null || _controller!.isGenerating.value) {
       debugPrint('AI正在生成中，无法重新生成');
       return;
@@ -615,18 +621,21 @@ class _RolePlayChatState extends State<RolePlayChat>
 
       final userMessage = messages[messageIndex - 1];
       if (userMessage.isUser) {
-        // 开始重新生成
-        final aiMessage = ChatMessage(
-          roleName: roleName.value,
-          content: '',
-          isUser: false,
-          timestamp: DateTime.now(),
+        // 在原消息位置显示loading状态，但保留原始数据用于后续处理
+        debugPrint('=== 开始重新生成流程 ===');
+        debugPrint(
+          '原始消息在开始时: ID=${message.id}, branchIds=${message.branchIds}',
         );
 
-        // 临时添加空的AI消息用于显示loading
-        _stateManager.getMessages(roleName.value).add(aiMessage);
+        final loadingMessage = message.copyWith(content: '');
+        debugPrint(
+          'loadingMessage: ID=${loadingMessage.id}, branchIds=${loadingMessage.branchIds}',
+        );
+
+        messages[messageIndex] = loadingMessage;
         setState(() {});
-        scrollToBottom();
+
+        String newContent = '';
 
         // 执行重新生成
         _streamSub?.cancel();
@@ -634,42 +643,158 @@ class _RolePlayChatState extends State<RolePlayChat>
             .streamLocalChatCompletions(content: userMessage.content)
             .listen(
               (String chunk) {
-                if (_messages.isEmpty || !mounted) return;
-                if (!_messages.last.isUser) {
-                  final updatedMessage = _messages.last.copyWith(
-                    content: chunk,
-                  );
-                  _stateManager.updateLastMessageInMemory(
-                    roleName.value,
-                    updatedMessage,
-                  );
+                if (!mounted) return;
 
-                  setState(() {});
+                newContent = chunk;
 
-                  if (!isUserScrolling) {
-                    scrollToBottom();
-                  }
+                // 实时更新显示的内容，但不改变原始消息结构
+                final updatedMessage = loadingMessage.copyWith(
+                  content: newContent,
+                );
+                messages[messageIndex] = updatedMessage;
+
+                setState(() {});
+
+                // 每隔一段时间打印一次流式更新状态
+                if (newContent.length % 100 == 0) {
+                  debugPrint(
+                    '流式更新中: 长度=${newContent.length}, ID=${updatedMessage.id}, branchIds=${updatedMessage.branchIds}',
+                  );
+                }
+
+                if (!isUserScrolling) {
+                  scrollToBottom();
                 }
               },
               onError: (Object e) {
                 debugPrint('重新生成失败: $e');
-                // 移除失败的消息
-                if (_messages.isNotEmpty && !_messages.last.isUser) {
-                  _stateManager.getMessages(roleName.value).removeLast();
-                  setState(() {});
-                }
+                // 恢复原消息内容
+                messages[messageIndex] = message;
+                setState(() {});
               },
-              onDone: () {
-                // 生成完成后，将新回答添加到原消息的备选回答中
-                if (_messages.isNotEmpty && !_messages.last.isUser) {
-                  final newResponse = _messages.last.content;
-                  if (newResponse.isNotEmpty) {
-                    _addAlternativeResponse(message, newResponse);
+              onDone: () async {
+                debugPrint('📍📍📍 onDone 回调被执行了！📍📍📍');
+                debugPrint('新内容长度: ${newContent.length}');
+                debugPrint(
+                  '新内容预览: ${newContent.isNotEmpty ? newContent.substring(0, newContent.length > 50 ? 50 : newContent.length) : "空"}',
+                );
+
+                // 生成完成后，使用分支管理器创建分支
+                if (newContent.isNotEmpty) {
+                  debugPrint('重新生成完成，创建分支...');
+
+                  try {
+                    debugPrint('=== 开始创建分支 ===');
+                    debugPrint('原始消息: ${message.content.substring(0, 50)}...');
+                    debugPrint('原始消息ID: ${message.id}');
+                    debugPrint('原始消息branchIds: ${message.branchIds}');
+                    debugPrint('新内容: ${newContent.substring(0, 50)}...');
+                    debugPrint('消息在列表中的索引: $messageIndex');
+
+                    // 检查原始消息是否有ID，如果没有则先保存到数据库
+                    ChatMessage messageWithId = message;
+                    if (message.id == null) {
+                      debugPrint('原始消息没有ID，先保存到数据库...');
+
+                      try {
+                        // 先保存原始消息到数据库
+                        final dbHelper = DatabaseHelper();
+                        debugPrint(
+                          '准备保存原始消息到数据库: ${message.content.substring(0, 50)}...',
+                        );
+                        final messageId = await dbHelper.insertMessage(message);
+                        messageWithId = message.copyWith(id: messageId);
+
+                        // 更新消息列表中的消息，确保有ID
+                        messages[messageIndex] = messageWithId;
+                        setState(() {});
+
+                        debugPrint('原始消息已保存到数据库，ID: $messageId，现在可以创建分支了');
+                      } catch (e) {
+                        debugPrint('保存原始消息到数据库失败: $e');
+
+                        // 创建一个简单的更新后消息，显示新内容但不创建分支
+                        final simpleUpdatedMessage = message.copyWith(
+                          content: newContent,
+                        );
+                        messages[messageIndex] = simpleUpdatedMessage;
+                        setState(() {});
+
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('保存消息失败，无法创建分支: $e'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                        return;
+                      }
+                    }
+
+                    final branchManager = MessageBranchManager();
+
+                    // 创建分支（返回的是更新后的原始消息，包含新的分支信息）
+                    final updatedMessage = await branchManager.createBranch(
+                      originalMessage: messageWithId, // 使用有ID的消息
+                      newContent: newContent,
+                      roleName: roleName.value,
+                    );
+
+                    debugPrint('=== 分支创建完成 ===');
+                    debugPrint('更新后消息ID: ${updatedMessage.id}');
+                    debugPrint('更新后消息branchIds: ${updatedMessage.branchIds}');
+                    debugPrint(
+                      '更新后消息currentBranchIndex: ${updatedMessage.currentBranchIndex}',
+                    );
+                    debugPrint(
+                      '更新后消息branchCount: ${updatedMessage.branchCount}',
+                    );
+                    debugPrint(
+                      '更新后消息hasBranches: ${updatedMessage.hasBranches}',
+                    );
+
+                    // 更新消息列表中的消息
+                    messages[messageIndex] = updatedMessage;
+                    setState(() {});
+
+                    debugPrint('UI已更新，消息列表长度: ${messages.length}');
+                    debugPrint('=== 分支创建流程完成 ===');
+
+                    // 显示成功提示
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '分支创建成功！总计 ${updatedMessage.branchCount} 个回答',
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    debugPrint('创建分支失败: $e');
+                    // 如果创建分支失败，恢复原消息
+                    messages[messageIndex] = message;
+                    setState(() {});
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('创建分支失败: $e'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
                   }
-                  // 移除临时消息
-                  _stateManager.getMessages(roleName.value).removeLast();
+                } else {
+                  debugPrint('重新生成失败，内容为空，恢复原消息');
+                  // 如果生成失败，恢复原消息
+                  messages[messageIndex] = message;
                   setState(() {});
                 }
+
+                debugPrint('📍📍📍 onDone 回调执行完成！📍📍📍');
               },
             );
       }
@@ -678,49 +803,42 @@ class _RolePlayChatState extends State<RolePlayChat>
     }
   }
 
-  /// 处理切换回答
-  void _handleSwitchResponse(ChatMessage message, int responseIndex) {
-    debugPrint('切换到回答索引: $responseIndex');
+  /// 处理切换分支
+  void _handleSwitchBranch(ChatMessage message, int branchIndex) async {
+    debugPrint('切换到分支索引: $branchIndex');
 
     try {
       final messages = _stateManager.getMessages(roleName.value);
       final messageIndex = messages.indexOf(message);
-      if (messageIndex != -1) {
-        final updatedMessage = message.copyWith(
-          currentResponseIndex: responseIndex,
-        );
-        messages[messageIndex] = updatedMessage;
-
-        setState(() {});
+      if (messageIndex == -1) {
+        debugPrint('未找到消息，无法切换分支');
+        return;
       }
+
+      final branchManager = MessageBranchManager();
+
+      // 使用分支管理器切换分支
+      final updatedMessage = await branchManager.switchToBranch(
+        message,
+        branchIndex,
+        roleName.value,
+      );
+
+      // 更新消息列表
+      messages[messageIndex] = updatedMessage;
+      setState(() {});
+
+      debugPrint('切换到分支索引: $branchIndex 成功');
     } catch (e) {
-      debugPrint('切换回答时发生错误: $e');
-    }
-  }
-
-  /// 添加备选回答到消息
-  void _addAlternativeResponse(ChatMessage message, String newResponse) {
-    try {
-      final messages = _stateManager.getMessages(roleName.value);
-      final messageIndex = messages.indexOf(message);
-      if (messageIndex != -1) {
-        final updatedAlternatives = List<String>.from(
-          message.alternativeResponses,
+      debugPrint('切换分支时发生错误: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('切换分支失败: $e'),
+            duration: const Duration(seconds: 2),
+          ),
         );
-        updatedAlternatives.add(newResponse);
-
-        final updatedMessage = message.copyWith(
-          alternativeResponses: updatedAlternatives,
-          currentResponseIndex: updatedAlternatives.length - 1, // 切换到新生成的回答
-        );
-
-        messages[messageIndex] = updatedMessage;
-        setState(() {});
-
-        debugPrint('已添加新的备选回答，总计: ${updatedMessage.allResponses.length} 个回答');
       }
-    } catch (e) {
-      debugPrint('添加备选回答时发生错误: $e');
     }
   }
 

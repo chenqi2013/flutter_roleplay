@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
+import 'package:flutter_roleplay/services/message_branch_manager.dart';
 import 'package:get/get.dart';
 
 /// 文本片段，用于区分普通对话和动作描述
@@ -12,21 +13,105 @@ class TextSegment {
 }
 
 /// 聊天气泡组件
-class ChatBubble extends StatelessWidget {
+class ChatBubble extends StatefulWidget {
   const ChatBubble({
     super.key,
     required this.message,
+    required this.roleName,
     this.onCopy,
     this.onRegenerate,
-    this.onSwitchResponse,
+    this.onCreateBranch,
+    this.onSwitchBranch,
   });
 
   final ChatMessage message;
+  final String roleName;
 
   // 回调函数
   final VoidCallback? onCopy;
   final VoidCallback? onRegenerate;
-  final Function(int index)? onSwitchResponse;
+  final VoidCallback? onCreateBranch;
+  final Function(int branchIndex)? onSwitchBranch;
+
+  @override
+  State<ChatBubble> createState() => _ChatBubbleState();
+}
+
+class _ChatBubbleState extends State<ChatBubble> {
+  String? _branchContent; // 只在有分支且需要显示分支内容时使用
+  bool _isLoadingBranch = false;
+  final MessageBranchManager _branchManager = MessageBranchManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBranchContentIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(ChatBubble oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 只有在分支索引发生变化时才重新加载
+    if (oldWidget.message.currentBranchIndex !=
+            widget.message.currentBranchIndex ||
+        oldWidget.message.branchIds.length != widget.message.branchIds.length) {
+      _loadBranchContentIfNeeded();
+    }
+  }
+
+  /// 获取当前应该显示的内容
+  String get _displayContent {
+    // 如果没有分支或者当前索引是0，直接显示原始内容
+    if (widget.message.branchIds.isEmpty ||
+        widget.message.currentBranchIndex == 0) {
+      return widget.message.content;
+    }
+
+    // 如果有分支内容，显示分支内容，否则显示原始内容
+    return _branchContent ?? widget.message.content;
+  }
+
+  /// 只在需要时加载分支内容
+  Future<void> _loadBranchContentIfNeeded() async {
+    // 如果没有分支或者显示原始内容，不需要加载
+    if (widget.message.branchIds.isEmpty ||
+        widget.message.currentBranchIndex == 0) {
+      if (_branchContent != null) {
+        setState(() {
+          _branchContent = null;
+        });
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoadingBranch = true;
+    });
+
+    try {
+      final content = await _branchManager.getCurrentBranchContent(
+        widget.message,
+        widget.roleName,
+      );
+
+      if (mounted) {
+        setState(() {
+          _branchContent = content;
+          _isLoadingBranch = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('加载分支内容失败: $e');
+      if (mounted) {
+        setState(() {
+          _branchContent = null; // 降级到原始内容
+          _isLoadingBranch = false;
+        });
+      }
+    }
+  }
 
   /// 解析文本，分离括号内容和普通内容
   List<TextSegment> _parseText(String text) {
@@ -89,7 +174,7 @@ class ChatBubble extends StatelessWidget {
             ),
           ),
           child: Text(
-            message.content.trim(),
+            widget.message.content.trim(),
             style: const TextStyle(
               color: Colors.black87,
               fontSize: 15,
@@ -104,7 +189,7 @@ class ChatBubble extends StatelessWidget {
 
   Widget _buildAiBubble(BuildContext context) {
     // 检查是否为空消息（正在生成中）
-    final bool isGenerating = message.content.trim().isEmpty;
+    final bool isGenerating = _displayContent.trim().isEmpty;
 
     if (isGenerating) {
       // 显示loading指示器
@@ -159,7 +244,7 @@ class ChatBubble extends StatelessWidget {
       );
     }
 
-    final segments = _parseText(message.currentContent);
+    final segments = _parseText(_displayContent);
 
     return Align(
       alignment: Alignment.centerLeft,
@@ -221,7 +306,7 @@ class ChatBubble extends StatelessWidget {
               }),
 
               // 操作按钮（仅在消息不为空时显示）
-              if (message.currentContent.trim().isNotEmpty) ...[
+              if (_displayContent.trim().isNotEmpty) ...[
                 const SizedBox(height: 8),
                 _buildActionButtons(context),
               ],
@@ -234,6 +319,17 @@ class ChatBubble extends StatelessWidget {
 
   /// 构建操作按钮栏
   Widget _buildActionButtons(BuildContext context) {
+    // 详细调试信息
+    debugPrint(
+      'ChatBubble._buildActionButtons for message ${widget.message.id}',
+    );
+    debugPrint('  isUser: ${widget.message.isUser}');
+    debugPrint('  branchIds: ${widget.message.branchIds}');
+    debugPrint('  branchIds.length: ${widget.message.branchIds.length}');
+    debugPrint('  hasBranches: ${widget.message.hasBranches}');
+    debugPrint('  branchCount: ${widget.message.branchCount}');
+    debugPrint('  currentBranchIndex: ${widget.message.currentBranchIndex}');
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -246,17 +342,20 @@ class ChatBubble extends StatelessWidget {
 
         const SizedBox(width: 8),
 
-        // 重新生成按钮
+        // 分叉按钮（重新生成）
         _buildActionButton(
-          icon: Icons.refresh,
-          onTap: onRegenerate,
-          tooltip: 'regenerate'.tr,
+          icon: Icons.call_split,
+          onTap: () {
+            debugPrint('🌿 ChatBubble: 分叉按钮被点击，准备调用回调');
+            widget.onCreateBranch?.call();
+          },
+          tooltip: 'create_branch'.tr,
         ),
 
-        // 多回答切换按钮（仅在有多个回答时显示）
-        if (message.hasMultipleResponses) ...[
+        // 分支切换器（仅在有分支时显示）
+        if (widget.message.hasBranches) ...[
           const SizedBox(width: 12),
-          _buildResponseSwitcher(),
+          _buildBranchSwitcher(),
         ],
       ],
     );
@@ -272,15 +371,27 @@ class ChatBubble extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(6),
         child: Tooltip(
           message: tooltip,
           child: Container(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: onTap == null
+                  ? Colors.grey.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 0.5,
+              ),
+            ),
             child: Icon(
               icon,
-              size: 16,
-              color: Colors.white.withValues(alpha: 0.7),
+              size: 18,
+              color: onTap == null
+                  ? Colors.grey.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.9),
             ),
           ),
         ),
@@ -288,54 +399,124 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  /// 构建回答切换器
-  Widget _buildResponseSwitcher() {
-    final allResponses = message.allResponses;
-    if (allResponses.length <= 1) return const SizedBox.shrink();
+  /// 构建小尺寸操作按钮（用于分支切换器）
+  Widget _buildSmallActionButton({
+    required IconData icon,
+    required VoidCallback? onTap,
+    required String tooltip,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: Tooltip(
+          message: tooltip,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: onTap == null
+                  ? Colors.grey.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 0.5,
+              ),
+            ),
+            child: Icon(
+              icon,
+              size: 14,
+              color: onTap == null
+                  ? Colors.grey.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.9),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-    final currentIndex = message.currentResponseIndex;
-    final totalCount = allResponses.length;
+  /// 构建分支切换器
+  Widget _buildBranchSwitcher() {
+    if (!widget.message.hasBranches) return const SizedBox.shrink();
+
+    final currentIndex = widget.message.currentBranchIndex;
+    final totalCount = widget.message.branchCount;
+
+    // 调试信息
+    debugPrint(
+      '分支切换器: currentIndex=$currentIndex, totalCount=$totalCount, branchIds=${widget.message.branchIds}',
+    );
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 上一个回答按钮
-        _buildActionButton(
+        // 上一个分支按钮（小尺寸）
+        _buildSmallActionButton(
           icon: Icons.keyboard_arrow_left,
           onTap: currentIndex > 0
-              ? () => onSwitchResponse?.call(currentIndex - 1)
+              ? () => widget.onSwitchBranch?.call(currentIndex - 1)
               : null,
-          tooltip: 'Previous',
+          tooltip: 'Previous Branch',
         ),
 
-        const SizedBox(width: 4),
+        const SizedBox(width: 2),
 
-        // 当前索引显示
+        // 当前分支索引显示（紧凑版）
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Colors.orange.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            '${currentIndex + 1}/$totalCount',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+            border: Border.all(
+              color: Colors.orange.withValues(alpha: 0.5),
+              width: 0.5,
             ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 如果正在加载分支，显示小的加载指示器
+              if (_isLoadingBranch && currentIndex > 0)
+                SizedBox(
+                  width: 10,
+                  height: 10,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.orange.withValues(alpha: 0.8),
+                    ),
+                  ),
+                )
+              else
+                Icon(
+                  Icons.call_split,
+                  size: 10,
+                  color: Colors.orange.withValues(alpha: 0.8),
+                ),
+              const SizedBox(width: 2),
+              Text(
+                '${currentIndex + 1}/$totalCount',
+                style: TextStyle(
+                  color: Colors.orange.withValues(alpha: 0.9),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
 
-        const SizedBox(width: 4),
+        const SizedBox(width: 2),
 
-        // 下一个回答按钮
-        _buildActionButton(
+        // 下一个分支按钮（小尺寸）
+        _buildSmallActionButton(
           icon: Icons.keyboard_arrow_right,
           onTap: currentIndex < totalCount - 1
-              ? () => onSwitchResponse?.call(currentIndex + 1)
+              ? () => widget.onSwitchBranch?.call(currentIndex + 1)
               : null,
-          tooltip: 'Next',
+          tooltip: 'Next Branch',
         ),
       ],
     );
@@ -343,8 +524,8 @@ class ChatBubble extends StatelessWidget {
 
   /// 处理复制操作
   void _handleCopy(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: message.currentContent));
-    onCopy?.call();
+    Clipboard.setData(ClipboardData(text: _displayContent));
+    widget.onCopy?.call();
 
     // 显示复制成功提示
     ScaffoldMessenger.of(context).showSnackBar(
@@ -358,6 +539,8 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return message.isUser ? _buildUserBubble(context) : _buildAiBubble(context);
+    return widget.message.isUser
+        ? _buildUserBubble(context)
+        : _buildAiBubble(context);
   }
 }
