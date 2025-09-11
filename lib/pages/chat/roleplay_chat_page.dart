@@ -705,11 +705,11 @@ class _RolePlayChatState extends State<RolePlayChat>
   }
 
   /// 处理分支切换
-  void _handleBranchChanged(ChatMessage message, int branchIndex) {
+  void _handleBranchChanged(ChatMessage message, int branchIndex) async {
     if (_controller == null) return;
 
-    // 计算消息层级
-    final messageLevel = _calculateMessageLevel(message);
+    // 使用控制器计算消息层级
+    final messageLevel = await _controller!.calculateMessageLevel(message);
     _controller!.switchBranch(messageLevel, branchIndex);
   }
 
@@ -744,30 +744,5 @@ class _RolePlayChatState extends State<RolePlayChat>
         ),
       );
     }
-  }
-
-  /// 计算消息的层级（用于分支管理）
-  int _calculateMessageLevel(ChatMessage message) {
-    debugPrint('=== Calculating message level ===');
-    debugPrint('Message: ${message.isUser ? "User" : "AI"}');
-    debugPrint(
-      'Content: ${message.content.substring(0, math.min(20, message.content.length))}...',
-    );
-    debugPrint('Parent ID: ${message.parentId}');
-
-    // 简化的层级计算：
-    // Level 0: 根消息（parentId == null）
-    // Level 1: 对根消息的回复（parentId != null，且父消息的parentId == null）
-    // Level 2: 对Level 1消息的回复，以此类推
-
-    if (message.parentId == null) {
-      debugPrint('Root message, level = 0');
-      return 0;
-    }
-
-    // 对于有parentId的消息，它的层级就是1（假设只有两层：用户消息和AI回复）
-    // 在当前的消息结构中，用户消息在Level 0，AI消息在Level 1
-    debugPrint('Non-root message, level = 1');
-    return 1;
   }
 }

@@ -708,6 +708,65 @@ class RolePlayChatController extends GetxController {
     }
   }
 
+  /// 计算消息在树中的层级（用于分支切换）
+  Future<int> calculateMessageLevel(ChatMessage message) async {
+    try {
+      debugPrint('=== Calculating message level in controller ===');
+      debugPrint('Message: ${message.isUser ? "User" : "AI"}');
+      debugPrint('Message ID: ${message.id}');
+      debugPrint('Parent ID: ${message.parentId}');
+
+      if (message.parentId == null) {
+        debugPrint('Root message, level = 0');
+        return 0;
+      }
+
+      // 从数据库获取完整的消息树
+      final allMessages = await _branchManager.getMessageTree(
+        roleName.value,
+        conversationId: currentConversationId.value,
+      );
+
+      // 递归计算层级
+      int level = _calculateDepthRecursive(message, allMessages);
+      debugPrint('Calculated level: $level');
+      return level;
+    } catch (e) {
+      debugPrint('Error calculating message level: $e');
+      return 0;
+    }
+  }
+
+  /// 递归计算消息深度的辅助方法
+  int _calculateDepthRecursive(
+    ChatMessage message,
+    List<ChatMessage> allMessages,
+  ) {
+    if (message.parentId == null) {
+      return 0;
+    }
+
+    // 查找父消息
+    final parentMessage = allMessages.firstWhere(
+      (msg) => msg.id == message.parentId,
+      orElse: () => ChatMessage(
+        roleName: '',
+        content: '',
+        isUser: false,
+        timestamp: DateTime.now(),
+      ),
+    );
+
+    if (parentMessage.roleName.isEmpty) {
+      debugPrint(
+        'Warning: Parent message not found for ID ${message.parentId}',
+      );
+      return 0;
+    }
+
+    return _calculateDepthRecursive(parentMessage, allMessages) + 1;
+  }
+
   @override
   void onClose() {
     _streamSub?.cancel();
