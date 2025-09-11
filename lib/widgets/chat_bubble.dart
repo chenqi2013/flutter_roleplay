@@ -18,6 +18,7 @@ class ChatBubble extends StatefulWidget {
     super.key,
     required this.message,
     required this.roleName,
+    this.userMessage, // 用于获取分支信息
     this.onCopy,
     this.onRegenerate,
     this.onCreateBranch,
@@ -26,6 +27,7 @@ class ChatBubble extends StatefulWidget {
 
   final ChatMessage message;
   final String roleName;
+  final ChatMessage? userMessage; // 对应的用户消息（用于获取分支信息）
 
   // 回调函数
   final VoidCallback? onCopy;
@@ -61,9 +63,16 @@ class _ChatBubbleState extends State<ChatBubble> {
 
   /// 获取当前应该显示的内容
   String get _displayContent {
-    // 如果没有分支或者当前索引是0，直接显示原始内容
-    if (widget.message.branchIds.isEmpty ||
-        widget.message.currentBranchIndex == 0) {
+    // 对于用户消息，直接显示原始内容
+    if (widget.message.isUser) {
+      return widget.message.content;
+    }
+
+    // 对于AI消息，检查对应的用户消息是否有分支
+    final userMsg = widget.userMessage;
+    if (userMsg == null ||
+        userMsg.branchIds.isEmpty ||
+        userMsg.currentBranchIndex == 0) {
       return widget.message.content;
     }
 
@@ -73,9 +82,16 @@ class _ChatBubbleState extends State<ChatBubble> {
 
   /// 只在需要时加载分支内容
   Future<void> _loadBranchContentIfNeeded() async {
-    // 如果没有分支或者显示原始内容，不需要加载
-    if (widget.message.branchIds.isEmpty ||
-        widget.message.currentBranchIndex == 0) {
+    // 对于用户消息，不需要加载分支内容
+    if (widget.message.isUser) {
+      return;
+    }
+
+    // 对于AI消息，检查对应的用户消息是否有分支
+    final userMsg = widget.userMessage;
+    if (userMsg == null ||
+        userMsg.branchIds.isEmpty ||
+        userMsg.currentBranchIndex == 0) {
       if (_branchContent != null) {
         setState(() {
           _branchContent = null;
@@ -91,8 +107,14 @@ class _ChatBubbleState extends State<ChatBubble> {
     });
 
     try {
+      // 对于AI消息，使用对应的用户消息获取分支内容
+      final userMsg = widget.userMessage;
+      if (userMsg == null) {
+        throw Exception('AI消息缺少对应的用户消息');
+      }
+
       final content = await _branchManager.getCurrentBranchContent(
-        widget.message,
+        userMsg,
         widget.roleName,
       );
 
@@ -319,16 +341,16 @@ class _ChatBubbleState extends State<ChatBubble> {
 
   /// 构建操作按钮栏
   Widget _buildActionButtons(BuildContext context) {
-    // 详细调试信息
-    debugPrint(
-      'ChatBubble._buildActionButtons for message ${widget.message.id}',
-    );
-    debugPrint('  isUser: ${widget.message.isUser}');
-    debugPrint('  branchIds: ${widget.message.branchIds}');
-    debugPrint('  branchIds.length: ${widget.message.branchIds.length}');
-    debugPrint('  hasBranches: ${widget.message.hasBranches}');
-    debugPrint('  branchCount: ${widget.message.branchCount}');
-    debugPrint('  currentBranchIndex: ${widget.message.currentBranchIndex}');
+    // // 详细调试信息
+    // debugPrint(
+    //   'ChatBubble._buildActionButtons for message ${widget.message.id}',
+    // );
+    // debugPrint('  isUser: ${widget.message.isUser}');
+    // debugPrint('  branchIds: ${widget.message.branchIds}');
+    // debugPrint('  branchIds.length: ${widget.message.branchIds.length}');
+    // debugPrint('  hasBranches: ${widget.message.hasBranches}');
+    // debugPrint('  branchCount: ${widget.message.branchCount}');
+    // debugPrint('  currentBranchIndex: ${widget.message.currentBranchIndex}');
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -352,8 +374,9 @@ class _ChatBubbleState extends State<ChatBubble> {
           tooltip: 'create_branch'.tr,
         ),
 
-        // 分支切换器（仅在有分支时显示）
-        if (widget.message.hasBranches) ...[
+        // 分支切换器（仅在AI消息且对应用户消息有分支时显示）
+        if (!widget.message.isUser &&
+            widget.userMessage?.hasBranches == true) ...[
           const SizedBox(width: 12),
           _buildBranchSwitcher(),
         ],
@@ -439,14 +462,16 @@ class _ChatBubbleState extends State<ChatBubble> {
 
   /// 构建分支切换器
   Widget _buildBranchSwitcher() {
-    if (!widget.message.hasBranches) return const SizedBox.shrink();
+    // 使用用户消息的分支信息
+    final userMsg = widget.userMessage;
+    if (userMsg == null || !userMsg.hasBranches) return const SizedBox.shrink();
 
-    final currentIndex = widget.message.currentBranchIndex;
-    final totalCount = widget.message.branchCount;
+    final currentIndex = userMsg.currentBranchIndex;
+    final totalCount = userMsg.branchCount;
 
     // 调试信息
     debugPrint(
-      '分支切换器: currentIndex=$currentIndex, totalCount=$totalCount, branchIds=${widget.message.branchIds}',
+      '分支切换器: currentIndex=$currentIndex, totalCount=$totalCount, branchIds=${userMsg.branchIds}',
     );
 
     return Row(

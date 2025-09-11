@@ -207,7 +207,40 @@ class DatabaseHelper {
   Future<int> insertMessage(ChatMessage message) async {
     final db = await database;
     debugPrint('insertMessage: ${message.toMap()}');
-    return await db.insert('chat_messages', message.toMap());
+
+    // 检查是否已存在相同角色和内容的消息
+    final List<Map<String, dynamic>> existingMessages = await db.query(
+      'chat_messages',
+      where: 'role_name = ? AND content = ? AND is_user = ?',
+      whereArgs: [message.roleName, message.content, message.isUser ? 1 : 0],
+    );
+
+    if (existingMessages.isNotEmpty) {
+      final existingMap = existingMessages.first;
+      final existingId = existingMap['id'] as int;
+      final existingParentId = existingMap['parent_id'] as String?;
+
+      // 如果现有消息的parent_id为空，且新消息有parent_id，则更新现有消息
+      if (existingParentId == null && message.parentId != null) {
+        debugPrint('发现相同内容的消息（parent_id为空），更新parent_id: 现有ID=$existingId');
+
+        final updatedMessage = message.copyWith(id: existingId);
+        await db.update(
+          'chat_messages',
+          updatedMessage.toMap(),
+          where: 'id = ?',
+          whereArgs: [existingId],
+        );
+        return existingId;
+      } else {
+        // 如果parent_id都不为空，说明是真正的重复，直接返回现有ID
+        debugPrint('发现重复消息，返回现有ID: $existingId');
+        return existingId;
+      }
+    } else {
+      // 不存在重复，正常插入
+      return await db.insert('chat_messages', message.toMap());
+    }
   }
 
   // 更新聊天消息
@@ -234,7 +267,7 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
-  // 获取指定角色的所有聊天消息
+  // 获取指定角色的所有聊天消息（包括分支消息，在状态管理器中过滤）
   Future<List<ChatMessage>> getMessagesByRole(String roleName) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -249,7 +282,7 @@ class DatabaseHelper {
     });
   }
 
-  // 获取指定角色的最新N条消息
+  // 获取指定角色的最新N条消息（排除分支消息）
   Future<List<ChatMessage>> getLatestMessagesByRole(
     String roleName,
     int limit,
@@ -257,7 +290,7 @@ class DatabaseHelper {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'chat_messages',
-      where: 'role_name = ?',
+      where: 'role_name = ? AND is_branch = 0',
       whereArgs: [roleName],
       orderBy: 'timestamp DESC',
       limit: limit,
@@ -270,7 +303,7 @@ class DatabaseHelper {
     });
   }
 
-  // 删除指定角色的所有聊天记录
+  // 删除指定角色的所有聊天记录（包括分支消息）
   Future<int> deleteMessagesByRole(String roleName) async {
     final db = await database;
     return await db.delete(
@@ -280,15 +313,15 @@ class DatabaseHelper {
     );
   }
 
-  // 删除指定角色的最新N条消息
+  // 删除指定角色的最新N条消息（排除分支消息）
   Future<int> deleteLatestMessagesByRole(String roleName, int count) async {
     final db = await database;
 
-    // 获取要删除的消息ID
+    // 获取要删除的消息ID（排除分支消息）
     final List<Map<String, dynamic>> maps = await db.query(
       'chat_messages',
       columns: ['id'],
-      where: 'role_name = ?',
+      where: 'role_name = ? AND is_branch = 0',
       whereArgs: [roleName],
       orderBy: 'timestamp DESC',
       limit: count,
@@ -348,11 +381,11 @@ class DatabaseHelper {
     return maps.map((map) => map['role_name'] as String).toList();
   }
 
-  // 获取指定角色的消息数量
+  // 获取指定角色的消息数量（排除分支消息）
   Future<int> getMessageCountByRole(String roleName) async {
     final db = await database;
     final result = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM chat_messages WHERE role_name = ?',
+      'SELECT COUNT(*) as count FROM chat_messages WHERE role_name = ? AND is_branch = 0',
       [roleName],
     );
 

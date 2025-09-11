@@ -14,129 +14,151 @@ class MessageBranchManager {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final ChatStateManager _stateManager = ChatStateManager();
 
-  /// 创建分支消息
-  /// [originalMessage] 原始AI消息
-  /// [newContent] 新的回答内容
+  /// 创建分支（基于消息树结构）
+  /// [aiMessage] 要重新生成的AI消息
+  /// [userMessage] AI消息的父消息（用户消息）
+  /// [newContent] 新的分支内容
   /// [roleName] 角色名称
   Future<ChatMessage> createBranch({
-    required ChatMessage originalMessage,
+    required ChatMessage aiMessage,
+    required ChatMessage userMessage,
     required String newContent,
     required String roleName,
   }) async {
-    debugPrint('>>> MessageBranchManager.createBranch 开始');
-    debugPrint('    原始消息messageId: ${originalMessage.messageId}');
-    debugPrint('    原始消息ID: ${originalMessage.id}');
-    debugPrint('    原始消息当前branchIds: ${originalMessage.branchIds}');
+    debugPrint('>>> MessageBranchManager.createBranch 开始（新设计）');
+    debugPrint('    用户消息ID: ${userMessage.id}');
+    debugPrint('    原始AI消息ID: ${aiMessage.id}');
 
-    // 创建分支消息
-    final branchMessage = ChatMessage(
+    // 确保用户消息有数据库ID
+    if (userMessage.id == null) {
+      throw Exception('用户消息必须有数据库ID才能创建分支');
+    }
+
+    // 创建新的分支消息，parent_id指向用户消息的数据库ID
+    final newBranchMessage = ChatMessage(
       roleName: roleName,
       content: newContent,
       isUser: false,
       timestamp: DateTime.now(),
-      parentId: originalMessage.messageId,
-      isBranch: true,
+      parentId: userMessage.id.toString(), // 使用用户消息的数据库ID
     );
-    debugPrint('    创建分支消息: ${branchMessage.messageId}');
+    debugPrint('    创建新分支消息，parent_id: ${newBranchMessage.parentId}');
 
-    // 保存分支消息到数据库
-    final branchId = await _dbHelper.insertMessage(branchMessage);
-    final savedBranchMessage = branchMessage.copyWith(id: branchId);
-    debugPrint('    分支消息已保存，数据库ID: $branchId');
+    // 保存新分支消息到数据库
+    final branchId = await _dbHelper.insertMessage(newBranchMessage);
+    debugPrint('    新分支消息已保存，数据库ID: $branchId');
 
-    // 更新原始消息的分支列表
-    final updatedBranchIds = List<String>.from(originalMessage.branchIds);
-    updatedBranchIds.add(savedBranchMessage.messageId);
-    debugPrint('    更新后的branchIds: $updatedBranchIds');
-
-    final updatedOriginalMessage = originalMessage.copyWith(
-      branchIds: updatedBranchIds,
-      currentBranchIndex: updatedBranchIds.length, // 切换到新分支（基于1的索引）
-    );
-    debugPrint('    设置currentBranchIndex为: ${updatedBranchIds.length}');
-    debugPrint('    计算出的branchCount: ${updatedOriginalMessage.branchCount}');
-    debugPrint('    计算出的hasBranches: ${updatedOriginalMessage.hasBranches}');
-
-    // 更新数据库中的原始消息
-    if (originalMessage.id != null) {
-      await _dbHelper.updateMessage(updatedOriginalMessage);
-      debugPrint('    原始消息已更新到数据库');
+    // 确保原始AI消息也设置正确的parent_id
+    if (aiMessage.id != null &&
+        aiMessage.parentId != userMessage.id.toString()) {
+      final updatedAiMessage = aiMessage.copyWith(
+        parentId: userMessage.id.toString(),
+      );
+      await _dbHelper.updateMessage(updatedAiMessage);
+      debugPrint('    原始AI消息parent_id已更新: ${userMessage.id}');
     } else {
-      debugPrint('    WARNING: 原始消息没有ID，无法更新数据库');
+      debugPrint('    原始AI消息parent_id已正确: ${aiMessage.parentId}');
     }
 
+    // 查询同一parent_id下的所有AI消息（分叉）
+    final allMessages = await _dbHelper.getMessagesByRole(roleName);
+    final branches = allMessages
+        .where(
+          (msg) => !msg.isUser && msg.parentId == userMessage.id.toString(),
+        )
+        .toList();
+
+    debugPrint('    找到 ${branches.length} 个分叉消息');
+
+    // 更新用户消息，记录分叉信息（使用数据库ID）
+    final branchIds = branches.map((msg) => msg.id.toString()).toList();
+    final updatedUserMessage = userMessage.copyWith(
+      branchIds: branchIds,
+      currentBranchIndex: branches.length - 1, // 指向最新的分叉
+    );
+
+    await _dbHelper.updateMessage(updatedUserMessage);
+    debugPrint('    用户消息已更新，分叉数: ${branches.length}');
     debugPrint('>>> MessageBranchManager.createBranch 完成');
-    return updatedOriginalMessage; // 返回更新后的原始消息，而不是分支消息
+
+    return updatedUserMessage;
   }
 
   /// 切换分支
-  /// [message] 主消息
-  /// [branchIndex] 分支索引（基于1，0表示原始消息）
+  /// [userMessage] 用户消息（包含分支信息）
+  /// [branchIndex] 分支索引（基于0）
   /// [roleName] 角色名称
-  /// 返回更新后的主消息
+  /// 返回更新后的用户消息
   Future<ChatMessage> switchToBranch(
-    ChatMessage message,
+    ChatMessage userMessage,
     int branchIndex,
     String roleName,
   ) async {
-    if (branchIndex < 0 || branchIndex > message.branchIds.length) {
-      throw ArgumentError('分支索引超出范围: $branchIndex');
+    debugPrint('>>> MessageBranchManager.switchToBranch');
+    debugPrint('    用户消息ID: ${userMessage.id}');
+    debugPrint('    切换到分支索引: $branchIndex');
+
+    // 检查分支索引范围
+    if (branchIndex < 0 || branchIndex >= userMessage.branchIds.length) {
+      throw ArgumentError(
+        '分支索引超出范围: $branchIndex，总分支数: ${userMessage.branchIds.length}',
+      );
     }
 
-    // 更新主消息的当前分支索引
-    final updatedMessage = message.copyWith(currentBranchIndex: branchIndex);
+    // 更新用户消息的当前分支索引
+    final updatedUserMessage = userMessage.copyWith(
+      currentBranchIndex: branchIndex,
+    );
 
     // 保存到数据库
-    if (message.id != null) {
-      await _dbHelper.updateMessage(updatedMessage);
+    if (userMessage.id != null) {
+      await _dbHelper.updateMessage(updatedUserMessage);
     }
 
-    debugPrint('切换到分支索引: $branchIndex');
-    return updatedMessage;
+    debugPrint('>>> MessageBranchManager.switchToBranch 完成');
+    return updatedUserMessage;
   }
 
   /// 获取当前分支的内容
-  /// [message] 主消息
+  /// [userMessage] 用户消息（包含分支信息）
   /// [roleName] 角色名称
   Future<String> getCurrentBranchContent(
-    ChatMessage message,
+    ChatMessage userMessage,
     String roleName,
   ) async {
     try {
-      // 如果没有分支或当前索引为0，返回原始内容
-      if (message.branchIds.isEmpty || message.currentBranchIndex == 0) {
-        return message.content;
+      debugPrint('>>> MessageBranchManager.getCurrentBranchContent');
+      debugPrint('    用户消息ID: ${userMessage.id}');
+      debugPrint('    当前分支索引: ${userMessage.currentBranchIndex}');
+
+      // 检查是否有分叉信息
+      if (userMessage.branchIds.isEmpty ||
+          userMessage.currentBranchIndex >= userMessage.branchIds.length) {
+        debugPrint('    没有分叉或索引超出范围，返回空');
+        return '';
       }
 
-      // 获取分支内容
-      final branchIndex = message.currentBranchIndex - 1; // 转换为基于0的索引
-      if (branchIndex >= 0 && branchIndex < message.branchIds.length) {
-        final branchId = message.branchIds[branchIndex];
-        final branchMessage = await _getBranchMessage(branchId, roleName);
-        return branchMessage?.content ?? message.content;
+      // 通过数据库ID直接查找对应的分支消息
+      final branchId = userMessage.branchIds[userMessage.currentBranchIndex];
+      final allMessages = await _dbHelper.getMessagesByRole(roleName);
+      final selectedBranch = allMessages
+          .where((msg) => msg.id.toString() == branchId)
+          .firstOrNull;
+
+      if (selectedBranch == null) {
+        debugPrint('    未找到分支ID为 $branchId 的消息');
+        return '';
       }
 
-      return message.content;
+      debugPrint('    找到分支消息ID: ${selectedBranch.id}');
+      debugPrint(
+        '    返回分支内容: ${selectedBranch.content.length > 20 ? selectedBranch.content.substring(0, 20) : selectedBranch.content}...',
+      );
+
+      return selectedBranch.content;
     } catch (e) {
       debugPrint('获取当前分支内容失败: $e');
-      return message.content; // 降级到原始内容
-    }
-  }
-
-  /// 获取分支消息
-  Future<ChatMessage?> _getBranchMessage(
-    String branchId,
-    String roleName,
-  ) async {
-    try {
-      final messages = await _dbHelper.getMessagesByRole(roleName);
-      return messages.firstWhere(
-        (msg) => msg.messageId == branchId,
-        orElse: () => throw Exception('Branch not found'),
-      );
-    } catch (e) {
-      debugPrint('获取分支消息失败: $e');
-      return null;
+      return '';
     }
   }
 

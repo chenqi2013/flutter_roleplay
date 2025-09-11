@@ -42,7 +42,7 @@ class _RolePlayChatState extends State<RolePlayChat>
   bool _isPageSwitching = false;
 
   List<ChatMessage> get _messages {
-    final messages = _stateManager.getMessages(roleName.value);
+    final messages = _stateManager.getFilteredMessages(roleName.value);
     return messages;
   }
 
@@ -560,9 +560,9 @@ class _RolePlayChatState extends State<RolePlayChat>
   Widget _buildChatListView() {
     return buildScrollNotificationListener(
       child: Obx(() {
-        // 确保响应式地获取当前角色的消息
+        // 确保响应式地获取当前角色的消息（过滤后的）
         final currentRoleName = roleName.value;
-        final messages = _stateManager.getMessages(currentRoleName);
+        final messages = _stateManager.getFilteredMessages(currentRoleName);
 
         // debugPrint('_buildChatListView: 当前角色: $currentRoleName, 消息数量: ${messages.length}');
 
@@ -600,12 +600,19 @@ class _RolePlayChatState extends State<RolePlayChat>
   /// 处理重新生成消息
   void _handleRegenerate(ChatMessage message) async {
     debugPrint('🌿🌿🌿 分叉按钮被点击了！🌿🌿🌿');
-    debugPrint('要重新生成的消息: ${message.content.substring(0, 50)}...');
+    debugPrint(
+      '要重新生成的消息: ${message.content.length > 50 ? message.content.substring(0, 50) : message.content}...',
+    );
     debugPrint('消息ID: ${message.id}');
 
     if (_controller == null || _controller!.isGenerating.value) {
       debugPrint('AI正在生成中，无法重新生成');
       return;
+    }
+
+    // 立即设置分叉状态，防止自动保存
+    if (_controller != null) {
+      _controller!.setBranchingState(true, messageId: message.messageId);
     }
 
     debugPrint('开始重新生成消息...');
@@ -616,6 +623,10 @@ class _RolePlayChatState extends State<RolePlayChat>
       final messageIndex = messages.indexOf(message);
       if (messageIndex <= 0) {
         debugPrint('未找到对应的用户消息，无法重新生成');
+        // 重置分叉状态
+        if (_controller != null) {
+          _controller!.setBranchingState(false);
+        }
         return;
       }
 
@@ -647,10 +658,11 @@ class _RolePlayChatState extends State<RolePlayChat>
 
                 newContent = chunk;
 
-                // 实时更新显示的内容，但不改变原始消息结构
+                // 在分叉时，创建临时消息用于显示，但不更新消息列表
                 final updatedMessage = loadingMessage.copyWith(
                   content: newContent,
                 );
+                // 只更新显示，不写入消息列表（避免自动保存）
                 messages[messageIndex] = updatedMessage;
 
                 setState(() {});
@@ -685,33 +697,47 @@ class _RolePlayChatState extends State<RolePlayChat>
 
                   try {
                     debugPrint('=== 开始创建分支 ===');
-                    debugPrint('原始消息: ${message.content.substring(0, 50)}...');
+                    debugPrint(
+                      '原始消息: ${message.content.length > 50 ? message.content.substring(0, 50) : message.content}...',
+                    );
                     debugPrint('原始消息ID: ${message.id}');
                     debugPrint('原始消息branchIds: ${message.branchIds}');
-                    debugPrint('新内容: ${newContent.substring(0, 50)}...');
+                    debugPrint(
+                      '新内容: ${newContent.length > 50 ? newContent.substring(0, 50) : newContent}...',
+                    );
                     debugPrint('消息在列表中的索引: $messageIndex');
 
-                    // 检查原始消息是否有ID，如果没有则先保存到数据库
+                    // 检查原始消息是否有ID，如果没有则保存到数据库
                     ChatMessage messageWithId = message;
                     if (message.id == null) {
-                      debugPrint('原始消息没有ID，先保存到数据库...');
+                      debugPrint('原始消息没有ID，保存到数据库（智能去重）...');
 
                       try {
-                        // 先保存原始消息到数据库
                         final dbHelper = DatabaseHelper();
                         debugPrint(
-                          '准备保存原始消息到数据库: ${message.content.substring(0, 50)}...',
+                          '准备保存原始消息: ${message.content.length > 50 ? message.content.substring(0, 50) : message.content}...',
                         );
-                        final messageId = await dbHelper.insertMessage(message);
-                        messageWithId = message.copyWith(id: messageId);
+
+                        // 创建带有正确parent_id的消息，数据库会自动处理去重和parent_id更新
+                        final messageWithParentId = message.copyWith(
+                          parentId: userMessage.id?.toString(),
+                        );
+
+                        final messageId = await dbHelper.insertMessage(
+                          messageWithParentId,
+                        );
+                        messageWithId = messageWithParentId.copyWith(
+                          id: messageId,
+                        );
 
                         // 更新消息列表中的消息，确保有ID
                         messages[messageIndex] = messageWithId;
                         setState(() {});
-
-                        debugPrint('原始消息已保存到数据库，ID: $messageId，现在可以创建分支了');
+                        debugPrint(
+                          '原始消息已处理，ID: $messageId, parent_id: ${messageWithId.parentId}',
+                        );
                       } catch (e) {
-                        debugPrint('保存原始消息到数据库失败: $e');
+                        debugPrint('处理原始消息失败: $e');
 
                         // 创建一个简单的更新后消息，显示新内容但不创建分支
                         final simpleUpdatedMessage = message.copyWith(
@@ -734,28 +760,36 @@ class _RolePlayChatState extends State<RolePlayChat>
 
                     final branchManager = MessageBranchManager();
 
-                    // 创建分支（返回的是更新后的原始消息，包含新的分支信息）
-                    final updatedMessage = await branchManager.createBranch(
-                      originalMessage: messageWithId, // 使用有ID的消息
+                    // 创建分支（基于消息树结构）
+                    final updatedUserMessage = await branchManager.createBranch(
+                      aiMessage: messageWithId, // AI消息
+                      userMessage: userMessage, // 用户消息
                       newContent: newContent,
                       roleName: roleName.value,
                     );
 
                     debugPrint('=== 分支创建完成 ===');
-                    debugPrint('更新后消息ID: ${updatedMessage.id}');
-                    debugPrint('更新后消息branchIds: ${updatedMessage.branchIds}');
+                    debugPrint('更新后用户消息ID: ${updatedUserMessage.id}');
                     debugPrint(
-                      '更新后消息currentBranchIndex: ${updatedMessage.currentBranchIndex}',
+                      '更新后用户消息branchIds: ${updatedUserMessage.branchIds}',
                     );
                     debugPrint(
-                      '更新后消息branchCount: ${updatedMessage.branchCount}',
+                      '更新后用户消息currentBranchIndex: ${updatedUserMessage.currentBranchIndex}',
                     );
                     debugPrint(
-                      '更新后消息hasBranches: ${updatedMessage.hasBranches}',
+                      '更新后用户消息branchCount: ${updatedUserMessage.branchCount}',
+                    );
+                    debugPrint(
+                      '更新后用户消息hasBranches: ${updatedUserMessage.hasBranches}',
                     );
 
-                    // 更新消息列表中的消息
-                    messages[messageIndex] = updatedMessage;
+                    // 更新消息列表中的用户消息
+                    messages[messageIndex - 1] = updatedUserMessage;
+                    // 保持AI消息不变（显示最新分支内容）
+                    final updatedAiMessage = messageWithId.copyWith(
+                      content: newContent,
+                    );
+                    messages[messageIndex] = updatedAiMessage;
                     setState(() {});
 
                     debugPrint('UI已更新，消息列表长度: ${messages.length}');
@@ -766,7 +800,7 @@ class _RolePlayChatState extends State<RolePlayChat>
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            '分支创建成功！总计 ${updatedMessage.branchCount} 个回答',
+                            '分支创建成功！总计 ${updatedUserMessage.branchCount} 个回答',
                           ),
                           duration: const Duration(seconds: 2),
                         ),
@@ -795,37 +829,54 @@ class _RolePlayChatState extends State<RolePlayChat>
                 }
 
                 debugPrint('📍📍📍 onDone 回调执行完成！📍📍📍');
+
+                // 重置分叉状态
+                if (_controller != null) {
+                  _controller!.setBranchingState(false);
+                }
               },
             );
       }
     } catch (e) {
       debugPrint('重新生成消息时发生错误: $e');
+      // 发生错误时也要重置分叉状态
+      if (_controller != null) {
+        _controller!.setBranchingState(false);
+      }
     }
   }
 
   /// 处理切换分支
-  void _handleSwitchBranch(ChatMessage message, int branchIndex) async {
+  void _handleSwitchBranch(ChatMessage aiMessage, int branchIndex) async {
     debugPrint('切换到分支索引: $branchIndex');
 
     try {
       final messages = _stateManager.getMessages(roleName.value);
-      final messageIndex = messages.indexOf(message);
-      if (messageIndex == -1) {
-        debugPrint('未找到消息，无法切换分支');
+      final aiMessageIndex = messages.indexOf(aiMessage);
+      if (aiMessageIndex == -1 || aiMessageIndex == 0) {
+        debugPrint('未找到AI消息或没有对应的用户消息');
+        return;
+      }
+
+      // 获取对应的用户消息
+      final userMessage = messages[aiMessageIndex - 1];
+      if (!userMessage.isUser) {
+        debugPrint('前一条消息不是用户消息');
         return;
       }
 
       final branchManager = MessageBranchManager();
 
-      // 使用分支管理器切换分支
-      final updatedMessage = await branchManager.switchToBranch(
-        message,
+      // 使用分支管理器切换分支（传递用户消息）
+      final updatedUserMessage = await branchManager.switchToBranch(
+        userMessage,
         branchIndex,
         roleName.value,
       );
 
-      // 更新消息列表
-      messages[messageIndex] = updatedMessage;
+      // 更新用户消息
+      messages[aiMessageIndex - 1] = updatedUserMessage;
+
       setState(() {});
 
       debugPrint('切换到分支索引: $branchIndex 成功');

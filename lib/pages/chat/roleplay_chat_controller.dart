@@ -28,6 +28,17 @@ class RolePlayChatController extends GetxController {
   final ChatStreamService _streamService = ChatStreamService();
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
+  // 分叉状态标志
+  bool _isBranching = false;
+  String? _branchingMessageId; // 正在分叉的消息ID
+
+  // 设置分叉状态
+  void setBranchingState(bool isBranching, {String? messageId}) {
+    _isBranching = isBranching;
+    _branchingMessageId = isBranching ? messageId : null;
+    debugPrint('分叉状态设置为: $_isBranching, 消息ID: $_branchingMessageId');
+  }
+
   // 流订阅
   StreamSubscription<String>? _streamSub;
 
@@ -180,11 +191,25 @@ class RolePlayChatController extends GetxController {
   // 保存当前AI回复到数据库
   Future<void> _saveCurrentAiMessage() async {
     try {
+      // 如果正在进行分叉，跳过自动保存
+      if (_isBranching) {
+        debugPrint('正在进行分叉，跳过自动保存AI消息');
+        return;
+      }
+
       // 获取当前角色的最后一条消息
       final stateManager = ChatStateManager();
       final messages = stateManager.getMessages(roleName.value);
       if (messages.isNotEmpty && !messages.last.isUser) {
         final aiMessage = messages.last;
+
+        // 检查是否是正在分叉的消息
+        if (_branchingMessageId != null &&
+            aiMessage.messageId == _branchingMessageId) {
+          debugPrint('检测到正在分叉的消息，跳过自动保存: ${aiMessage.messageId}');
+          return;
+        }
+
         // 只有当消息内容不为空时才保存
         if (aiMessage.content.isNotEmpty) {
           await saveAiMessage(aiMessage.content);

@@ -101,12 +101,12 @@ class ChatMessage {
 
   /// 是否有分支
   bool get hasBranches {
-    return !isUser && branchIds.isNotEmpty;
+    return branchIds.isNotEmpty;
   }
 
   /// 获取分支数量（包括原始消息）
   int get branchCount {
-    return branchIds.length + 1; // +1 包括原始消息本身
+    return branchIds.length; // branchIds已经包含所有分支（包括原始分支）
   }
 
   /// 生成消息的唯一标识符

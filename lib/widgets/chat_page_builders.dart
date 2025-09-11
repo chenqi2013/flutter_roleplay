@@ -716,14 +716,25 @@ class ChatPageBuilders {
       // 显示消息气泡
       final int reversedIdx = messages.length - 1 - index;
       final ChatMessage msg = messages[reversedIdx];
+
+      // 对于AI消息，找到对应的用户消息（用于获取分支信息）
+      ChatMessage? userMessage;
+      if (!msg.isUser && reversedIdx > 0) {
+        final prevMsg = messages[reversedIdx - 1];
+        if (prevMsg.isUser) {
+          userMessage = prevMsg;
+        }
+      }
+
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: ChatBubble(
           key: ValueKey(
-            '${msg.isUser}_${msg.timestamp.millisecondsSinceEpoch}_${msg.branchIds.length}',
+            '${msg.isUser}_${msg.timestamp.millisecondsSinceEpoch}_${userMessage?.currentBranchIndex ?? 0}_${userMessage?.branchIds.length ?? 0}',
           ),
           message: msg,
           roleName: msg.roleName,
+          userMessage: userMessage, // 传递用户消息用于分支信息
           onCopy: onCopy,
           onCreateBranch: msg.isUser ? null : () => onCreateBranch?.call(msg),
           onSwitchBranch: msg.isUser
