@@ -135,6 +135,31 @@ class RolePlayChatController extends GetxController {
         initializeNewConversation();
       }
 
+      // 找到父消息ID（最后一条AI消息）
+      final stateManager = ChatStateManager();
+      final messages = stateManager.getMessages(roleName.value);
+      int? parentId;
+
+      debugPrint(
+        'saveUserMessage: Looking for parent AI message in ${messages.length} messages',
+      );
+      for (int i = messages.length - 1; i >= 0; i--) {
+        debugPrint(
+          'Message $i: ${messages[i].isUser ? "User" : "AI"}, id=${messages[i].id}',
+        );
+        if (!messages[i].isUser && messages[i].id != null) {
+          parentId = messages[i].id;
+          debugPrint('Found AI parent message with ID: $parentId');
+          break;
+        }
+      }
+
+      if (parentId == null) {
+        debugPrint(
+          'No AI parent message found, this might be the first user message',
+        );
+      }
+
       final timestamp = DateTime.now();
       final message = ChatMessage(
         id: timestamp.millisecondsSinceEpoch, // 使用时间戳作为临时ID
@@ -142,6 +167,7 @@ class RolePlayChatController extends GetxController {
         content: content,
         isUser: true,
         timestamp: timestamp,
+        parentId: parentId, // 设置父消息ID
         conversationId: currentConversationId.value,
       );
 
@@ -372,8 +398,22 @@ class RolePlayChatController extends GetxController {
 
       // 找到父消息ID（最后一条AI回复）
       int? parentId;
-      if (messages.isNotEmpty && !messages.last.isUser) {
-        parentId = messages.last.id;
+      debugPrint(
+        'saveUserMessageWithBranch: Looking for parent AI message in ${messages.length} messages',
+      );
+      for (int i = messages.length - 1; i >= 0; i--) {
+        debugPrint(
+          'Message $i: ${messages[i].isUser ? "User" : "AI"}, id=${messages[i].id}',
+        );
+        if (!messages[i].isUser && messages[i].id != null) {
+          parentId = messages[i].id;
+          debugPrint('Found AI parent message with ID: $parentId');
+          break;
+        }
+      }
+
+      if (parentId == null) {
+        debugPrint('No AI parent message found for user message with branch');
       }
 
       final timestamp = DateTime.now();
