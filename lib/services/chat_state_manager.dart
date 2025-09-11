@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
+import 'package:get/get.dart';
 
 // 全局聊天状态管理
 class ChatStateManager {
@@ -8,12 +9,12 @@ class ChatStateManager {
   factory ChatStateManager() => _instance;
   ChatStateManager._internal();
 
-  final Map<String, List<ChatMessage>> _chatCache = {};
+  final Map<String, RxList<ChatMessage>> _chatCache = {};
   final Map<String, ScrollController> _scrollControllers = {};
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
-  List<ChatMessage> getMessages(String pageKey) {
-    return _chatCache[pageKey] ??= [];
+  RxList<ChatMessage> getMessages(String pageKey) {
+    return _chatCache[pageKey] ??= <ChatMessage>[].obs;
   }
 
   ScrollController getScrollController(String pageKey) {
@@ -22,13 +23,20 @@ class ChatStateManager {
 
   // 添加消息到内存缓存和数据库
   Future<void> addMessage(String pageKey, ChatMessage message) async {
-    getMessages(pageKey).add(message);
+    // 为消息分配时间戳ID
+    final timestamp = DateTime.now();
+    final messageWithId = message.copyWith(
+      id: timestamp.millisecondsSinceEpoch,
+      timestamp: timestamp,
+    );
+
+    getMessages(pageKey).add(messageWithId);
 
     // 保存到数据库
     try {
-      final result = await _dbHelper.insertMessage(message);
+      final result = await _dbHelper.insertMessage(messageWithId);
       debugPrint(
-        'User message saved to database: $result, content: ${message.content}',
+        'User message saved to database: $result, content: ${messageWithId.content}',
       );
     } catch (e) {
       debugPrint('Failed to save message to database: $e');
@@ -76,10 +84,10 @@ class ChatStateManager {
   Future<void> loadMessagesFromDatabase(String roleName) async {
     try {
       final messages = await _dbHelper.getMessagesByRole(roleName);
-      _chatCache[roleName] = messages;
+      _chatCache[roleName] = messages.obs;
     } catch (e) {
       debugPrint('Failed to load messages from database: $e');
-      _chatCache[roleName] = [];
+      _chatCache[roleName] = <ChatMessage>[].obs;
     }
   }
 

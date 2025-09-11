@@ -696,6 +696,8 @@ class ChatPageBuilders {
     required int index,
     required List<ChatMessage> messages,
     required String roleDescription,
+    Function(ChatMessage)? onRegeneratePressed,
+    Function(ChatMessage, int)? onBranchChanged,
   }) {
     // 如果没有消息，只显示角色介绍
     if (messages.isEmpty) {
@@ -713,11 +715,22 @@ class ChatPageBuilders {
       // 显示消息气泡
       final int reversedIdx = messages.length - 1 - index;
       final ChatMessage msg = messages[reversedIdx];
+
+      // 判断是否为最后一条AI消息（即最新的AI回复）
+      final bool isLastAIMessage =
+          !msg.isUser && reversedIdx == messages.length - 1;
+
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: ChatBubble(
           key: ValueKey('${msg.isUser}_${msg.content.hashCode}'),
           message: msg,
+          onRegeneratePressed: isLastAIMessage
+              ? () => onRegeneratePressed?.call(msg)
+              : null,
+          onBranchChanged: (branchIndex) =>
+              onBranchChanged?.call(msg, branchIndex),
+          showBranchIndicator: !msg.isUser && msg.totalBranches > 1,
         ),
       );
     } else if (index == messages.length) {

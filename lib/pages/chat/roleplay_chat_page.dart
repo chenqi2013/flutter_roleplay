@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:get/get.dart';
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
@@ -197,10 +198,20 @@ class _RolePlayChatState extends State<RolePlayChat>
     }
 
     try {
-      debugPrint('_loadChatHistory: 开始为角色 ${roleName.value} 加载聊天历史');
-      await _stateManager.loadMessagesFromDatabase(roleName.value);
+      debugPrint('_loadChatHistory: 开始为角色 ${roleName.value} 加载聊天历史（支持分支）');
+      if (_controller != null) {
+        await _controller!.loadChatHistoryWithBranches(roleName.value);
+        final messages = _stateManager.getMessages(roleName.value);
+        debugPrint('_loadChatHistory: 分支历史加载完成，消息数量: ${messages.length}');
+      } else {
+        debugPrint('_loadChatHistory: 控制器未初始化，使用传统加载方式');
+        await _stateManager.loadMessagesFromDatabase(roleName.value);
+        final messages = _stateManager.getMessages(roleName.value);
+        debugPrint('_loadChatHistory: 传统加载完成，消息数量: ${messages.length}');
+      }
+
+      // 获取最终的消息列表用于调试
       final messages = _stateManager.getMessages(roleName.value);
-      debugPrint('_loadChatHistory: 加载完成，消息数量: ${messages.length}');
 
       setState(() {
         // 触发UI更新
@@ -327,10 +338,23 @@ class _RolePlayChatState extends State<RolePlayChat>
       timestamp: DateTime.now(),
     );
 
-    // 添加用户消息到状态管理器（会自动保存到数据库）
+    // 保存用户消息到数据库（会自动分配ID和conversationId）
     debugPrint('Saving user message: ${userMessage.content}');
-    await _stateManager.addMessage(roleName.value, userMessage);
-    debugPrint('User message added to state manager');
+    final savedUserMessage = await _controller!.saveUserMessage(
+      userMessage.content,
+    );
+    debugPrint('User message saved via controller');
+
+    // 添加真实保存的用户消息到内存
+    if (savedUserMessage != null) {
+      _stateManager.getMessages(roleName.value).add(savedUserMessage);
+      debugPrint(
+        'Added user message to memory with ID: ${savedUserMessage.id}',
+      );
+    } else {
+      debugPrint('Failed to save user message, adding to memory without ID');
+      _stateManager.getMessages(roleName.value).add(userMessage);
+    }
 
     // 添加AI占位消息到内存（不保存到数据库，因为内容为空）
     _stateManager.getMessages(roleName.value).add(aiMessage);
@@ -578,6 +602,10 @@ class _RolePlayChatState extends State<RolePlayChat>
               index: index,
               messages: messages,
               roleDescription: roleDescription.value,
+              onRegeneratePressed: (message) =>
+                  _handleRegeneratePressed(message),
+              onBranchChanged: (message, branchIndex) =>
+                  _handleBranchChanged(message, branchIndex),
             );
           },
         );
@@ -648,5 +676,98 @@ class _RolePlayChatState extends State<RolePlayChat>
         });
       }
     }
+  }
+
+  // ===== 分支管理处理函数 =====
+
+  /// 处理重新生成按钮点击
+  void _handleRegeneratePressed(ChatMessage message) {
+    debugPrint(
+      '_handleRegeneratePressed called for message: ${message.content.substring(0, math.min(50, message.content.length))}...',
+    );
+
+    if (_controller == null) {
+      debugPrint('Controller is null, cannot regenerate');
+      return;
+    }
+
+    // 简化逻辑：直接查找前一条用户消息
+    final userMessage = _findPreviousUserMessage(message);
+    debugPrint('Found previous user message: ${userMessage?.content}');
+
+    if (userMessage != null) {
+      debugPrint('Calling regenerateResponse...');
+      _controller!.regenerateResponse(userMessage);
+    } else {
+      debugPrint('No user message found');
+      _showNoUserMessageDialog();
+    }
+  }
+
+  /// 处理分支切换
+  void _handleBranchChanged(ChatMessage message, int branchIndex) {
+    if (_controller == null) return;
+
+    // 计算消息层级
+    final messageLevel = _calculateMessageLevel(message);
+    _controller!.switchBranch(messageLevel, branchIndex);
+  }
+
+  /// 查找AI消息前面的用户消息
+  ChatMessage? _findPreviousUserMessage(ChatMessage aiMessage) {
+    final index = _messages.indexOf(aiMessage);
+    if (index == -1) return null;
+
+    // 向前查找最近的用户消息
+    for (int i = index - 1; i >= 0; i--) {
+      if (_messages[i].isUser) {
+        return _messages[i];
+      }
+    }
+    return null;
+  }
+
+  /// 显示无法找到用户消息的对话框
+  void _showNoUserMessageDialog() {
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('无法重新生成'),
+          content: const Text('找不到对应的用户消息，无法重新生成回复。'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('确定'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  /// 计算消息的层级（用于分支管理）
+  int _calculateMessageLevel(ChatMessage message) {
+    debugPrint('=== Calculating message level ===');
+    debugPrint('Message: ${message.isUser ? "User" : "AI"}');
+    debugPrint(
+      'Content: ${message.content.substring(0, math.min(20, message.content.length))}...',
+    );
+    debugPrint('Parent ID: ${message.parentId}');
+
+    // 简化的层级计算：
+    // Level 0: 根消息（parentId == null）
+    // Level 1: 对根消息的回复（parentId != null，且父消息的parentId == null）
+    // Level 2: 对Level 1消息的回复，以此类推
+
+    if (message.parentId == null) {
+      debugPrint('Root message, level = 0');
+      return 0;
+    }
+
+    // 对于有parentId的消息，它的层级就是1（假设只有两层：用户消息和AI回复）
+    // 在当前的消息结构中，用户消息在Level 0，AI消息在Level 1
+    debugPrint('Non-root message, level = 1');
+    return 1;
   }
 }
