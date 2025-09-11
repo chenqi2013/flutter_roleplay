@@ -184,10 +184,6 @@ class ChatBubble extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 分支指示器（如果有多个分支）
-              if (showBranchIndicator && message.totalBranches > 1)
-                _buildBranchIndicator(),
-
               // 消息内容
               ...segments.map((segment) {
                 if (segment.isAction) {
@@ -222,9 +218,10 @@ class ChatBubble extends StatelessWidget {
                 }
               }),
 
-              // 重新生成按钮（对于AI消息）
-              if (!message.isUser && onRegeneratePressed != null)
-                _buildRegenerateButton(),
+              // 分支指示器和重新生成按钮同一行
+              if ((showBranchIndicator && message.totalBranches > 1) ||
+                  (!message.isUser && onRegeneratePressed != null))
+                _buildActionRow(),
             ],
           ),
         ),
@@ -232,125 +229,142 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  /// 构建分支指示器
-  Widget _buildBranchIndicator() {
+  /// 构建操作行（分支指示器 + 重新生成按钮）
+  Widget _buildActionRow() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(top: 8),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // 左箭头
-          if (message.branchIndex > 0)
-            GestureDetector(
-              onTap: () => onBranchChanged?.call(message.branchIndex - 1),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Icon(
-                  Icons.arrow_left,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.all(4),
-              child: Icon(
-                Icons.arrow_left,
-                color: Colors.white.withValues(alpha: 0.3),
-                size: 16,
-              ),
-            ),
+          // 分支指示器（如果有多个分支）
+          if (showBranchIndicator && message.totalBranches > 1)
+            _buildBranchIndicator(),
 
-          const SizedBox(width: 8),
+          // 间距
+          if ((showBranchIndicator && message.totalBranches > 1) &&
+              (!message.isUser && onRegeneratePressed != null))
+            const SizedBox(width: 12),
 
-          // 分支信息
-          Text(
-            '${message.branchIndex + 1} / ${message.totalBranches}',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // 右箭头
-          if (message.branchIndex < message.totalBranches - 1)
-            GestureDetector(
-              onTap: () => onBranchChanged?.call(message.branchIndex + 1),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Icon(
-                  Icons.arrow_right,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.all(4),
-              child: Icon(
-                Icons.arrow_right,
-                color: Colors.white.withValues(alpha: 0.3),
-                size: 16,
-              ),
-            ),
+          // 重新生成按钮（对于AI消息）
+          if (!message.isUser && onRegeneratePressed != null)
+            _buildRegenerateButton(),
         ],
       ),
     );
   }
 
-  /// 构建重新生成按钮
-  Widget _buildRegenerateButton() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: GestureDetector(
-        onTap: () {
-          debugPrint(
-            'Regenerate button tapped for message: ${message.content.substring(0, math.min(50, message.content.length))}...',
-          );
-          onRegeneratePressed?.call();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-              width: 1,
+  /// 构建分支指示器
+  Widget _buildBranchIndicator() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 左箭头
+        if (message.branchIndex > 0)
+          GestureDetector(
+            onTap: () => onBranchChanged?.call(message.branchIndex - 1),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Icon(
+                Icons.arrow_left,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.all(4),
+            child: Icon(
+              Icons.arrow_left,
+              color: Colors.white.withValues(alpha: 0.3),
+              size: 16,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.refresh,
-                color: Colors.white.withValues(alpha: 0.8),
-                size: 14,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '重新生成',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+
+        const SizedBox(width: 8),
+
+        // 分支信息
+        Text(
+          '${message.branchIndex + 1} / ${message.totalBranches}',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
           ),
+        ),
+
+        const SizedBox(width: 8),
+
+        // 右箭头
+        if (message.branchIndex < message.totalBranches - 1)
+          GestureDetector(
+            onTap: () => onBranchChanged?.call(message.branchIndex + 1),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Icon(
+                Icons.arrow_right,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.all(4),
+            child: Icon(
+              Icons.arrow_right,
+              color: Colors.white.withValues(alpha: 0.3),
+              size: 16,
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// 构建重新生成按钮
+  Widget _buildRegenerateButton() {
+    return GestureDetector(
+      onTap: () {
+        debugPrint(
+          'Regenerate button tapped for message: ${message.content.substring(0, math.min(50, message.content.length))}...',
+        );
+        onRegeneratePressed?.call();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.refresh,
+              color: Colors.white.withValues(alpha: 0.8),
+              size: 14,
+            ),
+            // const SizedBox(width: 4),
+            // Text(
+            //   '重新生成',
+            //   style: TextStyle(
+            //     color: Colors.white.withValues(alpha: 0.8),
+            //     fontSize: 12,
+            //     fontWeight: FontWeight.w500,
+            //   ),
+            // ),
+          ],
         ),
       ),
     );
