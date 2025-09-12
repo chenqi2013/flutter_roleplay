@@ -129,6 +129,19 @@ class RWKVChatService extends GetxController {
       if (info != null) {
         // 把当前的 modelinfo 保存到本地
         controller?.modelInfo = info;
+        RoleParamsController? paramsController;
+        if (Get.isRegistered<RoleParamsController>()) {
+          paramsController = Get.find<RoleParamsController>();
+        } else {
+          paramsController = Get.put(RoleParamsController());
+        }
+        paramsController?.temperature.value = info.temperature ?? 0.6;
+        paramsController?.topP.value = info.topP ?? 0.8;
+        paramsController?.presencePenalty.value = info.presencePenalty ?? 2.0;
+        paramsController?.frequencyPenalty.value = info.frequencyPenalty ?? 0.2;
+        paramsController?.penaltyDecay.value = info.penaltyDecay ?? 0.990;
+        paramsController?.saveParams();
+
         await _saveModelInfoToLocal(info);
       }
     });

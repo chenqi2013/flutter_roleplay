@@ -21,10 +21,10 @@ dependencies:
   image_picker: ^1.0.7
   # dio: ^5.9.0
   rwkv_downloader:
-    # path: ../rwkv_downloader
-    git:
-      url: https://github.com/RWKV-APP/rwkv_downloader.git
-      ref: master
+    path: ../rwkv_downloader
+    # git:
+    #   url: https://github.com/RWKV-APP/rwkv_downloader.git
+    #   ref: master
   rwkv_mobile_flutter:
     path: ../rwkv_mobile_flutter
     #  git:
