@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,7 +52,7 @@ class RoleParamsController extends GetxController {
   }
 
   /// 保存参数到本地存储
-  Future<void> _saveParams() async {
+  Future<void> saveParams() async {
     if (_prefs == null) return;
 
     await _prefs!.setDouble(_temperatureKey, temperature.value);
@@ -60,42 +61,43 @@ class RoleParamsController extends GetxController {
     await _prefs!.setDouble(_presencePenaltyKey, presencePenalty.value);
     await _prefs!.setDouble(_frequencyPenaltyKey, frequencyPenalty.value);
     await _prefs!.setDouble(_penaltyDecayKey, penaltyDecay.value);
+    debugPrint('saveParams success');
   }
 
   /// 更新温度参数
   void updateTemperature(double value) {
     temperature.value = value;
-    _saveParams();
+    saveParams();
   }
 
   /// 更新 TopK 参数
   void updateTopK(int value) {
     topK.value = value;
-    _saveParams();
+    saveParams();
   }
 
   /// 更新 TopP 参数
   void updateTopP(double value) {
     topP.value = value;
-    _saveParams();
+    saveParams();
   }
 
   /// 更新 Presence Penalty 参数
   void updatePresencePenalty(double value) {
     presencePenalty.value = value;
-    _saveParams();
+    saveParams();
   }
 
   /// 更新 Frequency Penalty 参数
   void updateFrequencyPenalty(double value) {
     frequencyPenalty.value = value;
-    _saveParams();
+    saveParams();
   }
 
   /// 更新 Penalty Decay 参数
   void updatePenaltyDecay(double value) {
     penaltyDecay.value = value;
-    _saveParams();
+    saveParams();
   }
 
   /// 重置所有参数为默认值
@@ -106,7 +108,7 @@ class RoleParamsController extends GetxController {
     presencePenalty.value = _defaultPresencePenalty;
     frequencyPenalty.value = _defaultFrequencyPenalty;
     penaltyDecay.value = _defaultPenaltyDecay;
-    _saveParams();
+    saveParams();
   }
 
   /// 获取当前参数值（用于聊天服务）
