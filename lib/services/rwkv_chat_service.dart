@@ -252,7 +252,6 @@ class RWKVChatService extends GetxController {
           modelPath: modelPath,
           backend: backend,
           tokenizerPath: tokenizerPath,
-          latestRuntimeAddress: 0,
         ),
       );
     } else {
@@ -262,7 +261,6 @@ class RWKVChatService extends GetxController {
         backend: backend,
         sendPort: _receivePort.sendPort,
         rootIsolateToken: rootIsolateToken!,
-        latestRuntimeAddress: 0,
       );
       await RWKVMobile().runIsolate(options);
     }
@@ -482,7 +480,6 @@ class RWKVChatService extends GetxController {
         modelPath: modelPath,
         backend: backend,
         tokenizerPath: tokenizerPath,
-        latestRuntimeAddress: 0,
       ),
     );
     return _initRuntimeCompleter.future;
