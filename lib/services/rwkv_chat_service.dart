@@ -280,14 +280,15 @@ class RWKVChatService extends GetxController {
   /// 设置模型参数
   void _setupModelParameters() {
     final prompt =
-        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n';
+        "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
+    debugPrint('set prompt11: $prompt');
     send(to_rwkv.SetPrompt(prompt));
     send(to_rwkv.SetMaxLength(2000));
     // 获取角色参数设置
     try {
       final paramsController = Get.find<RoleParamsController>();
       final params = paramsController.getCurrentParams();
-
+      debugPrint('setupModelParameters: $params');
       send(
         to_rwkv.SetSamplerParams(
           temperature: params['temperature'] as double,
@@ -357,7 +358,8 @@ class RWKVChatService extends GetxController {
     //   send(to_rwkv.LoadInitialStates(rmpack!));
     // }
     final prompt =
-        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n';
+        "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
+    debugPrint('set prompt22: $prompt');
     send(to_rwkv.SetPrompt(prompt));
   }
 
@@ -378,6 +380,7 @@ class RWKVChatService extends GetxController {
 
     ///只有切换了state文件才需要clearstate
     send(to_rwkv.ClearStates());
+    send(to_rwkv.UnloadInitialStates('$rmpack'));
     if (statePath != null) {
       rmpack = statePath;
     }
@@ -386,7 +389,8 @@ class RWKVChatService extends GetxController {
       send(to_rwkv.LoadInitialStates(rmpack!));
     }
     final prompt =
-        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n';
+        "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
+    debugPrint('set prompt33: $prompt');
     send(to_rwkv.SetPrompt(prompt));
   }
 

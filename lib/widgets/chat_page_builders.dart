@@ -143,7 +143,7 @@ class ChatPageBuilders {
 
     // 如果组件缓存中存在，直接返回
     if (_imageCache.containsKey(cacheKey)) {
-      debugPrint('ChatPageBuilders: 使用缓存组件: $imagePath');
+      // debugPrint('ChatPageBuilders: 使用缓存组件: $imagePath');
       return _imageCache[cacheKey]!;
     }
 
