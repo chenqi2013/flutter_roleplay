@@ -93,6 +93,16 @@ class RolePlayChatController extends GetxController {
     // await modelService.clearStates();
   }
 
+  Future<void> clearChatHistoryByRoleName(String roleName) async {
+    // 清空数据库中的聊天记录
+    await clearChatHistoryFromDatabase(roleName);
+    // 清空内存中的聊天记录
+    final stateManager = ChatStateManager();
+    stateManager.getMessages(roleName).clear();
+    // // 清空模型状态
+    // await modelService.clearStates();
+  }
+
   // 停止生成 - 委托给模型服务
   Future<void> stop() async => await modelService.stop();
 

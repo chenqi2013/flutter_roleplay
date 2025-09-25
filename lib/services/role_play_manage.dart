@@ -172,7 +172,7 @@ class RoleplayManage {
     } else {
       controller = Get.put(RolePlayChatController());
     }
-    return await controller.clearChatHistoryFromDatabase(roleName);
+    return await controller.clearChatHistoryByRoleName(roleName);
   }
 
   ///更新角色记录
