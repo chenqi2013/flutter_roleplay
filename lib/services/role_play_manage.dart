@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/language_service.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
+import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/translations/app_translations.dart';
 import 'package:flutter_roleplay/pages/params/role_params_controller.dart';
 import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
@@ -154,8 +156,8 @@ class RoleplayManage {
   }
 
   /// 一个删除对话的接口
-  static void deleteRolePlay(String roleName) {
-    debugPrint('deleteRolePlay: $roleName');
+  static void deleteRolePlaySession(String roleName) {
+    debugPrint('deleteRolePlaySession: $roleName');
     RolePlayChatController controller;
     if (Get.isRegistered<RolePlayChatController>()) {
       controller = Get.find<RolePlayChatController>();
@@ -166,12 +168,62 @@ class RoleplayManage {
   }
 
   ///更新角色记录
-  static void updateRolePlay(String roleName) {
-    debugPrint('updateRolePlay: $roleName');
+  static void updateRolePlaySession(String roleName) {
+    debugPrint('updateRolePlaySession: $roleName');
   }
 
-  /// 一个获取对话列表的接口
-  static void getRolePlayList() {
-    debugPrint('getRolePlayList');
+  /// 获取数据库里每一个角色最后一条聊天记录
+  /// 返回类型：List<Map<String, ChatMessage>>，每个Map的key为角色图片地址，value为最后一条消息
+  static Future<List<Map<String, ChatMessage>>> getRolePlayListSession() async {
+    debugPrint('getRolePlayListSession');
+    try {
+      final dbHelper = DatabaseHelper();
+      final roleNames = await dbHelper.getAllRoleNames();
+      final List<Map<String, ChatMessage>> rolePlayList = [];
+
+      for (final roleName in roleNames) {
+        // 获取每个角色的最新一条消息
+        final latestMessages = await dbHelper.getLatestMessagesByRole(roleName, 1);
+        if (latestMessages.isNotEmpty) {
+          // 通过角色名称获取角色信息（包括图片地址）
+          final roleInfo = await _getRoleInfoByName(roleName);
+          if (roleInfo != null) {
+            // 创建Map，key为图片地址，value为最后一条消息
+            final Map<String, ChatMessage> roleMap = {roleInfo['image']: latestMessages.first};
+            rolePlayList.add(roleMap);
+          }
+        }
+      }
+
+      // 按时间戳倒序排列，最新的在前面
+      rolePlayList.sort((a, b) {
+        final messageA = a.values.first;
+        final messageB = b.values.first;
+        return messageB.timestamp.compareTo(messageA.timestamp);
+      });
+
+      debugPrint('getRolePlayList: $rolePlayList');
+      return rolePlayList;
+    } catch (e) {
+      debugPrint('getRolePlayList 失败: $e');
+      return [];
+    }
+  }
+
+  /// 通过角色名称获取角色信息
+  static Future<Map<String, dynamic>?> _getRoleInfoByName(String roleName) async {
+    try {
+      final dbHelper = DatabaseHelper();
+      final db = await dbHelper.database;
+      final List<Map<String, dynamic>> maps = await db.query('roles', where: 'name = ?', whereArgs: [roleName], limit: 1);
+
+      if (maps.isNotEmpty) {
+        return maps.first;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('获取角色信息失败: $e');
+      return null;
+    }
   }
 }
