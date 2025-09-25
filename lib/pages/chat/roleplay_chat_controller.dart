@@ -89,8 +89,8 @@ class RolePlayChatController extends GetxController {
     final stateManager = ChatStateManager();
     stateManager.getMessages(roleName.value).clear();
 
-    // 清空模型状态
-    await modelService.clearStates();
+    // // 清空模型状态
+    // await modelService.clearStates();
   }
 
   // 停止生成 - 委托给模型服务

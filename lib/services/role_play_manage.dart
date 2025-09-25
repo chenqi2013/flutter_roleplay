@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/language_service.dart';
@@ -126,7 +127,7 @@ class RoleplayManage {
   }
 
   /// 一个打开对话的接口
-  static void goRolePlay(
+  static Widget goRolePlay(
     String roleName,
     BuildContext context, {
     VoidCallback? onModelDownloadRequired,
@@ -148,13 +149,20 @@ class RoleplayManage {
 
     // 直接返回RolePlayChat页面，不创建新的MaterialApp
     // 让宿主应用的导航栈管理所有页面
-    return RolePlayChat();
     debugPrint('goRolePlay: $roleName');
+    return RolePlayChat();
   }
 
   /// 一个删除对话的接口
   static void deleteRolePlay(String roleName) {
     debugPrint('deleteRolePlay: $roleName');
+    RolePlayChatController controller;
+    if (Get.isRegistered<RolePlayChatController>()) {
+      controller = Get.find<RolePlayChatController>();
+    } else {
+      controller = Get.put(RolePlayChatController());
+    }
+    controller.clearChatHistoryFromDatabase(roleName);
   }
 
   ///更新角色记录
