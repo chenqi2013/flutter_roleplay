@@ -41,6 +41,9 @@ class _RolePlayChatState extends State<RolePlayChat>
   // 防止重复角色切换的标志
   bool _isPageSwitching = false;
 
+  // 防止初始化时触发角色切换监听器
+  bool _isInitializingRole = false;
+
   List<ChatMessage> get _messages {
     final messages = _stateManager.getMessages(roleName.value);
     return messages;
@@ -80,7 +83,7 @@ class _RolePlayChatState extends State<RolePlayChat>
 
     // 监听角色切换，同步PageView位置并加载聊天历史
     ever(roleName, (String newRoleName) {
-      if (newRoleName.isNotEmpty) {
+      if (newRoleName.isNotEmpty && !_isInitializingRole) {
         debugPrint('角色切换到: $newRoleName，加载聊天历史');
         // 加载新角色的聊天历史
         _loadChatHistory();
@@ -176,6 +179,12 @@ class _RolePlayChatState extends State<RolePlayChat>
   /// 设置特定角色的完整信息
   Future<void> _setSpecificRole(String targetRoleName) async {
     try {
+      // 检查组件是否仍然挂载
+      if (!mounted) {
+        debugPrint('组件已销毁，跳过角色设置');
+        return;
+      }
+
       final dbHelper = DatabaseHelper();
       final localRoles = await dbHelper.getRoles();
       final matchedRole = localRoles
@@ -187,11 +196,17 @@ class _RolePlayChatState extends State<RolePlayChat>
         debugPrint('  - 角色描述: ${matchedRole.description}');
         debugPrint('  - 角色图片: ${matchedRole.image}');
 
+        // 设置初始化标志，避免触发角色切换监听器
+        _isInitializingRole = true;
+
         // 设置角色的所有信息
         roleName.value = matchedRole.name;
         roleDescription.value = matchedRole.description;
         roleImage.value = matchedRole.image;
         roleLanguage.value = matchedRole.language;
+
+        // 重置初始化标志
+        _isInitializingRole = false;
 
         // 将角色添加到usedRoles列表中
         final roleMap = matchedRole.toMap();
@@ -258,6 +273,12 @@ class _RolePlayChatState extends State<RolePlayChat>
   Future<void> _loadChatHistory() async {
     if (roleName.value.isEmpty) {
       debugPrint('_loadChatHistory: roleName为空，跳过加载');
+      return;
+    }
+
+    // 检查组件是否仍然挂载
+    if (!mounted) {
+      debugPrint('_loadChatHistory: 组件已销毁，跳过加载');
       return;
     }
 
