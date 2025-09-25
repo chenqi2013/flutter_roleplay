@@ -157,7 +157,7 @@ class RoleplayManage {
   }
 
   /// 一个删除对话的接口
-  static void deleteRolePlaySession(String roleName) {
+  static Future<void> deleteRolePlaySession(String roleName) async {
     debugPrint('deleteRolePlaySession: $roleName');
     RolePlayChatController controller;
     if (Get.isRegistered<RolePlayChatController>()) {
@@ -165,7 +165,7 @@ class RoleplayManage {
     } else {
       controller = Get.put(RolePlayChatController());
     }
-    controller.clearChatHistoryFromDatabase(roleName);
+    return await controller.clearChatHistoryFromDatabase(roleName);
   }
 
   ///更新角色记录
