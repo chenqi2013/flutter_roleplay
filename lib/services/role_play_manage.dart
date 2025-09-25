@@ -19,6 +19,7 @@ class RoleplayManage {
     BuildContext context, {
     VoidCallback? onModelDownloadRequired,
     Function(ModelInfo?)? changeModelCallback,
+    VoidCallback? onUpdateRolePlaySessionRequired,
   }) {
     currentContext = context;
 
@@ -27,6 +28,9 @@ class RoleplayManage {
 
     // 设置全局模型切换回调
     setGlobalModelChangeCallback(changeModelCallback);
+
+    // 设置全局角色会话更新回调
+    setGlobalUpdateRolePlaySessionCallback(onUpdateRolePlaySessionRequired);
 
     // 初始化语言服务
     _initializeLanguageService();
@@ -134,12 +138,15 @@ class RoleplayManage {
     String roleName,
     BuildContext context, {
     VoidCallback? onModelDownloadRequired,
+    VoidCallback? onUpdateRolePlaySessionRequired,
     Function(ModelInfo?)? changeModelCallback,
   }) {
     currentContext = context;
 
     // 设置全局模型下载回调
     setGlobalModelDownloadCallback(onModelDownloadRequired);
+
+    setGlobalUpdateRolePlaySessionCallback(onUpdateRolePlaySessionRequired);
 
     // 设置全局模型切换回调
     setGlobalModelChangeCallback(changeModelCallback);

@@ -561,6 +561,7 @@ class _RolePlayChatState extends State<RolePlayChat>
         if (_controller != null && _controller!.isGenerating.value) {
           _controller!.stop();
         }
+        notifyUpdateRolePlaySessionRequired();
         Navigator.of(currentContext!).pop();
       },
       onClearHistory: () async {
