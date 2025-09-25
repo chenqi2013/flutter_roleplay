@@ -36,6 +36,7 @@ class RoleplayManage {
 
     // 直接返回RolePlayChat页面，不创建新的MaterialApp
     // 让宿主应用的导航栈管理所有页面
+
     return RolePlayChat();
   }
 
@@ -152,7 +153,7 @@ class RoleplayManage {
     // 直接返回RolePlayChat页面，不创建新的MaterialApp
     // 让宿主应用的导航栈管理所有页面
     debugPrint('goRolePlay: $roleName');
-    return RolePlayChat();
+    return RolePlayChat(roleName: roleName);
   }
 
   /// 一个删除对话的接口
@@ -183,13 +184,18 @@ class RoleplayManage {
 
       for (final roleName in roleNames) {
         // 获取每个角色的最新一条消息
-        final latestMessages = await dbHelper.getLatestMessagesByRole(roleName, 1);
+        final latestMessages = await dbHelper.getLatestMessagesByRole(
+          roleName,
+          1,
+        );
         if (latestMessages.isNotEmpty) {
           // 通过角色名称获取角色信息（包括图片地址）
           final roleInfo = await _getRoleInfoByName(roleName);
           if (roleInfo != null) {
             // 创建Map，key为图片地址，value为最后一条消息
-            final Map<String, ChatMessage> roleMap = {roleInfo['image']: latestMessages.first};
+            final Map<String, ChatMessage> roleMap = {
+              roleInfo['image']: latestMessages.first,
+            };
             rolePlayList.add(roleMap);
           }
         }
@@ -211,11 +217,18 @@ class RoleplayManage {
   }
 
   /// 通过角色名称获取角色信息
-  static Future<Map<String, dynamic>?> _getRoleInfoByName(String roleName) async {
+  static Future<Map<String, dynamic>?> _getRoleInfoByName(
+    String roleName,
+  ) async {
     try {
       final dbHelper = DatabaseHelper();
       final db = await dbHelper.database;
-      final List<Map<String, dynamic>> maps = await db.query('roles', where: 'name = ?', whereArgs: [roleName], limit: 1);
+      final List<Map<String, dynamic>> maps = await db.query(
+        'roles',
+        where: 'name = ?',
+        whereArgs: [roleName],
+        limit: 1,
+      );
 
       if (maps.isNotEmpty) {
         return maps.first;

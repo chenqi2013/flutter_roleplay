@@ -97,7 +97,7 @@ class HomePage extends StatelessWidget {
                       // 综合
                       _Section(title: '综合功能', sub: '这里是综合相关的功能和内容'),
                       // 精选
-                      const RolePlayChat(),
+                      RolePlayChat(),
                     ],
                   ),
                 ),

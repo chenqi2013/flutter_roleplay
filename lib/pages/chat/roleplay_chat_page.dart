@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
+import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -20,8 +21,8 @@ import 'package:flutter_roleplay/pages/roles/roles_list_page.dart';
 import 'package:flutter_roleplay/pages/params/role_params_page.dart';
 
 class RolePlayChat extends StatefulWidget {
-  const RolePlayChat({super.key});
-
+  const RolePlayChat({super.key, this.roleName});
+  final String? roleName;
   @override
   State<RolePlayChat> createState() => _RolePlayChatState();
 }
@@ -146,18 +147,81 @@ class _RolePlayChatState extends State<RolePlayChat>
     // 使用 addPostFrameCallback 确保UI先渲染
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        await CommonUtil.initializeDefaultRole();
-        debugPrint('默认角色初始化完成，当前角色: ${roleName.value}');
+        // 如果传入了特定的roleName，则直接设置该角色
+        if (widget.roleName != null && widget.roleName!.isNotEmpty) {
+          debugPrint('设置特定角色: ${widget.roleName}');
 
-        // 初始化完成后立即加载聊天历史
-        if (roleName.value.isNotEmpty) {
-          debugPrint('默认角色初始化后加载聊天历史');
+          // 从数据库查找角色的完整信息并设置
+          await _setSpecificRole(widget.roleName!);
+
+          // 加载该角色的聊天历史
           await _loadChatHistory();
+        } else {
+          // 否则使用默认角色初始化逻辑
+          await CommonUtil.initializeDefaultRole();
+          debugPrint('默认角色初始化完成，当前角色: ${roleName.value}');
+
+          // 初始化完成后立即加载聊天历史
+          if (roleName.value.isNotEmpty) {
+            debugPrint('默认角色初始化后加载聊天历史');
+            await _loadChatHistory();
+          }
         }
       } catch (e) {
-        debugPrint('默认角色初始化失败: $e');
+        debugPrint('角色初始化失败: $e');
       }
     });
+  }
+
+  /// 设置特定角色的完整信息
+  Future<void> _setSpecificRole(String targetRoleName) async {
+    try {
+      final dbHelper = DatabaseHelper();
+      final localRoles = await dbHelper.getRoles();
+      final matchedRole = localRoles
+          .where((role) => role.name == targetRoleName)
+          .firstOrNull;
+
+      if (matchedRole != null) {
+        debugPrint('找到角色信息: ${matchedRole.name}');
+        debugPrint('  - 角色描述: ${matchedRole.description}');
+        debugPrint('  - 角色图片: ${matchedRole.image}');
+
+        // 设置角色的所有信息
+        roleName.value = matchedRole.name;
+        roleDescription.value = matchedRole.description;
+        roleImage.value = matchedRole.image;
+        roleLanguage.value = matchedRole.language;
+
+        // 将角色添加到usedRoles列表中
+        final roleMap = matchedRole.toMap();
+
+        // 检查角色是否已经在列表中
+        final existingIndex = usedRoles.indexWhere(
+          (usedRole) => usedRole['name'] == targetRoleName,
+        );
+
+        if (existingIndex == -1) {
+          // 如果角色不在列表中，添加到末尾
+          usedRoles.add(Map<String, dynamic>.from(roleMap));
+          debugPrint('角色已添加到usedRoles列表');
+        } else {
+          // 如果角色已存在，更新其信息
+          usedRoles[existingIndex] = Map<String, dynamic>.from(roleMap);
+          debugPrint('角色信息已更新在usedRoles列表中');
+        }
+
+        debugPrint('特定角色设置完成: ${roleName.value}');
+      } else {
+        debugPrint('未找到角色信息: $targetRoleName');
+        // 如果找不到角色，使用默认初始化
+        await CommonUtil.initializeDefaultRole();
+      }
+    } catch (e) {
+      debugPrint('设置特定角色失败: $e');
+      // 如果出错，使用默认初始化
+      await CommonUtil.initializeDefaultRole();
+    }
   }
 
   void _initializeController() {
