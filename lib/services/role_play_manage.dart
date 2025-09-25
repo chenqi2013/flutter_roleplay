@@ -124,4 +124,46 @@ class RoleplayManage {
     _isInitialized = false;
     debugPrint('插件状态已重置');
   }
+
+  /// 一个打开对话的接口
+  static void goRolePlay(
+    String roleName,
+    BuildContext context, {
+    VoidCallback? onModelDownloadRequired,
+    Function(ModelInfo?)? changeModelCallback,
+  }) {
+    currentContext = context;
+
+    // 设置全局模型下载回调
+    setGlobalModelDownloadCallback(onModelDownloadRequired);
+
+    // 设置全局模型切换回调
+    setGlobalModelChangeCallback(changeModelCallback);
+
+    // 初始化语言服务
+    _initializeLanguageService();
+
+    // 初始化图片缓存系统
+    _initializeImageCache();
+
+    // 直接返回RolePlayChat页面，不创建新的MaterialApp
+    // 让宿主应用的导航栈管理所有页面
+    return RolePlayChat();
+    debugPrint('goRolePlay: $roleName');
+  }
+
+  /// 一个删除对话的接口
+  static void deleteRolePlay(String roleName) {
+    debugPrint('deleteRolePlay: $roleName');
+  }
+
+  ///更新角色记录
+  static void updateRolePlay(String roleName) {
+    debugPrint('updateRolePlay: $roleName');
+  }
+
+  /// 一个获取对话列表的接口
+  static void getRolePlayList() {
+    debugPrint('getRolePlayList');
+  }
 }
