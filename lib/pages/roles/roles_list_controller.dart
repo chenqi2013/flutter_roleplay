@@ -230,6 +230,9 @@ class RolesListController extends GetxController {
       // 从内存列表中移除
       roles.removeWhere((r) => r.id == role.id);
 
+      // 更新过滤列表
+      _filterRoles();
+
       // 从 usedRoles 列表中移除（如果存在）
       usedRoles.removeWhere((r) => r['name'] == role.name);
 
