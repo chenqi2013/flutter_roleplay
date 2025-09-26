@@ -363,7 +363,9 @@ class ChatPageBuilders {
   /// 清空内存中的组件缓存（强制重新构建图片组件）
   static void clearMemoryCache() {
     debugPrint('ChatPageBuilders: 清空内存组件缓存，缓存数量: ${_imageCache.length}');
+    debugPrint('ChatPageBuilders: 清空文件缓存映射，映射数量: ${_imageFileCache.length}');
     _imageCache.clear();
+    _imageFileCache.clear();
   }
 
   /// 清空特定图片的组件缓存

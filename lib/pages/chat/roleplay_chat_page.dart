@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
+import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -12,7 +13,6 @@ import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/dialog/chat_dialogs.dart';
-import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:flutter_roleplay/widgets/global_input_bar.dart';
 import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
 import 'package:flutter_roleplay/mixins/scroll_management_mixin.dart';
@@ -44,6 +44,9 @@ class _RolePlayChatState extends State<RolePlayChat>
   // 防止初始化时触发角色切换监听器
   bool _isInitializingRole = false;
 
+  // 防止组件销毁后继续执行操作
+  bool _isDisposed = false;
+
   List<ChatMessage> get _messages {
     final messages = _stateManager.getMessages(roleName.value);
     return messages;
@@ -73,7 +76,7 @@ class _RolePlayChatState extends State<RolePlayChat>
 
     // 监听角色信息变化，当角色信息更新时自动清空聊天记录
     ever(roleDescription, (String newDesc) {
-      if (_messages.isNotEmpty) {
+      if (_messages.isNotEmpty && !_isDisposed && mounted) {
         setState(() {
           _messages.clear();
         });
@@ -81,33 +84,33 @@ class _RolePlayChatState extends State<RolePlayChat>
       }
     });
 
-    // 监听角色切换，同步PageView位置并加载聊天历史
-    ever(roleName, (String newRoleName) {
-      if (newRoleName.isNotEmpty && !_isInitializingRole) {
-        debugPrint('角色切换到: $newRoleName，加载聊天历史');
-        // 加载新角色的聊天历史
-        _loadChatHistory();
+    // // 监听角色切换，同步PageView位置并加载聊天历史
+    // ever(roleName, (String newRoleName) {
+    //   if (newRoleName.isNotEmpty && !_isInitializingRole && !_isDisposed) {
+    //     debugPrint('角色切换到: $newRoleName，加载聊天历史');
+    //     // 加载新角色的聊天历史
+    //     _loadChatHistory();
 
-        // 只有当不是由PageView滑动触发的切换时，才同步PageView位置
-        if (usedRoles.isNotEmpty && !_isPageSwitching) {
-          final index = usedRoles.indexWhere(
-            (role) => role['name'] == newRoleName,
-          );
-          if (index != -1 && _pageController.hasClients) {
-            // 检查当前页面是否已经是目标页面，避免不必要的动画
-            final currentPage = _pageController.page?.round() ?? 0;
-            if (currentPage != index) {
-              debugPrint('同步PageView到角色: $newRoleName (页面 $index)');
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            }
-          }
-        }
-      }
-    });
+    //     // 只有当不是由PageView滑动触发的切换时，才同步PageView位置
+    //     if (usedRoles.isNotEmpty && !_isPageSwitching) {
+    //       final index = usedRoles.indexWhere(
+    //         (role) => role['name'] == newRoleName,
+    //       );
+    //       if (index != -1 && _pageController.hasClients) {
+    //         // 检查当前页面是否已经是目标页面，避免不必要的动画
+    //         final currentPage = _pageController.page?.round() ?? 0;
+    //         if (currentPage != index) {
+    //           debugPrint('同步PageView到角色: $newRoleName (页面 $index)');
+    //           _pageController.animateToPage(
+    //             index,
+    //             duration: const Duration(milliseconds: 300),
+    //             curve: Curves.easeInOut,
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // });
 
     // 监听 usedRoles 列表变化，如果有新角色添加，跳转到对应页面
     ever(usedRoles, (List<Map<String, dynamic>> newUsedRoles) {
@@ -149,6 +152,12 @@ class _RolePlayChatState extends State<RolePlayChat>
   void _initializeAsync() {
     // 使用 addPostFrameCallback 确保UI先渲染
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 检查组件是否仍然挂载
+      if (!mounted || _isDisposed) {
+        debugPrint('组件已销毁，跳过角色初始化');
+        return;
+      }
+
       try {
         // 如果传入了特定的roleName，则直接设置该角色
         if (widget.roleName != null && widget.roleName!.isNotEmpty) {
@@ -157,12 +166,24 @@ class _RolePlayChatState extends State<RolePlayChat>
           // 从数据库查找角色的完整信息并设置
           await _setSpecificRole(widget.roleName!);
 
+          // 再次检查组件状态
+          if (!mounted || _isDisposed) {
+            debugPrint('组件已销毁，跳过聊天历史加载');
+            return;
+          }
+
           // 加载该角色的聊天历史
           await _loadChatHistory();
         } else {
           // 否则使用默认角色初始化逻辑
           await CommonUtil.initializeDefaultRole();
           debugPrint('默认角色初始化完成，当前角色: ${roleName.value}');
+
+          // 再次检查组件状态
+          if (!mounted || _isDisposed) {
+            debugPrint('组件已销毁，跳过聊天历史加载');
+            return;
+          }
 
           // 初始化完成后立即加载聊天历史
           if (roleName.value.isNotEmpty) {
@@ -196,46 +217,58 @@ class _RolePlayChatState extends State<RolePlayChat>
         debugPrint('  - 角色描述: ${matchedRole.description}');
         debugPrint('  - 角色图片: ${matchedRole.image}');
 
+        // 检查组件是否仍然挂载
+        if (!mounted || _isDisposed) {
+          debugPrint('组件已销毁，跳过角色切换');
+          return;
+        }
+
         // 设置初始化标志，避免触发角色切换监听器
         _isInitializingRole = true;
 
-        // 设置角色的所有信息
+        // 直接设置角色信息，避免使用 CommonUtil.switchToRole 的异步操作
         roleName.value = matchedRole.name;
         roleDescription.value = matchedRole.description;
         roleImage.value = matchedRole.image;
         roleLanguage.value = matchedRole.language;
 
-        // 重置初始化标志
-        _isInitializingRole = false;
+        // 清理图片缓存，确保背景图片能正确更新
+        ChatPageBuilders.clearMemoryCache();
 
         // 将角色添加到usedRoles列表中
         final roleMap = matchedRole.toMap();
+        // final existingIndex = usedRoles.indexWhere(
+        //   (usedRole) => usedRole['name'] == targetRoleName,
+        // );
 
-        // 检查角色是否已经在列表中
-        final existingIndex = usedRoles.indexWhere(
-          (usedRole) => usedRole['name'] == targetRoleName,
-        );
-
-        if (existingIndex == -1) {
-          // 如果角色不在列表中，添加到末尾
+        // if (existingIndex == -1) {
+        // 如果是通过goRolePlay设置的特定角色，清空现有列表并只添加当前角色
+        if (widget.roleName != null && widget.roleName!.isNotEmpty) {
+          usedRoles.clear();
+          usedRoles.add(Map<String, dynamic>.from(roleMap));
+          debugPrint('特定角色模式：清空列表并添加角色 ${matchedRole.name}');
+        } else {
           usedRoles.add(Map<String, dynamic>.from(roleMap));
           debugPrint('角色已添加到usedRoles列表');
-        } else {
-          // 如果角色已存在，更新其信息
-          usedRoles[existingIndex] = Map<String, dynamic>.from(roleMap);
-          debugPrint('角色信息已更新在usedRoles列表中');
         }
+        // } else {
+        //   usedRoles[existingIndex] = Map<String, dynamic>.from(roleMap);
+        //   debugPrint('角色信息已更新在usedRoles列表中');
+        // }
+
+        // 重置初始化标志
+        _isInitializingRole = false;
 
         debugPrint('特定角色设置完成: ${roleName.value}');
       } else {
         debugPrint('未找到角色信息: $targetRoleName');
-        // 如果找不到角色，使用默认初始化
-        await CommonUtil.initializeDefaultRole();
+        // 如果找不到角色，不进行任何操作，避免触发异步操作
+        debugPrint('跳过角色初始化，避免组件销毁后的异步操作');
       }
     } catch (e) {
       debugPrint('设置特定角色失败: $e');
-      // 如果出错，使用默认初始化
-      await CommonUtil.initializeDefaultRole();
+      // 如果出错，不进行任何操作，避免触发异步操作
+      debugPrint('跳过错误处理，避免组件销毁后的异步操作');
     }
   }
 
@@ -257,10 +290,10 @@ class _RolePlayChatState extends State<RolePlayChat>
         _isControllerInitialized = true;
         debugPrint('Controller initialized successfully');
 
-        // 加载聊天历史记录
-        if (roleName.value.isNotEmpty) {
-          _loadChatHistory();
-        }
+        // // 加载聊天历史记录
+        // if (roleName.value.isNotEmpty) {
+        //   _loadChatHistory();
+        // }
       } catch (e) {
         debugPrint('Controller initialization error: $e');
       } finally {
@@ -298,9 +331,11 @@ class _RolePlayChatState extends State<RolePlayChat>
       // 获取最终的消息列表用于调试
       final messages = _stateManager.getMessages(roleName.value);
 
-      setState(() {
-        // 触发UI更新
-      });
+      if (mounted && !_isDisposed) {
+        setState(() {
+          // 触发UI更新
+        });
+      }
       debugPrint(
         'Chat history loaded for role: ${roleName.value}, 消息数量: ${messages.length}',
       );
@@ -338,6 +373,9 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   @override
   void dispose() {
+    // 设置销毁标志，防止后续操作
+    _isDisposed = true;
+
     // 取消流订阅
     _streamSub?.cancel();
     _streamSub = null;
@@ -354,6 +392,7 @@ class _RolePlayChatState extends State<RolePlayChat>
     _pageController.dispose();
     disposeScrollListener();
     super.dispose();
+    debugPrint('RolePlayChat dispose');
   }
 
   // 当页面被遮挡或不可见时取消AI回复
@@ -444,9 +483,11 @@ class _RolePlayChatState extends State<RolePlayChat>
     // 添加AI占位消息到内存（不保存到数据库，因为内容为空）
     _stateManager.getMessages(roleName.value).add(aiMessage);
 
-    setState(() {
-      // 触发UI更新
-    });
+    if (mounted && !_isDisposed) {
+      setState(() {
+        // 触发UI更新
+      });
+    }
 
     scrollToBottom();
 
@@ -464,9 +505,11 @@ class _RolePlayChatState extends State<RolePlayChat>
                 updatedMessage,
               );
 
-              setState(() {
-                // 触发UI更新
-              });
+              if (mounted && !_isDisposed) {
+                setState(() {
+                  // 触发UI更新
+                });
+              }
 
               // 关键修改：只有在用户没有滑动时才自动滚动
               if (!isUserScrolling) {
@@ -485,9 +528,11 @@ class _RolePlayChatState extends State<RolePlayChat>
               );
               _stateManager.updateLastMessage(roleName.value, updatedMessage);
 
-              setState(() {
-                // 触发UI更新
-              });
+              if (mounted && !_isDisposed) {
+                setState(() {
+                  // 触发UI更新
+                });
+              }
 
               // 错误时也检查用户是否在滑动
               if (!isUserScrolling) {
@@ -587,7 +632,9 @@ class _RolePlayChatState extends State<RolePlayChat>
       },
       onClearHistory: () async {
         await _controller?.clearAllChatHistory();
-        setState(() {});
+        if (mounted && !_isDisposed) {
+          setState(() {});
+        }
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -729,8 +776,8 @@ class _RolePlayChatState extends State<RolePlayChat>
           chatScaffold: _buildChatScaffold(),
         );
       } else {
-        // 检查当前角色位置并同步 PageController
-        _syncPageController(roles);
+        // // 检查当前角色位置并同步 PageController
+        // _syncPageController(roles);
 
         return ChatPageBuilders.buildSwipeableChatPages(
           pageController: _pageController,
