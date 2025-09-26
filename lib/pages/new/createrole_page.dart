@@ -12,6 +12,10 @@ class CreateRolePage extends GetView<CreateRoleController> {
 
   @override
   Widget build(BuildContext context) {
+    // 删除旧的控制器实例（如果存在）
+    if (Get.isRegistered<CreateRoleController>()) {
+      Get.delete<CreateRoleController>();
+    }
     Get.put(CreateRoleController(editRole: editRole));
     final EdgeInsets safe = MediaQuery.of(context).padding;
     return Theme(
