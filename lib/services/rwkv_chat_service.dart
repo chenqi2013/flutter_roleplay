@@ -112,15 +112,26 @@ class RWKVChatService extends GetxController {
     setGlobalModelDownloadCompleteCallback((ModelInfo? info) async {
       debugPrint('modelDownloadCompleteCallback: ${info?.toString()}');
       if (controller?.modelInfo != null &&
-          controller?.modelInfo?.modelPath != info?.modelPath) {
+          await CommonUtil.getFileDocumentPath(
+                controller!.modelInfo!.modelPath,
+              ) !=
+              await CommonUtil.getFileDocumentPath(info!.modelPath)) {
         debugPrint('切换了模型');
         loadChatModel();
       } else if (controller?.modelInfo != null &&
-          controller?.modelInfo?.modelPath == info?.modelPath &&
-          controller?.modelInfo?.statePath != info?.statePath) {
+          await CommonUtil.getFileDocumentPath(
+                controller!.modelInfo!.modelPath,
+              ) ==
+              await CommonUtil.getFileDocumentPath(info!.modelPath) &&
+          await CommonUtil.getFileDocumentPath(
+                controller.modelInfo!.statePath,
+              ) !=
+              await CommonUtil.getFileDocumentPath(info.statePath)) {
         ///仅仅切换了state文件
         debugPrint('仅仅切换了state文件');
-        changeStatesFile(statePath: info?.statePath);
+        changeStatesFile(
+          statePath: await CommonUtil.getFileDocumentPath(info.statePath),
+        );
       } else {
         debugPrint('第一次下载，切换了模型');
         controller?.modelInfo = info;
@@ -154,7 +165,10 @@ class RWKVChatService extends GetxController {
 
     // 检查是否需要下载模型
     if (modelInfo != null &&
-        await checkDownloadFile(modelInfo.modelPath, isLocalFilePath: true)) {
+        await checkDownloadFile(
+          await CommonUtil.getFileDocumentPath(modelInfo.modelPath),
+          isLocalFilePath: true,
+        )) {
       loadChatModel();
     } else {
       debugPrint('模型不存在，通知外部下载模型');
@@ -191,9 +205,12 @@ class RWKVChatService extends GetxController {
         modelInfo = await databaseHelper.getActiveModelInfo();
         debugPrint('从数据库获取modelInfo: ${modelInfo?.toString()}');
       }
-      if (modelInfo != null && File(modelInfo.modelPath).existsSync()) {
-        modelPath = modelInfo.modelPath;
-        statePath = modelInfo.statePath;
+      if (modelInfo != null &&
+          File(
+            await CommonUtil.getFileDocumentPath(modelInfo.modelPath),
+          ).existsSync()) {
+        modelPath = await CommonUtil.getFileDocumentPath(modelInfo.modelPath);
+        statePath = await CommonUtil.getFileDocumentPath(modelInfo.statePath);
         backend = modelInfo.backend;
       } else {
         // // 如果数据库中没有有效的模型信息，使用默认方式获取路径
@@ -508,7 +525,9 @@ class RWKVChatService extends GetxController {
         backend = modelInfo.backend;
 
         // 检查模型文件是否存在
-        if (File(modelInfo.modelPath).existsSync()) {
+        if (File(
+          await CommonUtil.getFileDocumentPath(modelInfo.modelPath),
+        ).existsSync()) {
           debugPrint('本地模型文件存在，可以直接加载: ${modelInfo.modelPath}');
           // 如果本地文件存在，直接返回，跳过下载检查
           return modelInfo;

@@ -5,10 +5,10 @@ class ModelInfo {
   final String id;
 
   /// 本地模型路径
-  final String modelPath;
+  String modelPath;
 
   /// 本地state文件路径
-  final String statePath;
+  String statePath;
 
   /// 后端类型
   final Backend backend;

@@ -257,6 +257,7 @@ class CommonUtil {
       ByteData data;
       try {
         data = await rootBundle.load(assetsPath);
+        debugPrint('fromAssetsToTemp: load $assetsPath');
       } catch (e) {
         // 如果主应用中没有，则从 flutter_roleplay 包中加载
         debugPrint(
@@ -275,5 +276,16 @@ class CommonUtil {
       debugPrint("Error loading asset $assetsPath: $e");
       return "";
     }
+  }
+
+  static Future<String> getFileDocumentPath(String filePath) async {
+    String tempFilePath = filePath;
+    if (Platform.isIOS) {
+      Directory tempDir = await getApplicationDocumentsDirectory();
+      var tempDirPath = tempDir.path;
+      var name = Uri.parse(filePath).pathSegments.last;
+      tempFilePath = '$tempDirPath${Platform.pathSeparator}$name';
+    }
+    return tempFilePath;
   }
 }
