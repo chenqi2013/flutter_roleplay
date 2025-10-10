@@ -224,18 +224,45 @@ class CommonUtil {
     }
   }
 
-  // 同步加载聊天历史记录
+  // 同步加载聊天历史记录（支持消息分叉）
   static void _loadChatHistorySync(
     String roleName,
     RolePlayChatController? controller,
   ) {
     Future.microtask(() async {
       try {
-        final chatStateManager = ChatStateManager();
-        await chatStateManager.loadMessagesFromDatabase(roleName);
+        debugPrint('_loadChatHistorySync: 开始为角色 $roleName 加载聊天历史（支持分支）');
+
+        if (controller != null) {
+          // 使用控制器的新分支加载方法
+          await controller.loadChatHistoryWithBranches(roleName);
+          final messages = ChatStateManager().getMessages(roleName);
+          debugPrint('_loadChatHistorySync: 分支历史加载完成，消息数量: ${messages.length}');
+        } else {
+          // 控制器未初始化，使用传统加载方式
+          debugPrint('_loadChatHistorySync: 控制器未初始化，使用传统加载方式');
+          final chatStateManager = ChatStateManager();
+          await chatStateManager.loadMessagesFromDatabase(roleName);
+          final messages = chatStateManager.getMessages(roleName);
+          debugPrint('_loadChatHistorySync: 传统加载完成，消息数量: ${messages.length}');
+        }
+
+        // 获取最终的消息列表用于调试
+        final messages = ChatStateManager().getMessages(roleName);
         debugPrint(
-          'Loaded chat history for $roleName, message count: ${chatStateManager.getMessages(roleName).length}',
+          'Chat history loaded for role: $roleName, 消息数量: ${messages.length}',
         );
+
+        // 输出前几条消息内容用于调试
+        if (messages.isNotEmpty) {
+          debugPrint('前几条消息:');
+          for (int i = 0; i < messages.length && i < 3; i++) {
+            final msg = messages[i];
+            debugPrint(
+              '  [$i] ${msg.isUser ? "用户" : "AI"}: ${msg.content.substring(0, msg.content.length > 50 ? 50 : msg.content.length)}...',
+            );
+          }
+        }
 
         // 通知UI更新
         if (Get.isRegistered<RolePlayChatController>()) {
