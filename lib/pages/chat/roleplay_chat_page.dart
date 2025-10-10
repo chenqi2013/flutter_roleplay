@@ -74,15 +74,15 @@ class _RolePlayChatState extends State<RolePlayChat>
     // 初始化滚动管理
     initScrollListener();
 
-    // 监听角色信息变化，当角色信息更新时自动清空聊天记录
-    ever(roleDescription, (String newDesc) {
-      if (_messages.isNotEmpty && !_isDisposed && mounted) {
-        setState(() {
-          _messages.clear();
-        });
-        scrollToBottom();
-      }
-    });
+    // // 监听角色信息变化，当角色信息更新时自动清空聊天记录
+    // ever(roleDescription, (String newDesc) {
+    //   if (_messages.isNotEmpty && !_isDisposed && mounted) {
+    //     setState(() {
+    //       _messages.clear();
+    //     });
+    //     scrollToBottom();
+    //   }
+    // });
 
     // // 监听角色切换，同步PageView位置并加载聊天历史
     // ever(roleName, (String newRoleName) {
@@ -114,7 +114,7 @@ class _RolePlayChatState extends State<RolePlayChat>
 
     // 监听 usedRoles 列表变化，如果有新角色添加，跳转到对应页面
     ever(usedRoles, (List<Map<String, dynamic>> newUsedRoles) {
-      debugPrint('usedRoles 列表变化: ${newUsedRoles.length} 个角色');
+      debugPrint('ever监听到usedRoles列表变化: ${newUsedRoles.length} 个角色');
       if (newUsedRoles.isNotEmpty && _pageController.hasClients) {
         // 延迟执行，确保UI已更新
         WidgetsBinding.instance.addPostFrameCallback((_) {

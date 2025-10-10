@@ -329,10 +329,8 @@ class ChatPageBuilders {
       // 确保缓存目录存在
       await _getImageCacheDir();
 
-      // 清理过期缓存（默认7天）
-      await cleanupExpiredCache();
-
-      debugPrint('ChatPageBuilders: 图片缓存系统初始化完成');
+      // // 清理过期缓存（默认7天）
+      // await cleanupExpiredCache();
     } catch (e) {
       debugPrint('ChatPageBuilders: 初始化图片缓存系统失败: $e');
     }
@@ -510,23 +508,21 @@ class ChatPageBuilders {
     List<Map<String, dynamic>> usedRoles,
   ) {
     return Obx(() {
-      // 找到当前活跃角色的索引
-      final currentRoleIndex = usedRoles.indexWhere(
-        (r) => r['name'] == roleName.value,
-      );
+      // // 找到当前活跃角色的索引
+      // final currentRoleIndex = usedRoles.indexWhere(
+      //   (r) => r['name'] == roleName.value,
+      // );
 
-      // 只有当前活跃的角色页面才使用响应式图片，其他页面使用静态图片
-      final bool isCurrentActivePage = index == currentRoleIndex;
-      final String backgroundImage = isCurrentActivePage
-          ? roleImage.value
-          : role['image'] as String;
+      // // 只有当前活跃的角色页面才使用响应式图片，其他页面使用静态图片
+      // final bool isCurrentActivePage = index == currentRoleIndex;
+      // final String backgroundImage = isCurrentActivePage
+      //     ? roleImage.value
+      //     : role['image'] as String;
 
       return Positioned.fill(
         child: _buildImageWidget(
-          backgroundImage,
-          key: ValueKey(
-            'bg_${index}_${isCurrentActivePage ? 'active' : 'static'}_$backgroundImage',
-          ),
+          roleImage.value,
+          key: ValueKey('bg_${index}_${roleImage.value}'),
         ),
       );
     });
@@ -590,7 +586,7 @@ class ChatPageBuilders {
 
     return _buildAppBar(
       context: context,
-      roleName: displayName,
+      title: displayName,
       onBackPressed: onBackPressed,
       onClearHistory: onClearHistory,
       onNavigateToRolesList: onNavigateToRolesList,
@@ -753,7 +749,7 @@ class ChatPageBuilders {
   /// 构建应用栏
   static PreferredSizeWidget _buildAppBar({
     required BuildContext context,
-    required String roleName,
+    required String title,
     required Function() onBackPressed,
     required Function() onClearHistory,
     required Function() onNavigateToRolesList,
@@ -769,7 +765,7 @@ class ChatPageBuilders {
         onPressed: onBackPressed,
       ),
       title: Text(
-        roleName,
+        roleName.value,
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,

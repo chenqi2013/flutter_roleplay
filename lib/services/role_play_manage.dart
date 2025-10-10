@@ -35,8 +35,8 @@ class RoleplayManage {
     // 初始化语言服务
     _initializeLanguageService();
 
-    // 初始化图片缓存系统
-    _initializeImageCache();
+    // // 初始化图片缓存系统
+    // _initializeImageCache();
 
     // 直接返回RolePlayChat页面，不创建新的MaterialApp
     // 让宿主应用的导航栈管理所有页面
@@ -116,11 +116,9 @@ class RoleplayManage {
 
   /// 初始化图片缓存系统
   static void _initializeImageCache() {
-    debugPrint('RoleplayManage: 初始化图片缓存系统...');
     Future.microtask(() async {
       try {
         await ChatPageBuilders.initializeImageCache();
-        debugPrint('RoleplayManage: 图片缓存系统初始化完成');
       } catch (e) {
         debugPrint('RoleplayManage: 图片缓存系统初始化失败: $e');
       }
