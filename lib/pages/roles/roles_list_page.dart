@@ -331,8 +331,8 @@ class _RoleCardState extends State<_RoleCard> {
                             )
                           : const SizedBox.shrink(),
                     ),
-                    // 自定义角色操作按钮
-                    if (widget.role.isCustom) ...[
+                    // 自定义角色操作按钮（仅在不使用时显示）
+                    if (widget.role.isCustom && !_isRoleInUse()) ...[
                       const SizedBox(width: 8),
                       // 编辑按钮
                       GestureDetector(
@@ -425,6 +425,23 @@ class _RoleCardState extends State<_RoleCard> {
           },
         ) ??
         false;
+  }
+
+  /// 检查角色是否正在使用中
+  bool _isRoleInUse() {
+    // 检查是否是当前角色
+    if (roleName.value == widget.role.name) {
+      return true;
+    }
+
+    // 检查是否在使用过的角色列表中
+    for (var usedRole in usedRoles) {
+      if (usedRole['name'] == widget.role.name) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /// 处理右上角编辑按钮点击
