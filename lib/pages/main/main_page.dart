@@ -10,14 +10,14 @@ import '../other/discover_page.dart';
 import '../other/profile_page.dart';
 
 class MainPage extends GetView<MainPageController> {
-  const MainPage({super.key});
+  MainPage({super.key});
 
   static const double bottomBarHeight = 60.0; // 底部导航高度
   static const double inputBarHeight = 56.0; // 输入框高度
+  final mainController = Get.put(MainPageController());
 
   @override
   Widget build(BuildContext context) {
-    Get.put(MainPageController());
     return Obx(() {
       return Scaffold(
         // 让键盘出现时可以调整布局

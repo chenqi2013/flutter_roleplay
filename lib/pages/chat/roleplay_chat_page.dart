@@ -645,7 +645,7 @@ class _RolePlayChatState extends State<RolePlayChat>
         if (await _checkAndStopAiReply()) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const RolesListPage()),
+            MaterialPageRoute(builder: (context) => RolesListPage()),
           );
         }
       },
@@ -665,7 +665,7 @@ class _RolePlayChatState extends State<RolePlayChat>
         if (await _checkAndStopAiReply()) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const RoleParamsPage()),
+            MaterialPageRoute(builder: (context) => RoleParamsPage()),
           );
         }
       },
@@ -683,7 +683,7 @@ class _RolePlayChatState extends State<RolePlayChat>
           if (await _checkAndStopAiReply()) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const RolesListPage()),
+              MaterialPageRoute(builder: (context) => RolesListPage()),
             );
           }
         },

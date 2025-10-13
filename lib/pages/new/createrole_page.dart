@@ -15,6 +15,9 @@ class CreateRolePage extends GetView<CreateRoleController> {
     // 删除旧的控制器实例（如果存在）
     if (Get.isRegistered<CreateRoleController>()) {
       Get.delete<CreateRoleController>();
+      debugPrint('CreateRoleController已删除');
+    } else {
+      debugPrint('CreateRoleController未删除');
     }
     Get.put(CreateRoleController(editRole: editRole));
     final EdgeInsets safe = MediaQuery.of(context).padding;

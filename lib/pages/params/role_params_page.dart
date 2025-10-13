@@ -6,11 +6,11 @@ import 'package:get/get.dart';
 import 'role_params_controller.dart';
 
 class RoleParamsPage extends StatelessWidget {
-  const RoleParamsPage({super.key});
+  RoleParamsPage({super.key});
+  final controller = Get.put(RoleParamsController());
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(RoleParamsController());
     final EdgeInsets safe = MediaQuery.of(context).padding;
 
     return Theme(
