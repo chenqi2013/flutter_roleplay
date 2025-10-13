@@ -5,16 +5,15 @@ import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
 
-class RolesListPage extends GetView<RolesListController> {
+class RolesListPage extends StatelessWidget {
   RolesListPage({super.key});
-  // 确保 Controller 被注册
   final controller = Get.put(RolesListController());
   @override
   Widget build(BuildContext context) {
-    // 每次进入页面时刷新角色列表，确保显示最新的角色数据
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.loadRoles();
-    });
+    // // 每次进入页面时刷新角色列表，确保显示最新的角色数据
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   controller.loadRoles();
+    // });
     return Scaffold(
       appBar: AppBar(
         title: Text('roles_list_title'.tr),

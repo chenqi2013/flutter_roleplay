@@ -5,21 +5,18 @@ import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:get/get.dart';
 import 'createrole_controller.dart';
 
-class CreateRolePage extends GetView<CreateRoleController> {
+class CreateRolePage extends StatelessWidget {
   final RoleModel? editRole;
 
-  const CreateRolePage({super.key, this.editRole});
-
+  CreateRolePage({super.key, this.editRole});
+  bool isInit = false;
+  final controller = Get.put(CreateRoleController());
   @override
   Widget build(BuildContext context) {
-    // 删除旧的控制器实例（如果存在）
-    if (Get.isRegistered<CreateRoleController>()) {
-      Get.delete<CreateRoleController>();
-      debugPrint('CreateRoleController已删除');
-    } else {
-      debugPrint('CreateRoleController未删除');
+    if (!isInit) {
+      isInit = true;
+      controller.updateEditRole(editRole);
     }
-    Get.put(CreateRoleController(editRole: editRole));
     final EdgeInsets safe = MediaQuery.of(context).padding;
     return Theme(
       data: darkTheme,

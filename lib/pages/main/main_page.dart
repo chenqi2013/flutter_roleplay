@@ -108,9 +108,7 @@ class MainPage extends GetView<MainPageController> {
                 index: 1,
                 controller: controller,
               ),
-              _CenterAddButton(
-                onTap: () => Get.to(() => const CreateRolePage()),
-              ),
+              _CenterAddButton(onTap: () => Get.to(() => CreateRolePage())),
               _BottomTab(
                 icon: Icons.explore_outlined,
                 activeIcon: Icons.explore,

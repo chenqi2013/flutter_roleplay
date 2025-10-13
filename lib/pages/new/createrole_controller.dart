@@ -11,7 +11,36 @@ import 'package:path/path.dart' as path;
 import '../../constant/constant.dart';
 
 class CreateRoleController extends GetxController {
-  final RoleModel? editRole;
+  RoleModel? editRole;
+
+  CreateRoleController({this.editRole});
+
+  /// 更新编辑角色（用于编辑不同角色时）
+  void updateEditRole(RoleModel? newEditRole) {
+    debugPrint('CreateRoleController: updateEditRole=${newEditRole?.name}');
+    editRole = newEditRole;
+    // 更新控制器数据
+    if (newEditRole != null) {
+      nameController.text = newEditRole.name;
+      descController.text = newEditRole.description;
+      selectedLanguage.value = newEditRole.language;
+
+      // 如果有图片，设置图片URL
+      if (newEditRole.image.isNotEmpty) {
+        imageUrl.value = newEditRole.image;
+      } else {
+        imageUrl.value = '';
+      }
+    } else {
+      // 创建模式：输入框初始化为空
+      nameController.text = '';
+      descController.text = '';
+      imageUrl.value = '';
+    }
+
+    descLength.value = descController.text.characters.length;
+    _recomputeCanSubmit();
+  }
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descController = TextEditingController();
@@ -28,30 +57,10 @@ class CreateRoleController extends GetxController {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final ImagePicker _imagePicker = ImagePicker();
 
-  CreateRoleController({this.editRole});
-
   @override
   void onInit() {
     super.onInit();
-
-    // 如果是编辑模式，初始化数据
-    if (editRole != null) {
-      nameController.text = editRole!.name;
-      descController.text = editRole!.description;
-      selectedLanguage.value = editRole!.language;
-
-      // 如果有图片，设置图片URL
-      if (editRole!.image.isNotEmpty) {
-        imageUrl.value = editRole!.image;
-      }
-    } else {
-      // 创建模式：输入框初始化为空
-      nameController.text = '';
-      descController.text = '';
-    }
-
-    descLength.value = descController.text.characters.length;
-    _recomputeCanSubmit();
+    debugPrint('CreateRoleController onInit: editRole=${editRole?.name}');
 
     nameController.addListener(_recomputeCanSubmit);
     descController.addListener(() {
