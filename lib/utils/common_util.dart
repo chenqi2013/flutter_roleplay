@@ -315,4 +315,11 @@ class CommonUtil {
     }
     return tempFilePath;
   }
+
+  static Future<String> getFilePath(String name) async {
+    Directory tempDir = await getApplicationDocumentsDirectory();
+    var tempDirPath = tempDir.path;
+    var tempFilePath = '$tempDirPath${Platform.pathSeparator}$name';
+    return tempFilePath;
+  }
 }

@@ -46,6 +46,7 @@ class RWKVChatService extends GetxController {
   Function(String)? _onMessageGenerated;
   Function()? _onGenerationComplete;
   RolePlayChatController? _controller;
+  var history = <String>[];
   @override
   void onInit() async {
     super.onInit();
@@ -291,6 +292,12 @@ class RWKVChatService extends GetxController {
     }
     // send(to_rwkv.GetLatestRuntimeAddress()); // 已弃用
 
+    ///加载角色缓存state
+    String stateLoadPath = await CommonUtil.getFilePath(
+      '${roleName.value}.cache',
+    );
+    send(to_rwkv.LoadRuntimeStateToMemory(stateLoadPath: stateLoadPath));
+
     _setupModelParameters();
   }
 
@@ -457,7 +464,8 @@ class RWKVChatService extends GetxController {
     debugPrint(
       'Current messages count for ${roleName.value}: ${messages.length}',
     );
-    var history = <String>[];
+    // var history = <String>[];
+    history.clear();
     for (var message in messages) {
       var text = message.content;
       if (text.isNotEmpty) {
@@ -466,6 +474,12 @@ class RWKVChatService extends GetxController {
     }
     debugPrint("to_rwkv.history: $history");
     send(to_rwkv.ChatAsync(history, reasoning: false));
+    send(
+      to_rwkv.SaveRuntimeStateByHistory(
+        messages: history,
+        stateSavePath: await CommonUtil.getFilePath('${roleName.value}.cache'),
+      ),
+    );
     debugPrint('Sent ChatAsync to RWKV');
 
     if (_getTokensTimer != null) {
