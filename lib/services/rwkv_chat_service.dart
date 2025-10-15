@@ -66,7 +66,7 @@ class RWKVChatService extends GetxController {
 
   /// 设置接收端口监听器
   void _setupReceivePortListener() {
-    _receivePort.listen((message) {
+    _receivePort.listen((message) async {
       if (message is SendPort) {
         _sendPort = message;
         debugPrint("receive SendPort: $message");
@@ -88,6 +88,17 @@ class RWKVChatService extends GetxController {
             debugPrint('receive IsGenerating: $generating');
             isNeedSaveAiMessage = false;
             _onGenerationComplete?.call();
+            send(
+              to_rwkv.SaveRuntimeStateByHistory(
+                messages: history,
+                stateSavePath: await CommonUtil.getFilePath(
+                  '${roleName.value}.cache',
+                ),
+              ),
+            );
+            debugPrint(
+              '保存角色缓存state: ${await CommonUtil.getFilePath('${roleName.value}.cache')}',
+            );
             if (_getTokensTimer != null) {
               _getTokensTimer!.cancel();
             }
@@ -290,13 +301,13 @@ class RWKVChatService extends GetxController {
     if (rmpack != null) {
       send(to_rwkv.LoadInitialStates(rmpack!));
     }
-    // send(to_rwkv.GetLatestRuntimeAddress()); // 已弃用
 
     ///加载角色缓存state
     String stateLoadPath = await CommonUtil.getFilePath(
       '${roleName.value}.cache',
     );
     send(to_rwkv.LoadRuntimeStateToMemory(stateLoadPath: stateLoadPath));
+    debugPrint('加载角色缓存state: $stateLoadPath');
 
     _setupModelParameters();
   }
@@ -375,16 +386,23 @@ class RWKVChatService extends GetxController {
 
     ///切换角色需要clearstate，否则聊天内容会是上一次的角色的。
     // send(to_rwkv.ClearStates());
-    debugPrint('ClearStates() 11');
     // if (statePath != null) {
     //   rmpack = statePath;
     // }
     // if (rmpack != null) {
     //   send(to_rwkv.LoadInitialStates(rmpack!));
     // }
+
+    ///加载角色缓存state
+    String stateLoadPath = await CommonUtil.getFilePath(
+      '${roleName.value}.cache',
+    );
+    send(to_rwkv.LoadRuntimeStateToMemory(stateLoadPath: stateLoadPath));
+    debugPrint('加载角色缓存state: $stateLoadPath');
+
     final prompt =
         "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
-    debugPrint('set prompt22: $prompt');
+    debugPrint('重新设置system prompt: $prompt');
     send(to_rwkv.SetPrompt(prompt));
   }
 
@@ -405,7 +423,7 @@ class RWKVChatService extends GetxController {
 
     ///只有切换了state文件才需要clearstate
     send(to_rwkv.ClearStates());
-    debugPrint('ClearStates() 22');
+    debugPrint('调用了to_rwkv.ClearStates()');
     send(to_rwkv.UnloadInitialStates('$rmpack'));
     if (statePath != null) {
       rmpack = statePath;
@@ -474,12 +492,6 @@ class RWKVChatService extends GetxController {
     }
     debugPrint("to_rwkv.history: $history");
     send(to_rwkv.ChatAsync(history, reasoning: false));
-    send(
-      to_rwkv.SaveRuntimeStateByHistory(
-        messages: history,
-        stateSavePath: await CommonUtil.getFilePath('${roleName.value}.cache'),
-      ),
-    );
     debugPrint('Sent ChatAsync to RWKV');
 
     if (_getTokensTimer != null) {

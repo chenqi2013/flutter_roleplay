@@ -429,10 +429,8 @@ class _RolePlayChatState extends State<RolePlayChat>
 
     // 检查是否需要在发送消息前清空聊天状态
     if (needsClearStatesOnNextSend.value) {
-      debugPrint('检测到需要清空聊天状态，正在执行清空操作...');
       await _controller!.clearStates();
       needsClearStatesOnNextSend.value = false; // 重置标记
-      debugPrint('聊天状态已清空，标记已重置');
     }
     if (!_controller!.modelService.isModelLoaded) {
       debugPrint('Model not loaded, skipping send');
