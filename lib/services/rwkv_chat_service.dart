@@ -129,7 +129,8 @@ class RWKVChatService extends GetxController {
               ) !=
               await CommonUtil.getFileDocumentPath(info!.modelPath)) {
         debugPrint('切换了模型');
-        loadChatModel();
+        isModelLoaded = false;
+        loadChatModel(info: info);
       } else if (controller?.modelInfo != null &&
           await CommonUtil.getFileDocumentPath(
                 controller!.modelInfo!.modelPath,
@@ -192,7 +193,7 @@ class RWKVChatService extends GetxController {
   }
 
   /// 加载聊天模型
-  Future<void> loadChatModel() async {
+  Future<void> loadChatModel({ModelInfo? info}) async {
     if (isModelLoaded) {
       return;
     }
@@ -238,7 +239,14 @@ class RWKVChatService extends GetxController {
       debugPrint('获取数据库模型信息失败: $e');
       return;
     }
-
+    if (info != null) {
+      modelPath = await CommonUtil.getFileDocumentPath(info.modelPath);
+      statePath = await CommonUtil.getFileDocumentPath(info.statePath);
+      backend = info.backend;
+    }
+    debugPrint(
+      'loadChatModel， backend: $backend, modelPath: $modelPath, statePath: $statePath',
+    );
     if (Platform.isAndroid && backend == Backend.qnn) {
       for (final lib in qnnLibList) {
         await CommonUtil.fromAssetsToTemp(
