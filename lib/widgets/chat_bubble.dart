@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
+import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 
@@ -128,30 +129,7 @@ class ChatBubble extends StatelessWidget {
                 width: 1,
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.0,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'thinking'.tr,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
+            child: _buildThinkingContent(),
           ),
         ),
       );
@@ -367,6 +345,81 @@ class ChatBubble extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  /// 构建思考中的内容显示
+  Widget _buildThinkingContent() {
+    // 尝试获取 RWKVChatService 实例
+    if (!Get.isRegistered<RWKVChatService>()) {
+      return _buildDefaultThinking();
+    }
+
+    final chatService = Get.find<RWKVChatService>();
+
+    return Obx(() {
+      final progress = chatService.prefillProgress.value;
+
+      // 如果有进度信息（0-1之间），显示进度
+      if (progress > 0 && progress < 1.0) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                value: progress,
+                strokeWidth: 2.0,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.white.withValues(alpha: 0.7),
+                ),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '${(progress * 100).toInt()}%',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        );
+      }
+
+      // 否则显示默认的thinking动画
+      return _buildDefaultThinking();
+    });
+  }
+
+  /// 默认的思考中显示
+  Widget _buildDefaultThinking() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.0,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Colors.white.withValues(alpha: 0.7),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'thinking'.tr,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 

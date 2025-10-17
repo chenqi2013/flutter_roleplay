@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
 import 'package:get/get.dart';
 
 // 全局贴底输入框组件：自动避让键盘 + 底部导航
@@ -173,8 +172,6 @@ class _GlassInput extends StatelessWidget {
                   //   ),
                   // ),
                   // const SizedBox(width: 10),
-                  // prefillProgress 显示
-                  _buildPrefillProgress(),
                   Stack(
                     children: [
                       InkWell(
@@ -225,65 +222,6 @@ class _GlassInput extends StatelessWidget {
     onSend?.call(v);
     // 清空输入
     controller?.clear();
-  }
-
-  // 构建 prefillProgress 显示组件
-  Widget _buildPrefillProgress() {
-    // 尝试获取 RWKVChatService 实例
-    if (!Get.isRegistered<RWKVChatService>()) {
-      return const SizedBox.shrink();
-    }
-
-    final chatService = Get.find<RWKVChatService>();
-
-    return Obx(() {
-      final progress = chatService.prefillProgress.value;
-
-      // 只在 prefillProgress > 0 且 < 1 时显示
-      if (progress <= 0 || progress >= 1.0) {
-        return const SizedBox.shrink();
-      }
-
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 2,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Colors.white70,
-                    ),
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${(progress * 100).toInt()}%',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-        ],
-      );
-    });
   }
 
   static Widget _circleBtn({
