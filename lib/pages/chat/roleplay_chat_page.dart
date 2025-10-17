@@ -460,23 +460,15 @@ class _RolePlayChatState extends State<RolePlayChat>
       timestamp: DateTime.now(),
     );
 
-    // 保存用户消息到数据库（会自动分配ID和conversationId）
-    debugPrint('Saving user message: ${userMessage.content}');
-    final savedUserMessage = await _controller!.saveUserMessage(
-      userMessage.content,
+    // 暂不保存用户消息到数据库，先添加到内存，等AI生成完成后再一起保存
+    debugPrint(
+      'Adding user message to memory (will save after AI generation): ${userMessage.content}',
     );
-    debugPrint('User message saved via controller');
+    _stateManager.getMessages(roleName.value).add(userMessage);
 
-    // 添加真实保存的用户消息到内存
-    if (savedUserMessage != null) {
-      _stateManager.getMessages(roleName.value).add(savedUserMessage);
-      debugPrint(
-        'Added user message to memory with ID: ${savedUserMessage.id}',
-      );
-    } else {
-      debugPrint('Failed to save user message, adding to memory without ID');
-      _stateManager.getMessages(roleName.value).add(userMessage);
-    }
+    // 设置待保存的用户消息
+    _controller!.setPendingUserMessage(userMessage);
+    debugPrint('Set pending user message in controller');
 
     // 添加AI占位消息到内存（不保存到数据库，因为内容为空）
     _stateManager.getMessages(roleName.value).add(aiMessage);
@@ -525,6 +517,9 @@ class _RolePlayChatState extends State<RolePlayChat>
                 content: '${_messages.last.content}\n[错误] $e',
               );
               _stateManager.updateLastMessage(roleName.value, updatedMessage);
+
+              // 清空待保存的用户消息，因为生成失败
+              _controller?.clearPendingUserMessage();
 
               if (mounted && !_isDisposed) {
                 setState(() {

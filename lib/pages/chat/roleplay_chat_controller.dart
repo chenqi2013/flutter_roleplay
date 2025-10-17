@@ -41,6 +41,9 @@ class RolePlayChatController extends GetxController {
   // 重新生成模式标志
   bool _isRegeneratingMode = false;
 
+  // 待保存的用户消息（等待AI生成完成后一起保存）
+  ChatMessage? _pendingUserMessage;
+
   ModelInfo? modelInfo;
 
   // 获取生成状态
@@ -89,6 +92,9 @@ class RolePlayChatController extends GetxController {
     final stateManager = ChatStateManager();
     stateManager.getMessages(roleName.value).clear();
 
+    // 清空待保存的用户消息
+    _pendingUserMessage = null;
+
     // // 清空模型状态
     // await modelService.clearStates();
   }
@@ -99,12 +105,21 @@ class RolePlayChatController extends GetxController {
     // 清空内存中的聊天记录
     final stateManager = ChatStateManager();
     stateManager.getMessages(roleName).clear();
+    // 清空待保存的用户消息
+    _pendingUserMessage = null;
     // // 清空模型状态
     // await modelService.clearStates();
   }
 
   // 停止生成 - 委托给模型服务
-  Future<void> stop() async => await modelService.stop();
+  Future<void> stop() async {
+    await modelService.stop();
+    // 停止生成时清空待保存的用户消息，因为AI回复未完成
+    if (_pendingUserMessage != null) {
+      debugPrint('Clearing pending user message due to generation stop');
+      _pendingUserMessage = null;
+    }
+  }
 
   // 流式聊天完成 - 委托给模型服务
   Stream<String> streamLocalChatCompletions({String content = '介绍下自己'}) {
@@ -135,6 +150,20 @@ class RolePlayChatController extends GetxController {
       roleName: roleName.value,
       roleDescription: roleDescription.value,
     );
+  }
+
+  // 设置待保存的用户消息（等待AI生成完成后再保存）
+  void setPendingUserMessage(ChatMessage userMessage) {
+    _pendingUserMessage = userMessage;
+    debugPrint('Set pending user message: ${userMessage.content}');
+  }
+
+  // 清空待保存的用户消息
+  void clearPendingUserMessage() {
+    if (_pendingUserMessage != null) {
+      debugPrint('Clearing pending user message');
+      _pendingUserMessage = null;
+    }
   }
 
   // 保存用户消息到数据库
@@ -303,7 +332,33 @@ class RolePlayChatController extends GetxController {
             debugPrint('In regenerating mode, using branch logic to save');
             await _saveRegeneratedMessage(aiMessage);
           } else {
-            // 正常模式，使用普通保存
+            // 正常模式，先保存用户消息，再保存AI消息
+            if (_pendingUserMessage != null) {
+              debugPrint(
+                'Saving pending user message: ${_pendingUserMessage!.content}',
+              );
+              final savedUserMessage = await saveUserMessage(
+                _pendingUserMessage!.content,
+              );
+
+              // 更新内存中的用户消息ID
+              if (savedUserMessage != null) {
+                // 找到内存中对应的用户消息并更新
+                for (int i = messages.length - 1; i >= 0; i--) {
+                  if (messages[i].isUser &&
+                      messages[i].content == _pendingUserMessage!.content &&
+                      messages[i].id == null) {
+                    messages[i] = savedUserMessage;
+                    debugPrint(
+                      'Updated pending user message in memory with ID: ${savedUserMessage.id}',
+                    );
+                    break;
+                  }
+                }
+              }
+              _pendingUserMessage = null; // 清空待保存的用户消息
+            }
+
             await saveAiMessage(aiMessage.content);
             debugPrint('AI message saved to database: ${aiMessage.content}');
           }
@@ -311,6 +366,7 @@ class RolePlayChatController extends GetxController {
       }
     } catch (e) {
       debugPrint('Failed to save current AI message: $e');
+      _pendingUserMessage = null; // 出错时也清空
     }
   }
 
