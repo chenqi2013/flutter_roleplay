@@ -29,8 +29,9 @@ class RWKVChatService extends GetxController {
   /// Receive message from RWKV isolate
   late final _receivePort = ReceivePort();
 
-  final RxInt prefillSpeed = 0.obs;
-  final RxInt decodeSpeed = 0.obs;
+  final RxDouble prefillSpeed = 0.0.obs;
+  final RxDouble decodeSpeed = 0.0.obs;
+  final RxDouble prefillProgress = 0.0.obs;
   final RxBool isGenerating = false.obs;
 
   late Completer<void> _initRuntimeCompleter = Completer<void>();
@@ -80,6 +81,12 @@ class RWKVChatService extends GetxController {
             debugPrint('localChatController is null or closed');
           }
         } else if (message is Speed) {
+          // debugPrint(
+          //   'receive Speed: ${message.prefillProgress}, ${message.prefillSpeed}, ${message.decodeSpeed}',
+          // );
+          prefillProgress.value = message.prefillProgress;
+          prefillSpeed.value = message.prefillSpeed;
+          decodeSpeed.value = message.decodeSpeed;
           // 处理速度信息
         } else if (message is IsGenerating) {
           var generating = message.isGenerating;
