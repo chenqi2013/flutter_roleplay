@@ -1,4 +1,4 @@
-/// RWKV Chat Widget Library
+/// RWKV Roleplay Library
 ///
 /// A reusable Flutter widget for RWKV-based chat interfaces with role-playing capabilities.
 library flutter_roleplay;
