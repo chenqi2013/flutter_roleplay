@@ -2,11 +2,10 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rwkv_downloader/downloader.dart';
-import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
+import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:rxdart/rxdart.dart';
 
 DownloadTask? task;
@@ -108,7 +107,9 @@ void showDownloadDialog(
 
                       // 标题
                       Text(
-                        isdownloading.value ? '正在下载中...' : '下载模型文件',
+                        isdownloading.value
+                            ? 'downloading'.tr
+                            : 'download_model'.tr,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -121,7 +122,9 @@ void showDownloadDialog(
 
                       // 描述文本
                       Text(
-                        isdownloading.value ? '文件比较大，请耐心等待下载完成' : description,
+                        isdownloading.value
+                            ? 'download_patience'.tr
+                            : description,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 14,
@@ -188,7 +191,7 @@ void showDownloadDialog(
                               Expanded(
                                 child: _SecondaryButton(
                                   onTap: () => Navigator.of(context).pop(),
-                                  label: '取消',
+                                  label: 'cancel'.tr,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -196,7 +199,7 @@ void showDownloadDialog(
                             Expanded(
                               child: _PrimaryButton(
                                 onTap: () => downloadfile(context, downloadurl),
-                                label: '开始下载',
+                                label: 'start_download'.tr,
                               ),
                             ),
                           ],

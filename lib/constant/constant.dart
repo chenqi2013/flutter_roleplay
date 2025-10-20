@@ -1,29 +1,18 @@
 import 'package:rwkv_mobile_flutter/types.dart';
 import 'package:get/get.dart';
 
-// ///请你扮演名为凯露的角色，你的设定是：
-// const String role =
-//     '请你扮演名为凯露的角色，你的设定是：猫耳少女，原本是霸瞳皇帝的手下。性格傲娇，嘴上不饶人但内心善良。擅长暗属性魔法，战斗力很强。最初对主人公抱有敌意，但逐渐被美食殿堂的温暖所感动，成为了可靠的伙伴。';
-// const String systemPrompt =
-//     '请你扮演名为凯露的角色，你的设定是：猫耳少女，原本是霸瞳皇帝的手下。性格傲娇，嘴上不饶人但内心善良。擅长暗属性魔法，战斗力很强。最初对主人公抱有敌意，但逐渐被美食殿堂的温暖所感动，成为了可靠的伙伴。';
-// 当前角色信息
 var roleName = ''.obs;
 var roleDescription = ''.obs;
 var roleImage = ''.obs;
 var roleLanguage = ''.obs;
 
+// 聊天状态管理标记
+var needsClearStatesOnNextSend = false.obs; // 标记是否需要在下次发送消息时清空聊天状态
+
 // 用户使用过的角色列表（按使用顺序）
 var usedRoles = <Map<String, dynamic>>[].obs;
 
-var roles = [
-  // {
-  //   'name': '渔夫',
-  //   'description':
-  //       '你是一名生活在江河湖海边的渔夫，靠打鱼为生。你性格淳朴，勤劳踏实，对大自然心怀敬畏。你熟知水性，常年与风浪为伴，懂得水流与季节的规律。你的人生哲学是随遇而安，珍惜当下的平静生活。',
-  //   'image': 'https://download.rwkvos.com/rwkvmusic/downloads/1.0/fisher.webp',
-  // },
-].obs;
-// llamacpp方式
+var roles = [].obs;
 
 var downloadUrltest =
     'https://download.rwkvos.com/rwkvmusic/downloads/1.0/test_app.apk';
@@ -36,8 +25,7 @@ var downloadUrl11 =
 
 const String pageKey = 'jingxuan_chat';
 
-Backend backend =
-    Backend.llamacpp; // Restore QNN backend since model is QNN format
+Backend backend = Backend.llamacpp;
 
 final qnnLibList = {
   "libQnnHtp.so",

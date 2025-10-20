@@ -24,7 +24,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'flutter_roleplay.db');
     return await openDatabase(
       path,
-      version: 4, // 升级版本以添加 language 字段
+      version: 5, // 升级版本以支持消息分叉
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -38,7 +38,12 @@ class DatabaseHelper {
         role_name TEXT NOT NULL,
         content TEXT NOT NULL,
         is_user INTEGER NOT NULL,
-        timestamp INTEGER NOT NULL
+        timestamp INTEGER NOT NULL,
+        parent_id INTEGER,
+        branch_index INTEGER NOT NULL DEFAULT 0,
+        total_branches INTEGER NOT NULL DEFAULT 1,
+        conversation_id TEXT,
+        FOREIGN KEY (parent_id) REFERENCES chat_messages (id) ON DELETE CASCADE
       )
     ''');
 
@@ -97,6 +102,19 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE INDEX idx_model_info_is_active ON model_info (is_active)
+    ''');
+
+    // 为消息分叉功能创建索引
+    await db.execute('''
+      CREATE INDEX idx_parent_id ON chat_messages (parent_id)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_conversation_id ON chat_messages (conversation_id)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_branch_info ON chat_messages (parent_id, branch_index)
     ''');
 
     debugPrint('数据库表创建完成');
@@ -162,6 +180,60 @@ class DatabaseHelper {
       ''');
 
       debugPrint('已为 roles 表添加 language 字段');
+    }
+
+    if (oldVersion < 5) {
+      // 从版本4升级到版本5: 添加消息分叉支持
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN parent_id INTEGER
+      ''');
+      
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN branch_index INTEGER NOT NULL DEFAULT 0
+      ''');
+      
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN total_branches INTEGER NOT NULL DEFAULT 1
+      ''');
+      
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN conversation_id TEXT
+      ''');
+
+      // 为现有数据生成conversation_id
+      final existingMessages = await db.query('chat_messages', orderBy: 'role_name, timestamp ASC');
+      final Map<String, String> roleConversationIds = {};
+      
+      for (final message in existingMessages) {
+        final roleName = message['role_name'] as String;
+        
+        // 为每个角色生成唯一的conversation_id
+        if (!roleConversationIds.containsKey(roleName)) {
+          roleConversationIds[roleName] = DateTime.now().millisecondsSinceEpoch.toString() + '_' + roleName;
+        }
+        
+        await db.update(
+          'chat_messages',
+          {'conversation_id': roleConversationIds[roleName]},
+          where: 'id = ?',
+          whereArgs: [message['id']],
+        );
+      }
+
+      // 创建新索引
+      await db.execute('''
+        CREATE INDEX idx_parent_id ON chat_messages (parent_id)
+      ''');
+
+      await db.execute('''
+        CREATE INDEX idx_conversation_id ON chat_messages (conversation_id)
+      ''');
+
+      await db.execute('''
+        CREATE INDEX idx_branch_info ON chat_messages (parent_id, branch_index)
+      ''');
+
+      debugPrint('已添加消息分叉支持字段和索引');
     }
   }
 
@@ -441,16 +513,20 @@ class DatabaseHelper {
       // 生成新的自定义角色ID (负数，避免与API角色冲突)
       final customRoleId = await _generateCustomRoleId();
 
-      final roleWithId = RoleModel.createCustom(
+      // 创建带有正确ID的角色实例，保持原有的image路径
+      final roleWithId = RoleModel(
         id: customRoleId,
         name: role.name,
         description: role.description,
-        image: role.image,
+        image: role.image, // 保持原有的图片路径，不使用默认值
         language: role.language,
+        isCustom: true,
       );
 
       await db.insert('roles', roleWithId.toDbMap());
-      debugPrint('成功保存自定义角色: ${roleWithId.name} (ID: $customRoleId)');
+      debugPrint(
+        '成功保存自定义角色: ${roleWithId.name} (ID: $customRoleId, Image: ${roleWithId.image})',
+      );
       return customRoleId;
     } catch (e) {
       debugPrint('保存自定义角色失败: $e');
@@ -475,6 +551,36 @@ class DatabaseHelper {
     } catch (e) {
       debugPrint('生成自定义角色ID失败: $e');
       return -DateTime.now().millisecondsSinceEpoch; // 使用时间戳作为备用ID
+    }
+  }
+
+  /// 更新自定义角色
+  Future<void> updateCustomRole(RoleModel role) async {
+    try {
+      final db = await database;
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      final count = await db.update(
+        'roles',
+        {
+          'name': role.name,
+          'description': role.description,
+          'image': role.image,
+          'language': role.language,
+          'updated_at': now,
+        },
+        where: 'id = ? AND is_custom = 1',
+        whereArgs: [role.id],
+      );
+
+      if (count > 0) {
+        debugPrint('成功更新自定义角色: ${role.name} (ID: ${role.id})');
+      } else {
+        debugPrint('未找到要更新的自定义角色 (ID: ${role.id})');
+      }
+    } catch (e) {
+      debugPrint('更新自定义角色失败: $e');
+      rethrow;
     }
   }
 

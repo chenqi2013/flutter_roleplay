@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
+import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'dart:io';
@@ -19,7 +19,8 @@ import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
-import 'package:flutter_roleplay/download_dialog.dart';
+import 'package:flutter_roleplay/pages/params/role_params_controller.dart';
+import 'package:flutter_roleplay/dialog/download_dialog.dart';
 
 /// RWKV 聊天模型管理服务
 class RWKVChatService extends GetxController {
@@ -29,8 +30,9 @@ class RWKVChatService extends GetxController {
   /// Receive message from RWKV isolate
   late final _receivePort = ReceivePort();
 
-  final RxInt prefillSpeed = 0.obs;
-  final RxInt decodeSpeed = 0.obs;
+  final RxDouble prefillSpeed = 0.0.obs;
+  final RxDouble decodeSpeed = 0.0.obs;
+  final RxDouble prefillProgress = 0.0.obs;
   final RxBool isGenerating = false.obs;
 
   late Completer<void> _initRuntimeCompleter = Completer<void>();
@@ -48,6 +50,7 @@ class RWKVChatService extends GetxController {
   RolePlayChatController? _controller;
   RWKVTTSService? _ttsService;
   StringBuffer ttsTextBuffer = StringBuffer();
+  var history = <String>[];
   @override
   void onInit() async {
     super.onInit();
@@ -68,7 +71,7 @@ class RWKVChatService extends GetxController {
 
   /// 设置接收端口监听器
   void _setupReceivePortListener() {
-    _receivePort.listen((message) {
+    _receivePort.listen((message) async {
       if (message is SendPort) {
         _sendPort = message;
         debugPrint("receive SendPort: $message");
@@ -83,6 +86,12 @@ class RWKVChatService extends GetxController {
             debugPrint('localChatController is null or closed');
           }
         } else if (message is Speed) {
+          // debugPrint(
+          //   'receive Speed: ${message.prefillProgress}, ${message.prefillSpeed}, ${message.decodeSpeed}',
+          // );
+          prefillProgress.value = message.prefillProgress;
+          prefillSpeed.value = message.prefillSpeed;
+          decodeSpeed.value = message.decodeSpeed;
           // 处理速度信息
         } else if (message is IsGenerating) {
           var generating = message.isGenerating;
@@ -93,6 +102,17 @@ class RWKVChatService extends GetxController {
             ttsTextBuffer.clear();
             isNeedSaveAiMessage = false;
             _onGenerationComplete?.call();
+            send(
+              to_rwkv.SaveRuntimeStateByHistory(
+                messages: history,
+                stateSavePath: await CommonUtil.getFilePath(
+                  '${roleName.value}.cache',
+                ),
+              ),
+            );
+            debugPrint(
+              '保存角色缓存state: ${await CommonUtil.getFilePath('${roleName.value}.cache')}',
+            );
             if (_getTokensTimer != null) {
               _getTokensTimer!.cancel();
             }
@@ -118,22 +138,48 @@ class RWKVChatService extends GetxController {
     setGlobalModelDownloadCompleteCallback((ModelInfo? info) async {
       debugPrint('modelDownloadCompleteCallback: ${info?.toString()}');
       if (controller?.modelInfo != null &&
-          controller?.modelInfo?.modelPath != info?.modelPath) {
+          await CommonUtil.getFileDocumentPath(
+                controller!.modelInfo!.modelPath,
+              ) !=
+              await CommonUtil.getFileDocumentPath(info!.modelPath)) {
         debugPrint('切换了模型');
-        loadChatModel();
+        isModelLoaded = false;
+        loadChatModel(info: info);
       } else if (controller?.modelInfo != null &&
-          controller?.modelInfo?.modelPath == info?.modelPath &&
-          controller?.modelInfo?.statePath != info?.statePath) {
+          await CommonUtil.getFileDocumentPath(
+                controller!.modelInfo!.modelPath,
+              ) ==
+              await CommonUtil.getFileDocumentPath(info!.modelPath) &&
+          await CommonUtil.getFileDocumentPath(
+                controller.modelInfo!.statePath,
+              ) !=
+              await CommonUtil.getFileDocumentPath(info.statePath)) {
         ///仅仅切换了state文件
         debugPrint('仅仅切换了state文件');
-        clearStates(statePath: info?.statePath);
+        changeStatesFile(
+          statePath: await CommonUtil.getFileDocumentPath(info.statePath),
+        );
       } else {
         debugPrint('第一次下载，切换了模型');
+        controller?.modelInfo = info;
         loadChatModel();
       }
-      controller?.modelInfo = info;
       if (info != null) {
         // 把当前的 modelinfo 保存到本地
+        controller?.modelInfo = info;
+        RoleParamsController? paramsController;
+        if (Get.isRegistered<RoleParamsController>()) {
+          paramsController = Get.find<RoleParamsController>();
+        } else {
+          paramsController = Get.put(RoleParamsController());
+        }
+        paramsController?.temperature.value = info.temperature ?? 0.6;
+        paramsController?.topP.value = info.topP ?? 0.8;
+        paramsController?.presencePenalty.value = info.presencePenalty ?? 2.0;
+        paramsController?.frequencyPenalty.value = info.frequencyPenalty ?? 0.2;
+        paramsController?.penaltyDecay.value = info.penaltyDecay ?? 0.990;
+        paramsController?.saveParams();
+
         await _saveModelInfoToLocal(info);
       }
     });
@@ -146,7 +192,10 @@ class RWKVChatService extends GetxController {
 
     // 检查是否需要下载模型
     if (modelInfo != null &&
-        await checkDownloadFile(modelInfo.modelPath, isLocalFilePath: true)) {
+        await checkDownloadFile(
+          await CommonUtil.getFileDocumentPath(modelInfo.modelPath),
+          isLocalFilePath: true,
+        )) {
       loadChatModel();
     } else {
       debugPrint('模型不存在，通知外部下载模型');
@@ -158,7 +207,7 @@ class RWKVChatService extends GetxController {
   }
 
   /// 加载聊天模型
-  Future<void> loadChatModel() async {
+  Future<void> loadChatModel({ModelInfo? info}) async {
     if (isModelLoaded) {
       return;
     }
@@ -183,9 +232,12 @@ class RWKVChatService extends GetxController {
         modelInfo = await databaseHelper.getActiveModelInfo();
         debugPrint('从数据库获取modelInfo: ${modelInfo?.toString()}');
       }
-      if (modelInfo != null && File(modelInfo.modelPath).existsSync()) {
-        modelPath = modelInfo.modelPath;
-        statePath = modelInfo.statePath;
+      if (modelInfo != null &&
+          File(
+            await CommonUtil.getFileDocumentPath(modelInfo.modelPath),
+          ).existsSync()) {
+        modelPath = await CommonUtil.getFileDocumentPath(modelInfo.modelPath);
+        statePath = await CommonUtil.getFileDocumentPath(modelInfo.statePath);
         backend = modelInfo.backend;
       } else {
         // // 如果数据库中没有有效的模型信息，使用默认方式获取路径
@@ -201,7 +253,14 @@ class RWKVChatService extends GetxController {
       debugPrint('获取数据库模型信息失败: $e');
       return;
     }
-
+    if (info != null) {
+      modelPath = await CommonUtil.getFileDocumentPath(info.modelPath);
+      statePath = await CommonUtil.getFileDocumentPath(info.statePath);
+      backend = info.backend;
+    }
+    debugPrint(
+      'loadChatModel， backend: $backend, modelPath: $modelPath, statePath: $statePath',
+    );
     if (Platform.isAndroid && backend == Backend.qnn) {
       for (final lib in qnnLibList) {
         await CommonUtil.fromAssetsToTemp(
@@ -244,7 +303,6 @@ class RWKVChatService extends GetxController {
           modelPath: modelPath,
           backend: backend,
           tokenizerPath: tokenizerPath,
-          latestRuntimeAddress: 0,
         ),
       );
     } else {
@@ -254,7 +312,6 @@ class RWKVChatService extends GetxController {
         backend: backend,
         sendPort: _receivePort.sendPort,
         rootIsolateToken: rootIsolateToken!,
-        latestRuntimeAddress: 0,
       );
       await RWKVMobile().runIsolate(options);
     }
@@ -263,10 +320,18 @@ class RWKVChatService extends GetxController {
       debugPrint("waiting for sendPort...");
       await Future.delayed(const Duration(milliseconds: 50));
     }
+
+    ///加载角色缓存state
+    String stateLoadPath = await CommonUtil.getFilePath(
+      '${roleName.value}.cache',
+    );
+    send(to_rwkv.LoadRuntimeStateToMemory(stateLoadPath: stateLoadPath));
+    debugPrint('加载角色缓存state: $stateLoadPath');
+
     if (rmpack != null) {
       send(to_rwkv.LoadInitialStates(rmpack!));
+      debugPrint('加载角色扮演的state文件: $rmpack');
     }
-    // send(to_rwkv.GetLatestRuntimeAddress()); // 已弃用
 
     _setupModelParameters();
   }
@@ -274,44 +339,127 @@ class RWKVChatService extends GetxController {
   /// 设置模型参数
   void _setupModelParameters() {
     final prompt =
-        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '} ${roleName.value}，${roleDescription.value}\n\n';
-    send(to_rwkv.SetPrompt(prompt));
+        "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
     send(to_rwkv.SetMaxLength(2000));
+    // 获取角色参数设置
+    try {
+      final paramsController = Get.find<RoleParamsController>();
+      final params = paramsController.getCurrentParams();
+      debugPrint('setupModelParameters: $params');
+      send(
+        to_rwkv.SetSamplerParams(
+          temperature: params['temperature'] as double,
+          topK: params['topK'] as int,
+          topP: params['topP'] as double,
+          presencePenalty: params['presencePenalty'] as double,
+          frequencyPenalty: params['frequencyPenalty'] as double,
+          penaltyDecay: params['penaltyDecay'] as double,
+        ),
+      );
+    } catch (e) {
+      debugPrint(
+        'RoleParamsController not found, using default parameters: $e',
+      );
+      // 使用默认参数
+      send(
+        to_rwkv.SetSamplerParams(
+          temperature: 1.2,
+          topK: 500,
+          topP: 0.6,
+          presencePenalty: 1.5,
+          frequencyPenalty: 1.0,
+          penaltyDecay: 0.996,
+        ),
+      );
+    }
+    debugPrint('Set Prompt: $prompt');
+    send(to_rwkv.SetPrompt(prompt));
+  }
+
+  /// 设置采样参数
+  void setSamplerParams() {
+    final paramsController = Get.find<RoleParamsController>();
+    final params = paramsController.getCurrentParams();
+    debugPrint('setSamplerParams: $params');
     send(
       to_rwkv.SetSamplerParams(
-        temperature: 1.5,
-        topK: 500,
-        topP: 0,
-        presencePenalty: 0,
-        frequencyPenalty: 0,
-        penaltyDecay: 0.996,
+        temperature: params['temperature'] as double,
+        topK: params['topK'] as int,
+        topP: params['topP'] as double,
+        presencePenalty: params['presencePenalty'] as double,
+        frequencyPenalty: params['frequencyPenalty'] as double,
+        penaltyDecay: params['penaltyDecay'] as double,
       ),
     );
   }
 
   /// 清空状态
   Future<void> clearStates({String? statePath}) async {
-    prefillSpeed.value = 0;
-    decodeSpeed.value = 0;
+    // prefillSpeed.value = 0;
+    // decodeSpeed.value = 0;
 
-    // 只清空内存中的聊天记录，不删除数据库记录
-    final stateManager = ChatStateManager();
-    stateManager.getMessages(roleName.value).clear();
+    // // 只清空内存中的聊天记录，不删除数据库记录
+    // final stateManager = ChatStateManager();
+    // stateManager.getMessages(roleName.value).clear();
 
     final sendPort = _sendPort;
     if (sendPort == null) {
       debugPrint("sendPort is null");
       return;
     }
+
+    ///加载角色缓存state
+    String stateLoadPath = await CommonUtil.getFilePath(
+      '${roleName.value}.cache',
+    );
+    send(to_rwkv.LoadRuntimeStateToMemory(stateLoadPath: stateLoadPath));
+    debugPrint('加载角色缓存state: $stateLoadPath');
+
+    ///切换角色需要clearstate，否则聊天内容会是上一次的角色的。
+    // send(to_rwkv.ClearStates());
+    if (rmpack != null) {
+      //   rmpack = statePath;
+      send(to_rwkv.LoadInitialStates(rmpack!));
+      debugPrint('加载角色扮演的state文件: $rmpack');
+    } else {
+      debugPrint('没有加载角色扮演的state文件: $rmpack');
+    }
+
+    final prompt =
+        "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
+    debugPrint('Set Prompt: $prompt');
+    send(to_rwkv.SetPrompt(prompt));
+  }
+
+  ///切换了state文件
+  Future<void> changeStatesFile({String? statePath}) async {
+    // prefillSpeed.value = 0;
+    // decodeSpeed.value = 0;
+
+    // // 只清空内存中的聊天记录，不删除数据库记录
+    // final stateManager = ChatStateManager();
+    // stateManager.getMessages(roleName.value).clear();
+
+    final sendPort = _sendPort;
+    if (sendPort == null) {
+      debugPrint("sendPort is null");
+      return;
+    }
+
+    ///只有切换了state文件才需要clearstate
     send(to_rwkv.ClearStates());
+    debugPrint('调用了to_rwkv.ClearStates()');
+    send(to_rwkv.UnloadInitialStates('$rmpack'));
     if (statePath != null) {
       rmpack = statePath;
     }
     if (rmpack != null) {
+      debugPrint('切换了state文件: $rmpack');
       send(to_rwkv.LoadInitialStates(rmpack!));
     }
     final prompt =
-        'System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '} ${roleName.value}，${roleDescription.value}\n\n';
+        "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
+    debugPrint('changeStatesFile，Set Prompt: $prompt');
     send(to_rwkv.SetPrompt(prompt));
   }
 
@@ -329,7 +477,8 @@ class RWKVChatService extends GetxController {
   Future<void> stop() async => send(to_rwkv.Stop());
 
   /// 生成聊天回复流
-  Stream<String> streamLocalChatCompletions({String content = '介绍下自己'}) {
+  Stream<String> streamLocalChatCompletions({String? content}) {
+    content ??= 'introduce_yourself'.tr;
     debugPrint('streamLocalChatCompletions called with content: $content');
     if (localChatController != null) {
       localChatController!.close();
@@ -358,7 +507,8 @@ class RWKVChatService extends GetxController {
     debugPrint(
       'Current messages count for ${roleName.value}: ${messages.length}',
     );
-    var history = <String>[];
+    // var history = <String>[];
+    history.clear();
     for (var message in messages) {
       var text = message.content;
       if (text.isNotEmpty) {
@@ -404,7 +554,6 @@ class RWKVChatService extends GetxController {
         modelPath: modelPath,
         backend: backend,
         tokenizerPath: tokenizerPath,
-        latestRuntimeAddress: 0,
       ),
     );
     return _initRuntimeCompleter.future;
@@ -427,7 +576,9 @@ class RWKVChatService extends GetxController {
         backend = modelInfo.backend;
 
         // 检查模型文件是否存在
-        if (File(modelInfo.modelPath).existsSync()) {
+        if (File(
+          await CommonUtil.getFileDocumentPath(modelInfo.modelPath),
+        ).existsSync()) {
           debugPrint('本地模型文件存在，可以直接加载: ${modelInfo.modelPath}');
           // 如果本地文件存在，直接返回，跳过下载检查
           return modelInfo;

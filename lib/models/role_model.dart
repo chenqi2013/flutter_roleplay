@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class RoleResponse {
   final int code;
   final String message;
@@ -59,13 +61,19 @@ class RoleModel {
     String? image,
     String? language,
   }) {
+    // 只有当image为null或空字符串时才使用默认图片
+    final String finalImage = (image != null && image.isNotEmpty)
+        ? image
+        : 'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common.webp';
+
+    debugPrint('RoleModel.createCustom: 输入图片路径 = $image');
+    debugPrint('RoleModel.createCustom: 最终图片路径 = $finalImage');
+
     return RoleModel(
       id: id,
       name: name,
       description: description,
-      image:
-          image ??
-          'https://download.rwkvos.com/rwkvmusic/downloads/1.0/common.webp', // 默认占位图
+      image: finalImage,
       language: language ?? 'zh-CN', // 默认中文
       isCustom: true,
     );

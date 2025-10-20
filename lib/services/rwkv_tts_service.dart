@@ -159,7 +159,6 @@ class RWKVTTSService extends GetxController {
         backend: backend,
         sendPort: _receivePort.sendPort,
         rootIsolateToken: rootIsolateToken!,
-        latestRuntimeAddress: 0,
       );
       await RWKVMobile().runIsolate(options);
     }
@@ -228,7 +227,6 @@ class RWKVTTSService extends GetxController {
         modelPath: modelPath,
         backend: backend,
         tokenizerPath: tokenizerPath,
-        latestRuntimeAddress: 0,
       ),
     );
     return _initRuntimeCompleter.future;

@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
 
 // 全局贴底输入框组件：自动避让键盘 + 底部导航
 class GlobalInputBar extends StatelessWidget {
@@ -93,16 +93,7 @@ class _GlassInput extends StatelessWidget {
           height: height,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: 0.15),
-                Colors.white.withValues(alpha: 0.05),
-                Colors.black.withValues(alpha: 0.2),
-              ],
-              stops: const [0.0, 0.5, 1.0],
-            ),
+            color: Colors.black.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(28),
             // border: Border.all(
             //   color: Colors.white.withValues(alpha: 0.2),
@@ -144,10 +135,12 @@ class _GlassInput extends StatelessWidget {
                   ),
                   decoration: InputDecoration(
                     hintText: isLoading
-                        ? 'AI正在回复中...'
-                        : '发送消息给${roleName.isNotEmpty ? roleName : "AI"}',
+                        ? 'ai_replying'.tr
+                        : (roleName.isNotEmpty
+                              ? 'send_message_to'.trParams({'name': roleName})
+                              : 'send_message_to_ai'.tr),
                     hintStyle: TextStyle(
-                      color: isLoading ? Colors.white38 : Colors.white54,
+                      color: isLoading ? Colors.white38 : Colors.white,
                       fontSize: 16,
                     ),
                     border: InputBorder.none,
@@ -160,66 +153,75 @@ class _GlassInput extends StatelessWidget {
                   onSubmitted: isLoading
                       ? null
                       : (value) {
-                          final String v = value.trim();
-                          if (v.isEmpty) return;
-                          onSend?.call(v);
-                          // 清空输入
-                          controller?.clear();
+                          sendMessage();
                         },
                 ),
               ),
-              // const SizedBox(width: 12),
-              // // 右侧按钮们
-              // Row(
-              //   mainAxisSize: MainAxisSize.min,
-              //   children: [
-              //     _circleBtn(
-              //       gradient: const [Color(0x66FFC107), Color(0x33FF9800)],
-              //       borderColor: const Color(0x88FFC107),
-              //       child: const Icon(
-              //         Icons.flash_on_outlined,
-              //         color: Colors.amber,
-              //         size: 26,
-              //       ),
-              //     ),
-              //     const SizedBox(width: 10),
-              //     Stack(
-              //       children: [
-              //         _circleBtn(
-              //           child: const Icon(
-              //             Icons.add,
-              //             color: Colors.white,
-              //             size: 26,
-              //           ),
-              //         ),
-              //         // Positioned(
-              //         //   top: 6,
-              //         //   right: 6,
-              //         //   child: Container(
-              //         //     width: 8,
-              //         //     height: 8,
-              //         //     decoration: BoxDecoration(
-              //         //       color: Colors.red,
-              //         //       shape: BoxShape.circle,
-              //         //       boxShadow: [
-              //         //         BoxShadow(
-              //         //           color: Colors.red.withValues(alpha: 0.5),
-              //         //           blurRadius: 4,
-              //         //           offset: const Offset(0, 1),
-              //         //         ),
-              //         //       ],
-              //         //     ),
-              //         //   ),
-              //         // ),
-              //       ],
-              //     ),
-              //   ],
-              // ),
+              const SizedBox(width: 12),
+              // 右侧按钮们
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // _circleBtn(
+                  //   gradient: const [Color(0x66FFC107), Color(0x33FF9800)],
+                  //   borderColor: const Color(0x88FFC107),
+                  //   child: const Icon(
+                  //     Icons.flash_on_outlined,
+                  //     color: Colors.amber,
+                  //     size: 26,
+                  //   ),
+                  // ),
+                  // const SizedBox(width: 10),
+                  Stack(
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          sendMessage();
+                        },
+                        child: _circleBtn(
+                          child: const Icon(
+                            Icons.send,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
+                      ),
+                      // Positioned(
+                      //   top: 6,
+                      //   right: 6,
+                      //   child: Container(
+                      //     width: 8,
+                      //     height: 8,
+                      //     decoration: BoxDecoration(
+                      //       color: Colors.red,
+                      //       shape: BoxShape.circle,
+                      //       boxShadow: [
+                      //         BoxShadow(
+                      //           color: Colors.red.withValues(alpha: 0.5),
+                      //           blurRadius: 4,
+                      //           offset: const Offset(0, 1),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                ],
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void sendMessage() {
+    final String v = controller?.text.trim() ?? '';
+    if (v.isEmpty) return;
+    onSend?.call(v);
+    // 清空输入
+    controller?.clear();
   }
 
   static Widget _circleBtn({

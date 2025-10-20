@@ -4,20 +4,20 @@ import 'package:get/get.dart';
 
 import 'main_controller.dart';
 import '../new/createrole_page.dart';
-import '../tabs/home_page.dart';
-import '../tabs/messages_page.dart';
-import '../tabs/discover_page.dart';
-import '../tabs/profile_page.dart';
+import '../other/home_page.dart';
+import '../other/messages_page.dart';
+import '../other/discover_page.dart';
+import '../other/profile_page.dart';
 
 class MainPage extends GetView<MainPageController> {
-  const MainPage({super.key});
+  MainPage({super.key});
 
   static const double bottomBarHeight = 60.0; // 底部导航高度
   static const double inputBarHeight = 56.0; // 输入框高度
+  final mainController = Get.put(MainPageController());
 
   @override
   Widget build(BuildContext context) {
-    Get.put(MainPageController());
     return Obx(() {
       return Scaffold(
         // 让键盘出现时可以调整布局
@@ -29,7 +29,7 @@ class MainPage extends GetView<MainPageController> {
             // 背景图片 - 覆盖整个页面包括tabbar区域
             Positioned.fill(
               child: Image.asset(
-                'assets/images/common_bg.webp',
+                'packages/flutter_roleplay/assets/images/common_bg.webp',
                 fit: BoxFit.cover,
               ),
             ),
@@ -108,9 +108,7 @@ class MainPage extends GetView<MainPageController> {
                 index: 1,
                 controller: controller,
               ),
-              _CenterAddButton(
-                onTap: () => Get.to(() => const CreateRolePage()),
-              ),
+              _CenterAddButton(onTap: () => Get.to(() => CreateRolePage())),
               _BottomTab(
                 icon: Icons.explore_outlined,
                 activeIcon: Icons.explore,

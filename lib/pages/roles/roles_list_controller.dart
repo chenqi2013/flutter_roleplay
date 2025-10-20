@@ -1,6 +1,6 @@
 import 'package:flutter_roleplay/utils/common_util.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/services/role_api_service.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
@@ -9,9 +9,11 @@ import 'package:flutter_roleplay/constant/constant.dart';
 class RolesListController extends GetxController {
   // 响应式状态变量
   final RxList<RoleModel> roles = <RoleModel>[].obs;
+  final RxList<RoleModel> filteredRoles = <RoleModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxString error = ''.obs;
   final RxBool isLoadingFromCache = false.obs;
+  final RxString searchQuery = ''.obs;
 
   // 数据库辅助类
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -20,6 +22,11 @@ class RolesListController extends GetxController {
   void onInit() {
     super.onInit();
     loadRoles();
+
+    // 监听搜索查询变化
+    searchQuery.listen((query) {
+      _filterRoles();
+    });
   }
 
   /// 加载角色列表 - 优先从网络获取，失败时从本地加载
@@ -50,6 +57,7 @@ class RolesListController extends GetxController {
       final allRoles = await _dbHelper.getRoles();
 
       roles.value = allRoles;
+      _filterRoles(); // 初始化过滤列表
       isLoading.value = false;
       error.value = '';
 
@@ -70,6 +78,7 @@ class RolesListController extends GetxController {
 
       if (cachedRoles.isNotEmpty) {
         roles.value = cachedRoles;
+        _filterRoles(); // 初始化过滤列表
         error.value = ''; // 清空错误信息
 
         // // 显示从缓存加载的提示
@@ -101,21 +110,19 @@ class RolesListController extends GetxController {
   }
 
   /// 选择角色
-  void selectRole(RoleModel role) {
+  void selectRole(RoleModel role, BuildContext context) {
     // 使用统一的切换角色函数
     CommonUtil.switchToRole(role.toMap());
 
-    // 返回上一页
-    Get.back();
+    // 使用Flutter原生导航返回上一页
+    Navigator.of(context).pop();
 
     // // 显示选择成功的提示
-    // Get.snackbar(
-    //   '角色切换',
-    //   '已切换到 ${role.name}',
-    //   snackPosition: SnackPosition.TOP,
-    //   duration: const Duration(seconds: 2),
-    //   backgroundColor: Get.theme.colorScheme.primary.withValues(alpha: 0.8),
-    //   colorText: Get.theme.colorScheme.onPrimary,
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(
+    //     content: Text('已切换到 ${role.name}'),
+    //     duration: const Duration(seconds: 2),
+    //   ),
     // );
   }
 
@@ -175,13 +182,13 @@ class RolesListController extends GetxController {
   }
 
   /// 清空本地缓存
-  Future<void> clearCache() async {
+  Future<void> clearCache(BuildContext context) async {
     await _dbHelper.clearRoles();
-    Get.snackbar(
-      '缓存清理',
-      '已清空本地角色缓存',
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 2),
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('已清空本地角色缓存'),
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 
@@ -189,4 +196,92 @@ class RolesListController extends GetxController {
   bool isCurrentRole(String roleNameToCheck) {
     return roleNameToCheck == roleName.value;
   }
+
+  /// 删除自定义角色
+  Future<void> deleteCustomRole(RoleModel role, BuildContext context) async {
+    try {
+      // 检查是否为自定义角色
+      if (!role.isCustom) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('cannot_delete_api_role'.tr),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      // 检查是否为当前使用的角色
+      if (roleName.value == role.name) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('cannot_delete_current_role'.tr),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      // 从数据库删除角色
+      await _dbHelper.deleteCustomRole(role.id);
+
+      // 从内存列表中移除
+      roles.removeWhere((r) => r.id == role.id);
+
+      // 更新过滤列表
+      _filterRoles();
+
+      // 从 usedRoles 列表中移除（如果存在）
+      usedRoles.removeWhere((r) => r['name'] == role.name);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('role_deleted_success'.trParams({'name': role.name})),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      debugPrint('自定义角色已删除: ${role.name}');
+    } catch (e) {
+      debugPrint('删除自定义角色失败: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'delete_failed_message'.trParams({'error': e.toString()}),
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  /// 搜索角色
+  void searchRoles(String query) {
+    searchQuery.value = query.trim();
+  }
+
+  /// 清空搜索
+  void clearSearch() {
+    searchQuery.value = '';
+  }
+
+  /// 过滤角色列表
+  void _filterRoles() {
+    if (searchQuery.value.isEmpty) {
+      filteredRoles.value = List.from(roles);
+    } else {
+      final query = searchQuery.value.toLowerCase();
+      filteredRoles.value = roles.where((role) {
+        return role.name.toLowerCase().contains(query) ||
+            role.description.toLowerCase().contains(query);
+      }).toList();
+    }
+  }
+
+  /// 获取当前显示的角色列表
+  List<RoleModel> get displayRoles => filteredRoles;
 }

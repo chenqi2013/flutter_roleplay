@@ -13,11 +13,7 @@ ThemeData darkTheme = ThemeData(
     surfaceTintColor: Colors.transparent,
     elevation: 0,
   ),
-  bottomAppBarTheme: const BottomAppBarTheme(
-    color: Colors.black,
-    elevation: 0,
-    surfaceTintColor: Colors.transparent,
-  ),
+  // bottomAppBarTheme: const BottomAppBarThemeData(color: Colors.black, elevation: 0, surfaceTintColor: Colors.transparent),
   splashFactory: NoSplash.splashFactory,
   highlightColor: Colors.transparent,
   splashColor: Colors.transparent,

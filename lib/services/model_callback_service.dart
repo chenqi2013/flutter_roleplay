@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/hometabs/roleplay_chat_controller.dart';
+import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:get/get.dart';
 
@@ -8,6 +8,8 @@ typedef ModelDownloadCallback = void Function();
 
 /// 全局模型下载回调
 ModelDownloadCallback? _globalModelDownloadCallback;
+
+VoidCallback? _updateRolePlaySessionCallback;
 
 /// 全局模型切换回调
 Function(ModelInfo?)? _globalModelChangeCallback;
@@ -21,6 +23,10 @@ Function(ModelInfo?)? _globalStateFileChangeCallback;
 /// 设置全局模型下载回调
 void setGlobalModelDownloadCallback(ModelDownloadCallback? callback) {
   _globalModelDownloadCallback = callback;
+}
+
+void setGlobalUpdateRolePlaySessionCallback(VoidCallback? callback) {
+  _updateRolePlaySessionCallback = callback;
 }
 
 /// 设置全局模型切换回调
@@ -45,6 +51,16 @@ void notifyModelDownloadRequired() {
     _globalModelDownloadCallback!();
   } else {
     debugPrint('未设置模型下载回调，无法通知外部应用');
+  }
+}
+
+/// 通知需要更新角色会话
+void notifyUpdateRolePlaySessionRequired() {
+  if (_updateRolePlaySessionCallback != null) {
+    debugPrint('通知外部应用需要更新角色会话');
+    _updateRolePlaySessionCallback!();
+  } else {
+    debugPrint('未设置角色会话更新回调，无法通知外部应用');
   }
 }
 

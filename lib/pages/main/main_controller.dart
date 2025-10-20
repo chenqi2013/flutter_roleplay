@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
-import 'package:flutter_roleplay/download_dialog.dart';
+import 'package:flutter_roleplay/dialog/download_dialog.dart';
 
 class MainPageController extends GetxController {
   final RxInt currentIndex = 0.obs;
