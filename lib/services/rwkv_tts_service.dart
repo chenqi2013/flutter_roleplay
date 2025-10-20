@@ -103,7 +103,8 @@ class RWKVTTSService extends GetxController {
           var generating = message.isGenerating;
           isGenerating.value = generating;
           if (!generating && isNeedSaveAiMessage) {
-            debugPrint('receive IsGenerating: $generating');
+            debugPrint('语音生成完成');
+            _stopQueryTimer();
           }
         }
       }
@@ -248,6 +249,7 @@ class RWKVTTSService extends GetxController {
     // P.rwkv.send(to_rwkv.GetTTSGenerationProgress());
     send(to_rwkv.GetPrefillAndDecodeSpeed());
     send(to_rwkv.GetTTSStreamingBuffer());
+    send(to_rwkv.GetIsGenerating());
     // P.rwkv.send(to_rwkv.GetTTSOutputFileList());
   }
 
@@ -296,6 +298,9 @@ class RWKVTTSService extends GetxController {
         promptSpeechText: promptSpeechText,
       ),
     );
+    debugPrint(
+      "StartTTS: $ttsText, $instructionText, $promptWavPath, $outputWavPath, $promptSpeechText",
+    );
 
     latestBufferLength.value = 0;
     generating.value = true;
@@ -305,7 +310,6 @@ class RWKVTTSService extends GetxController {
   }
 
   void _onTTSStreamingBuffer(from_rwkv.TTSStreamingBuffer res) async {
-    final buffer = res.ttsStreamingBuffer;
     final length = res.ttsStreamingBufferLength;
     final generating = res.generating;
     final allReceived = !generating && this.generating.value;
