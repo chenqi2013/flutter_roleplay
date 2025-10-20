@@ -50,13 +50,13 @@ class RWKVTTSService extends GetxController {
     _setupReceivePortListener();
     loadSparkTTS(
       modelPath:
-          "/data/user/0/com.rwkvzone.roleplay/app_flutter/respark-0.4B-210ksteps-a16w8-8gen3_combined.bin",
+          "/data/user/0/com.rwkvzone.chat/app_flutter/rwkv7-0.4B-g1-respark-voice-tunable-ipa-a16w8-8gen3.bin",
       wav2vec2Path:
-          "/data/user/0/com.rwkvzone.roleplay/app_flutter/wav2vec2-large-xlsr-53.mnn",
+          "/data/user/0/com.rwkvzone.chat/app_flutter/wav2vec2-large-xlsr-53.mnn",
       detokenizePath:
-          "/data/user/0/com.rwkvzone.roleplay/app_flutter/BiCodecDetokenize.mnn",
+          "/data/user/0/com.rwkvzone.chat/app_flutter/BiCodecDetokenize.mnn",
       bicodecTokenzerPath:
-          "/data/user/0/com.rwkvzone.roleplay/app_flutter/BiCodecTokenize.mnn",
+          "/data/user/0/com.rwkvzone.chat/app_flutter/BiCodecTokenize.mnn",
       backend: Backend.qnn,
     );
   }
@@ -78,9 +78,9 @@ class RWKVTTSService extends GetxController {
       ttsText: ttsText,
       instructionText: "",
       promptWavPath:
-          "/data/user/0/com.rwkvzone.roleplay/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
+          "/data/user/0/com.rwkvzone.chat/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
       outputWavPath:
-          "/data/user/0/com.rwkvzone.roleplay/cache/1234567890.output.wav",
+          "/data/user/0/com.rwkvzone.chat/cache/1234567890.output.wav",
       promptSpeechText: "——我们并不是通过物理移动手段找到「星核」的。",
     );
   }
@@ -121,6 +121,9 @@ class RWKVTTSService extends GetxController {
     required String bicodecTokenzerPath,
     required Backend backend,
   }) async {
+    debugPrint(
+      'loadSparkTTS: $modelPath, $wav2vec2Path, $detokenizePath, $bicodecTokenzerPath, $backend',
+    );
     prefillSpeed.value = 0;
     decodeSpeed.value = 0;
     if (Platform.isAndroid && backend == Backend.qnn) {
@@ -132,7 +135,7 @@ class RWKVTTSService extends GetxController {
       }
     }
     final tokenizerPath = await CommonUtil.fromAssetsToTemp(
-      "assets/config/tts/b_rwkv_vocab_v20230424_sparktts.txt",
+      "assets/config/chat/vocab_talk.txt",
     );
     // await _ensureQNNCopied();
     final rootIsolateToken = RootIsolateToken.instance;
@@ -170,6 +173,7 @@ class RWKVTTSService extends GetxController {
 
     if (_getTokensTimer != null) {
       _getTokensTimer!.cancel();
+      _getTokensTimer = null;
     }
 
     _getTokensTimer = Timer.periodic(const Duration(milliseconds: 225), (
@@ -187,13 +191,13 @@ class RWKVTTSService extends GetxController {
     );
 
     final ttsTextNormalizerDatePath = await CommonUtil.fromAssetsToTemp(
-      "assets/config/tts/date-zh.fst",
+      "assets/config/chat/date-zh.fst",
     );
     final ttsTextNormalizerNumberPath = await CommonUtil.fromAssetsToTemp(
-      "assets/config/tts/number-zh.fst",
+      "assets/config/chat/number-zh.fst",
     );
     final ttsTextNormalizerPhonePath = await CommonUtil.fromAssetsToTemp(
-      "assets/config/tts/phone-zh.fst",
+      "assets/config/chat/phone-zh.fst",
     );
     // note: order matters here
     send(to_rwkv.LoadTTSTextNormalizer(ttsTextNormalizerDatePath));
@@ -201,6 +205,7 @@ class RWKVTTSService extends GetxController {
     send(to_rwkv.LoadTTSTextNormalizer(ttsTextNormalizerNumberPath));
 
     isSparkTTSModelLoaded = true;
+    debugPrint('loadSparkTTS success');
   }
 
   /// 发送消息到 RWKV
