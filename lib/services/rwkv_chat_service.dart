@@ -49,7 +49,7 @@ class RWKVChatService extends GetxController {
   Function()? _onGenerationComplete;
   RolePlayChatController? _controller;
   RWKVTTSService? _ttsService;
-  StringBuffer ttsTextBuffer = StringBuffer();
+  String lastGeneratedContent = ''; // 存储最后生成的完整内容
   var history = <String>[];
   @override
   void onInit() async {
@@ -78,7 +78,7 @@ class RWKVChatService extends GetxController {
       } else {
         if (message is ResponseBufferContent) {
           String result = message.responseBufferContent;
-          ttsTextBuffer.write(result);
+          lastGeneratedContent = result; // 保存最后生成的完整内容
           if (localChatController != null && !localChatController!.isClosed) {
             localChatController!.add(result);
             _onMessageGenerated?.call(result);
@@ -98,8 +98,11 @@ class RWKVChatService extends GetxController {
           isGenerating.value = generating;
           if (!generating && isNeedSaveAiMessage) {
             debugPrint('receive IsGenerating: $generating');
-            _ttsService?.playTTS(ttsTextBuffer.toString());
-            ttsTextBuffer.clear();
+            // 使用最后生成的完整内容进行TTS
+            if (lastGeneratedContent.isNotEmpty) {
+              _ttsService?.playTTS(lastGeneratedContent);
+              lastGeneratedContent = ''; // 清空以备下次使用
+            }
             isNeedSaveAiMessage = false;
             _onGenerationComplete?.call();
             send(
@@ -397,6 +400,7 @@ class RWKVChatService extends GetxController {
   Future<void> clearStates({String? statePath}) async {
     // prefillSpeed.value = 0;
     // decodeSpeed.value = 0;
+    lastGeneratedContent = ''; // 清空生成内容
 
     // // 只清空内存中的聊天记录，不删除数据库记录
     // final stateManager = ChatStateManager();
@@ -435,6 +439,7 @@ class RWKVChatService extends GetxController {
   Future<void> changeStatesFile({String? statePath}) async {
     // prefillSpeed.value = 0;
     // decodeSpeed.value = 0;
+    lastGeneratedContent = ''; // 清空生成内容
 
     // // 只清空内存中的聊天记录，不删除数据库记录
     // final stateManager = ChatStateManager();
@@ -474,7 +479,10 @@ class RWKVChatService extends GetxController {
   }
 
   /// 停止生成
-  Future<void> stop() async => send(to_rwkv.Stop());
+  Future<void> stop() async {
+    lastGeneratedContent = ''; // 清空未完成的内容
+    send(to_rwkv.Stop());
+  }
 
   /// 生成聊天回复流
   Stream<String> streamLocalChatCompletions({String? content}) {
@@ -494,7 +502,9 @@ class RWKVChatService extends GetxController {
   Future<void> generate(String prompt) async {
     prefillSpeed.value = 0;
     decodeSpeed.value = 0;
+    prefillProgress.value = 0;
     isGenerating.value = true;
+    lastGeneratedContent = ''; // 清空上次生成的内容
     final sendPort = _sendPort;
     if (sendPort == null) {
       debugPrint("sendPort is null");

@@ -62,25 +62,25 @@ class RWKVTTSService extends GetxController {
   }
 
   void playTTS(String ttsText) async {
-    // ttsText: 贫穷限制了我的想象力
     // I/flutter (26008): instructionText:
     // I/flutter (26008): promptWavPath: /data/user/0/com.rwkv.tts/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav
     // I/flutter (26008): promptSpeechText: ——我们并不是通过物理移动手段找到「星核」的。
     // I/flutter (26008): outputWavPath: /data/user/0/com.rwkv.tts/cache/1756368658614.output.wav
-    debugPrint("playTTS: $ttsText");
+    debugPrint('playTTS: $ttsText');
     final Kafka_8wav = await CommonUtil.fromAssetsToTemp(
       "assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
     );
     final Kafka_8json = await CommonUtil.fromAssetsToTemp(
       "assets/lib/tts/Chinese(PRC)_Kafka_8.json",
     );
+    int millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
     _runTTS(
       ttsText: ttsText,
       instructionText: "",
       promptWavPath:
           "/data/user/0/com.rwkvzone.chat/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
       outputWavPath:
-          "/data/user/0/com.rwkvzone.chat/cache/1234567890.output.wav",
+          "/data/user/0/com.rwkvzone.chat/cache/$millisecondsSinceEpoch.output.wav",
       promptSpeechText: "——我们并不是通过物理移动手段找到「星核」的。",
     );
   }
