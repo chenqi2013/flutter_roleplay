@@ -4,6 +4,7 @@ import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// 文本片段，用于区分普通对话和动作描述
 class TextSegment {
@@ -36,6 +37,7 @@ class _ChatBubbleState extends State<ChatBubble> {
   AudioPlayer? _audioPlayer;
   bool _isPlaying = false;
   bool _isLoading = false;
+  var cacheDir = '';
 
   @override
   void initState() {
@@ -79,15 +81,17 @@ class _ChatBubbleState extends State<ChatBubble> {
   // 播放或暂停音频
   Future<void> _toggleAudio() async {
     if (_audioPlayer == null || widget.message.audioFileName == null) return;
-
+    if (cacheDir.isEmpty) {
+      cacheDir = (await getTemporaryDirectory()).path;
+      debugPrint('cacheDir: $cacheDir');
+    }
     try {
       if (_isPlaying) {
         // 暂停
         await _audioPlayer!.pause();
       } else {
         // 播放
-        final audioPath =
-            '/data/user/0/com.rwkvzone.chat/cache/${widget.message.audioFileName}';
+        final audioPath = '$cacheDir/${widget.message.audioFileName}';
         debugPrint('Playing audio from: $audioPath');
         await _audioPlayer!.play(DeviceFileSource(audioPath));
       }

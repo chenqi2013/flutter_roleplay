@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rwkv_mobile_flutter/from_rwkv.dart';
 import 'dart:isolate';
 import 'dart:async';
@@ -48,21 +49,23 @@ class RWKVTTSService extends GetxController {
   String? currentAudioFileName;
   // TTS生成完成回调
   Function(String audioFileName)? onTTSComplete;
+  var appDir = '';
+  var cacheDir = '';
 
   @override
   void onInit() async {
     super.onInit();
     _setupReceivePortListener();
+    appDir = (await getApplicationDocumentsDirectory()).path;
+    debugPrint('appDir: $appDir');
+    cacheDir = (await getTemporaryDirectory()).path;
+    debugPrint('cacheDir: $cacheDir');
     loadSparkTTS(
-      modelPath:
-          "/data/user/0/com.rwkvzone.chat/app_flutter/rwkv7-0.4B-g1-respark-voice-tunable-ipa-a16w8-8gen3.bin",
-      wav2vec2Path:
-          "/data/user/0/com.rwkvzone.chat/app_flutter/wav2vec2-large-xlsr-53.mnn",
-      detokenizePath:
-          "/data/user/0/com.rwkvzone.chat/app_flutter/BiCodecDetokenize.mnn",
-      bicodecTokenzerPath:
-          "/data/user/0/com.rwkvzone.chat/app_flutter/BiCodecTokenize.mnn",
-      backend: Backend.qnn,
+      modelPath: "$appDir/rwkv7-0.1B-g1-respark-voice-tunable-ipa-q8_0.gguf",
+      wav2vec2Path: "$appDir/wav2vec2-large-xlsr-53.mnn",
+      detokenizePath: "$appDir/BiCodecDetokenize.mnn",
+      bicodecTokenzerPath: "$appDir/BiCodecTokenize.mnn",
+      backend: Backend.llamacpp,
     );
   }
 
@@ -85,10 +88,8 @@ class RWKVTTSService extends GetxController {
     _runTTS(
       ttsText: ttsText,
       instructionText: "",
-      promptWavPath:
-          "/data/user/0/com.rwkvzone.chat/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
-      outputWavPath:
-          "/data/user/0/com.rwkvzone.chat/cache/$millisecondsSinceEpoch.wav",
+      promptWavPath: "$cacheDir/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
+      outputWavPath: "$cacheDir/$millisecondsSinceEpoch.wav",
       promptSpeechText: "——我们并不是通过物理移动手段找到「星核」的。",
     );
   }
