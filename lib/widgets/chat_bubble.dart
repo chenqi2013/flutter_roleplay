@@ -3,6 +3,7 @@ import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
+import 'package:audioplayers/audioplayers.dart';
 
 /// 文本片段，用于区分普通对话和动作描述
 class TextSegment {
@@ -13,7 +14,7 @@ class TextSegment {
 }
 
 /// 聊天气泡组件
-class ChatBubble extends StatelessWidget {
+class ChatBubble extends StatefulWidget {
   const ChatBubble({
     super.key,
     required this.message,
@@ -26,6 +27,82 @@ class ChatBubble extends StatelessWidget {
   final VoidCallback? onRegeneratePressed;
   final Function(int branchIndex)? onBranchChanged;
   final bool showBranchIndicator;
+
+  @override
+  State<ChatBubble> createState() => _ChatBubbleState();
+}
+
+class _ChatBubbleState extends State<ChatBubble> {
+  AudioPlayer? _audioPlayer;
+  bool _isPlaying = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 如果消息有音频文件，初始化 AudioPlayer
+    if (widget.message.audioFileName != null &&
+        widget.message.audioFileName!.isNotEmpty) {
+      _initAudioPlayer();
+    }
+  }
+
+  void _initAudioPlayer() {
+    _audioPlayer = AudioPlayer();
+
+    // 监听播放完成事件
+    _audioPlayer!.onPlayerComplete.listen((event) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = false;
+        });
+      }
+    });
+
+    // 监听播放状态变化
+    _audioPlayer!.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.playing;
+          _isLoading = state == PlayerState.playing && _isPlaying == false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer?.dispose();
+    super.dispose();
+  }
+
+  // 播放或暂停音频
+  Future<void> _toggleAudio() async {
+    if (_audioPlayer == null || widget.message.audioFileName == null) return;
+
+    try {
+      if (_isPlaying) {
+        // 暂停
+        await _audioPlayer!.pause();
+      } else {
+        // 播放
+        final audioPath =
+            '/data/user/0/com.rwkvzone.chat/cache/${widget.message.audioFileName}';
+        debugPrint('Playing audio from: $audioPath');
+        await _audioPlayer!.play(DeviceFileSource(audioPath));
+      }
+    } catch (e) {
+      debugPrint('Error playing audio: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to play audio: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   /// 解析文本，分离括号内容和普通内容
   List<TextSegment> _parseText(String text) {
@@ -88,7 +165,7 @@ class ChatBubble extends StatelessWidget {
             ),
           ),
           child: Text(
-            message.content.trim(),
+            widget.message.content.trim(),
             style: const TextStyle(
               color: Colors.black87,
               fontSize: 15,
@@ -103,7 +180,7 @@ class ChatBubble extends StatelessWidget {
 
   Widget _buildAiBubble(BuildContext context) {
     // 检查是否为空消息（正在生成中）
-    final bool isGenerating = message.content.trim().isEmpty;
+    final bool isGenerating = widget.message.content.trim().isEmpty;
 
     if (isGenerating) {
       // 显示loading指示器
@@ -135,7 +212,7 @@ class ChatBubble extends StatelessWidget {
       );
     }
 
-    final segments = _parseText(message.content);
+    final segments = _parseText(widget.message.content);
 
     return Align(
       alignment: Alignment.centerLeft,
@@ -162,6 +239,11 @@ class ChatBubble extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 音频图标（如果有音频文件）
+              if (widget.message.audioFileName != null &&
+                  widget.message.audioFileName!.isNotEmpty)
+                _buildAudioIcon(),
+
               // 消息内容
               ...segments.map((segment) {
                 if (segment.isAction) {
@@ -197,8 +279,10 @@ class ChatBubble extends StatelessWidget {
               }),
 
               // 分支指示器和重新生成按钮同一行
-              if ((showBranchIndicator && message.totalBranches > 1) ||
-                  (!message.isUser && onRegeneratePressed != null))
+              if ((widget.showBranchIndicator &&
+                      widget.message.totalBranches > 1) ||
+                  (!widget.message.isUser &&
+                      widget.onRegeneratePressed != null))
                 _buildActionRow(),
             ],
           ),
@@ -214,16 +298,17 @@ class ChatBubble extends StatelessWidget {
       child: Row(
         children: [
           // 分支指示器（如果有多个分支）
-          if (showBranchIndicator && message.totalBranches > 1)
+          if (widget.showBranchIndicator && widget.message.totalBranches > 1)
             _buildBranchIndicator(),
 
           // 间距
-          if ((showBranchIndicator && message.totalBranches > 1) &&
-              (!message.isUser && onRegeneratePressed != null))
+          if ((widget.showBranchIndicator &&
+                  widget.message.totalBranches > 1) &&
+              (!widget.message.isUser && widget.onRegeneratePressed != null))
             const SizedBox(width: 12),
 
           // 重新生成按钮（对于AI消息）
-          if (!message.isUser && onRegeneratePressed != null)
+          if (!widget.message.isUser && widget.onRegeneratePressed != null)
             _buildRegenerateButton(),
         ],
       ),
@@ -236,9 +321,10 @@ class ChatBubble extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // 左箭头
-        if (message.branchIndex > 0)
+        if (widget.message.branchIndex > 0)
           GestureDetector(
-            onTap: () => onBranchChanged?.call(message.branchIndex - 1),
+            onTap: () =>
+                widget.onBranchChanged?.call(widget.message.branchIndex - 1),
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -266,7 +352,7 @@ class ChatBubble extends StatelessWidget {
 
         // 分支信息
         Text(
-          '${message.branchIndex + 1} / ${message.totalBranches}',
+          '${widget.message.branchIndex + 1} / ${widget.message.totalBranches}',
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.7),
             fontSize: 12,
@@ -277,9 +363,10 @@ class ChatBubble extends StatelessWidget {
         const SizedBox(width: 8),
 
         // 右箭头
-        if (message.branchIndex < message.totalBranches - 1)
+        if (widget.message.branchIndex < widget.message.totalBranches - 1)
           GestureDetector(
-            onTap: () => onBranchChanged?.call(message.branchIndex + 1),
+            onTap: () =>
+                widget.onBranchChanged?.call(widget.message.branchIndex + 1),
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -311,9 +398,9 @@ class ChatBubble extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         debugPrint(
-          'Regenerate button tapped for message: ${message.content.substring(0, math.min(50, message.content.length))}...',
+          'Regenerate button tapped for message: ${widget.message.content.substring(0, math.min(50, widget.message.content.length))}...',
         );
-        onRegeneratePressed?.call();
+        widget.onRegeneratePressed?.call();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -423,8 +510,74 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
+  /// 构建音频图标
+  Widget _buildAudioIcon() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: _toggleAudio,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: _isPlaying
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isPlaying
+                      ? Colors.white.withValues(alpha: 0.4)
+                      : Colors.white.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isLoading)
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    )
+                  else
+                    Icon(
+                      _isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.volume_up_rounded,
+                      color: Colors.white.withValues(alpha: 0.8),
+                      size: 18,
+                    ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _isPlaying ? 'Playing' : 'Audio',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return message.isUser ? _buildUserBubble(context) : _buildAiBubble(context);
+    return widget.message.isUser
+        ? _buildUserBubble(context)
+        : _buildAiBubble(context);
   }
 }

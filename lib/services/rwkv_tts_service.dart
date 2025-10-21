@@ -44,6 +44,11 @@ class RWKVTTSService extends GetxController {
   final generating = false.obs;
   final latestBufferLength = 0.obs;
 
+  // 当前生成的音频文件名
+  String? currentAudioFileName;
+  // TTS生成完成回调
+  Function(String audioFileName)? onTTSComplete;
+
   @override
   void onInit() async {
     super.onInit();
@@ -74,13 +79,16 @@ class RWKVTTSService extends GetxController {
       "assets/lib/tts/Chinese(PRC)_Kafka_8.json",
     );
     int millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
+    // 保存当前生成的音频文件名
+    currentAudioFileName = '$millisecondsSinceEpoch.wav';
+    debugPrint('Current audio file name: $currentAudioFileName');
     _runTTS(
       ttsText: ttsText,
       instructionText: "",
       promptWavPath:
           "/data/user/0/com.rwkvzone.chat/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
       outputWavPath:
-          "/data/user/0/com.rwkvzone.chat/cache/$millisecondsSinceEpoch.output.wav",
+          "/data/user/0/com.rwkvzone.chat/cache/$millisecondsSinceEpoch.wav",
       promptSpeechText: "——我们并不是通过物理移动手段找到「星核」的。",
     );
   }
@@ -102,9 +110,15 @@ class RWKVTTSService extends GetxController {
         } else if (message is IsGenerating) {
           var generating = message.isGenerating;
           isGenerating.value = generating;
-          if (!generating && isNeedSaveAiMessage) {
+          if (!generating) {
             debugPrint('语音生成完成');
             _stopQueryTimer();
+            // 回调通知生成完成
+            if (currentAudioFileName != null && onTTSComplete != null) {
+              debugPrint('Calling onTTSComplete with: $currentAudioFileName');
+              onTTSComplete!(currentAudioFileName!);
+              currentAudioFileName = null; // 清空
+            }
           }
         }
       }

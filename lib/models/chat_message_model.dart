@@ -10,6 +10,7 @@ class ChatMessage {
   final int branchIndex; // 在同一父消息下的分支索引，默认为0
   final int totalBranches; // 同一父消息下的总分支数
   final String? conversationId; // 会话ID，用于标识同一个对话线程
+  final String? audioFileName; // 音频文件名（仅AI消息有效）
 
   ChatMessage({
     this.id,
@@ -21,6 +22,7 @@ class ChatMessage {
     this.branchIndex = 0,
     this.totalBranches = 1,
     this.conversationId,
+    this.audioFileName,
   });
 
   // 从数据库行创建对象
@@ -35,6 +37,7 @@ class ChatMessage {
       branchIndex: map['branch_index'] as int? ?? 0,
       totalBranches: map['total_branches'] as int? ?? 1,
       conversationId: map['conversation_id'] as String?,
+      audioFileName: map['audio_file_name'] as String?,
     );
   }
 
@@ -50,6 +53,7 @@ class ChatMessage {
       'branch_index': branchIndex,
       'total_branches': totalBranches,
       'conversation_id': conversationId,
+      'audio_file_name': audioFileName,
     };
   }
 
@@ -64,6 +68,7 @@ class ChatMessage {
     int? branchIndex,
     int? totalBranches,
     String? conversationId,
+    String? audioFileName,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -75,12 +80,13 @@ class ChatMessage {
       branchIndex: branchIndex ?? this.branchIndex,
       totalBranches: totalBranches ?? this.totalBranches,
       conversationId: conversationId ?? this.conversationId,
+      audioFileName: audioFileName ?? this.audioFileName,
     );
   }
 
   @override
   String toString() {
-    return 'ChatMessage(id: $id, roleName: $roleName, content: $content, isUser: $isUser, timestamp: $timestamp, parentId: $parentId, branchIndex: $branchIndex, totalBranches: $totalBranches, conversationId: $conversationId)';
+    return 'ChatMessage(id: $id, roleName: $roleName, content: $content, isUser: $isUser, timestamp: $timestamp, parentId: $parentId, branchIndex: $branchIndex, totalBranches: $totalBranches, conversationId: $conversationId, audioFileName: $audioFileName)';
   }
 
   @override
@@ -96,7 +102,8 @@ class ChatMessage {
         other.parentId == parentId &&
         other.branchIndex == branchIndex &&
         other.totalBranches == totalBranches &&
-        other.conversationId == conversationId;
+        other.conversationId == conversationId &&
+        other.audioFileName == audioFileName;
   }
 
   @override
@@ -109,6 +116,7 @@ class ChatMessage {
         parentId.hashCode ^
         branchIndex.hashCode ^
         totalBranches.hashCode ^
-        conversationId.hashCode;
+        conversationId.hashCode ^
+        audioFileName.hashCode;
   }
 }

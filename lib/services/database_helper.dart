@@ -24,7 +24,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'flutter_roleplay.db');
     return await openDatabase(
       path,
-      version: 5, // 升级版本以支持消息分叉
+      version: 6, // 升级版本以支持音频文件名
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -43,6 +43,7 @@ class DatabaseHelper {
         branch_index INTEGER NOT NULL DEFAULT 0,
         total_branches INTEGER NOT NULL DEFAULT 1,
         conversation_id TEXT,
+        audio_file_name TEXT,
         FOREIGN KEY (parent_id) REFERENCES chat_messages (id) ON DELETE CASCADE
       )
     ''');
@@ -187,31 +188,35 @@ class DatabaseHelper {
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN parent_id INTEGER
       ''');
-      
+
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN branch_index INTEGER NOT NULL DEFAULT 0
       ''');
-      
+
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN total_branches INTEGER NOT NULL DEFAULT 1
       ''');
-      
+
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN conversation_id TEXT
       ''');
 
       // 为现有数据生成conversation_id
-      final existingMessages = await db.query('chat_messages', orderBy: 'role_name, timestamp ASC');
+      final existingMessages = await db.query(
+        'chat_messages',
+        orderBy: 'role_name, timestamp ASC',
+      );
       final Map<String, String> roleConversationIds = {};
-      
+
       for (final message in existingMessages) {
         final roleName = message['role_name'] as String;
-        
+
         // 为每个角色生成唯一的conversation_id
         if (!roleConversationIds.containsKey(roleName)) {
-          roleConversationIds[roleName] = DateTime.now().millisecondsSinceEpoch.toString() + '_' + roleName;
+          roleConversationIds[roleName] =
+              DateTime.now().millisecondsSinceEpoch.toString() + '_' + roleName;
         }
-        
+
         await db.update(
           'chat_messages',
           {'conversation_id': roleConversationIds[roleName]},
@@ -235,6 +240,15 @@ class DatabaseHelper {
 
       debugPrint('已添加消息分叉支持字段和索引');
     }
+
+    if (oldVersion < 6) {
+      // 从版本5升级到版本6: 添加音频文件名字段
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN audio_file_name TEXT
+      ''');
+
+      debugPrint('已为 chat_messages 表添加 audio_file_name 字段');
+    }
   }
 
   // 插入聊天消息
@@ -254,6 +268,23 @@ class DatabaseHelper {
     }
 
     await batch.commit(noResult: true);
+  }
+
+  // 更新消息的音频文件名
+  Future<int> updateMessageAudioFileName(
+    int messageId,
+    String audioFileName,
+  ) async {
+    final db = await database;
+    debugPrint(
+      'updateMessageAudioFileName: messageId=$messageId, audioFileName=$audioFileName',
+    );
+    return await db.update(
+      'chat_messages',
+      {'audio_file_name': audioFileName},
+      where: 'id = ?',
+      whereArgs: [messageId],
+    );
   }
 
   // 获取指定角色的所有聊天消息

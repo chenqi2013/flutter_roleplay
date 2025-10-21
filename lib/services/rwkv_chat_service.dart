@@ -57,6 +57,8 @@ class RWKVChatService extends GetxController {
     _setupReceivePortListener();
     await _checkAndLoadModel();
     _ttsService = Get.put(RWKVTTSService());
+    // 设置TTS完成回调
+    _ttsService?.onTTSComplete = _onTTSGenerationComplete;
   }
 
   /// 设置消息生成回调
@@ -67,6 +69,44 @@ class RWKVChatService extends GetxController {
   /// 设置生成完成回调
   void setOnGenerationComplete(Function() callback) {
     _onGenerationComplete = callback;
+  }
+
+  /// TTS生成完成回调，保存音频文件名到数据库
+  Future<void> _onTTSGenerationComplete(String audioFileName) async {
+    try {
+      debugPrint('TTS generation complete, audio file: $audioFileName');
+
+      // 获取当前角色的最后一条AI消息
+      final stateManager = ChatStateManager();
+      final messages = stateManager.getMessages(roleName.value);
+
+      if (messages.isNotEmpty && !messages.last.isUser) {
+        final aiMessage = messages.last;
+
+        if (aiMessage.id != null) {
+          // 更新数据库中的音频文件名
+          final dbHelper = DatabaseHelper();
+          await dbHelper.updateMessageAudioFileName(
+            aiMessage.id!,
+            audioFileName,
+          );
+          debugPrint(
+            'Updated audio file name in database for message ID: ${aiMessage.id}',
+          );
+
+          // 更新内存中的消息
+          final updatedMessage = aiMessage.copyWith(
+            audioFileName: audioFileName,
+          );
+          messages[messages.length - 1] = updatedMessage;
+          debugPrint('Updated audio file name in memory');
+        } else {
+          debugPrint('AI message has no ID, cannot update audio file name');
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to save audio file name: $e');
+    }
   }
 
   /// 设置接收端口监听器
