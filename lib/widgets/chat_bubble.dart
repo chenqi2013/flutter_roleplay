@@ -80,7 +80,10 @@ class _ChatBubbleState extends State<ChatBubble> {
 
   // 播放或暂停音频
   Future<void> _toggleAudio() async {
-    if (_audioPlayer == null || widget.message.audioFileName == null) return;
+    if (widget.message.audioFileName == null) return;
+    if (_audioPlayer == null) {
+      _initAudioPlayer();
+    }
     if (cacheDir.isEmpty) {
       cacheDir = (await getTemporaryDirectory()).path;
       debugPrint('cacheDir: $cacheDir');
