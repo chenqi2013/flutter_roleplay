@@ -74,7 +74,9 @@ class RWKVTTSService extends GetxController {
     // I/flutter (26008): promptWavPath: /data/user/0/com.rwkv.tts/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav
     // I/flutter (26008): promptSpeechText: ——我们并不是通过物理移动手段找到「星核」的。
     // I/flutter (26008): outputWavPath: /data/user/0/com.rwkv.tts/cache/1756368658614.output.wav
-    debugPrint('playTTS: $ttsText');
+    // debugPrint('before playTTS: $ttsText');
+    ttsText = ttsText.replaceAll(RegExp(r'[\(（][^\)）]*[\)）]'), '');
+    // debugPrint('after playTTS: $ttsText');
     final Kafka_8wav = await CommonUtil.fromAssetsToTemp(
       "assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
     );
