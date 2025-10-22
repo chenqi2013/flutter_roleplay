@@ -15,6 +15,7 @@ import 'package:rwkv_mobile_flutter/to_rwkv.dart' as to_rwkv;
 import 'package:rwkv_mobile_flutter/types.dart';
 import 'package:mp_audio_stream/mp_audio_stream.dart' as mp_audio_stream;
 import 'package:rwkv_mobile_flutter/from_rwkv.dart' as from_rwkv;
+import 'package:audioplayers/audioplayers.dart';
 
 /// RWKV tts模型管理服务
 class RWKVTTSService extends GetxController {
@@ -47,8 +48,8 @@ class RWKVTTSService extends GetxController {
 
   // 当前生成的音频文件名
   String? currentAudioFileName;
-  // TTS生成完成回调
-  Function(String audioFileName)? onTTSComplete;
+  // TTS生成完成回调（传递文件名和时长）
+  Function(String audioFileName, int audioDuration)? onTTSComplete;
   var appDir = '';
   var cacheDir = '';
 
@@ -119,8 +120,8 @@ class RWKVTTSService extends GetxController {
             // 回调通知生成完成
             if (currentAudioFileName != null && onTTSComplete != null) {
               debugPrint('Calling onTTSComplete with: $currentAudioFileName');
-              onTTSComplete!(currentAudioFileName!);
-              currentAudioFileName = null; // 清空
+              // 计算音频时长并回调
+              _calculateAndCallbackAudioDuration();
             }
           }
         }
@@ -354,5 +355,48 @@ class RWKVTTSService extends GetxController {
   void _onStreamError(Object error, StackTrace stackTrace) {
     debugPrint("error: $error");
     // if (!kDebugMode) Sentry.captureException(error, stackTrace: stackTrace);
+  }
+
+  /// 计算音频时长并回调
+  Future<void> _calculateAndCallbackAudioDuration() async {
+    try {
+      if (currentAudioFileName == null || onTTSComplete == null) {
+        return;
+      }
+
+      // 确保 cacheDir 已初始化
+      if (cacheDir.isEmpty) {
+        cacheDir = (await getTemporaryDirectory()).path;
+      }
+
+      final audioPath = '$cacheDir/$currentAudioFileName';
+      debugPrint('Calculating audio duration for: $audioPath');
+
+      // 使用 AudioPlayer 获取音频时长
+      final player = AudioPlayer();
+      await player.setSourceDeviceFile(audioPath);
+
+      // 等待音频信息加载
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final duration = await player.getDuration();
+      final durationInSeconds = duration?.inSeconds ?? 0;
+
+      debugPrint('Audio duration: $durationInSeconds seconds');
+
+      // 回调传递文件名和时长
+      onTTSComplete!(currentAudioFileName!, durationInSeconds);
+
+      // 清理
+      await player.dispose();
+      currentAudioFileName = null;
+    } catch (e) {
+      debugPrint('Error calculating audio duration: $e');
+      // 出错时仍然回调，但时长为0
+      if (currentAudioFileName != null && onTTSComplete != null) {
+        onTTSComplete!(currentAudioFileName!, 0);
+      }
+      currentAudioFileName = null;
+    }
   }
 }

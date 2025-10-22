@@ -24,7 +24,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'flutter_roleplay.db');
     return await openDatabase(
       path,
-      version: 6, // 升级版本以支持音频文件名
+      version: 7, // 升级版本以支持音频时长
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -44,6 +44,7 @@ class DatabaseHelper {
         total_branches INTEGER NOT NULL DEFAULT 1,
         conversation_id TEXT,
         audio_file_name TEXT,
+        audio_duration INTEGER,
         FOREIGN KEY (parent_id) REFERENCES chat_messages (id) ON DELETE CASCADE
       )
     ''');
@@ -249,6 +250,15 @@ class DatabaseHelper {
 
       debugPrint('已为 chat_messages 表添加 audio_file_name 字段');
     }
+
+    if (oldVersion < 7) {
+      // 从版本6升级到版本7: 添加音频时长字段
+      await db.execute('''
+        ALTER TABLE chat_messages ADD COLUMN audio_duration INTEGER
+      ''');
+
+      debugPrint('已为 chat_messages 表添加 audio_duration 字段');
+    }
   }
 
   // 插入聊天消息
@@ -270,18 +280,19 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
-  // 更新消息的音频文件名
-  Future<int> updateMessageAudioFileName(
+  // 更新消息的音频文件名和时长
+  Future<int> updateMessageAudioInfo(
     int messageId,
     String audioFileName,
+    int audioDuration,
   ) async {
     final db = await database;
     debugPrint(
-      'updateMessageAudioFileName: messageId=$messageId, audioFileName=$audioFileName',
+      'updateMessageAudioInfo: messageId=$messageId, audioFileName=$audioFileName, audioDuration=$audioDuration',
     );
     return await db.update(
       'chat_messages',
-      {'audio_file_name': audioFileName},
+      {'audio_file_name': audioFileName, 'audio_duration': audioDuration},
       where: 'id = ?',
       whereArgs: [messageId],
     );

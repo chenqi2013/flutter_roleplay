@@ -565,7 +565,10 @@ class _ChatBubbleState extends State<ChatBubble> {
                     ),
                   const SizedBox(width: 6),
                   Text(
-                    _isPlaying ? 'Playing' : 'Audio',
+                    (widget.message.audioDuration != null &&
+                            widget.message.audioDuration! > 0
+                        ? '${widget.message.audioDuration}s'
+                        : ''),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 12,
