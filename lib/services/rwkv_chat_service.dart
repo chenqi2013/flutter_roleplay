@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
@@ -251,7 +252,7 @@ class RWKVChatService extends GetxController {
       debugPrint('模型不存在，通知外部下载模型');
       // 通知外部应用需要下载模型，而不是在插件内部处理
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyModelDownloadRequired();
+        notifyModelDownloadRequired(RoleplayManageModelType.chat);
       });
     }
   }

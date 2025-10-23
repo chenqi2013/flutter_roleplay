@@ -63,7 +63,8 @@ class AppTranslations extends Translations {
       'confirm': '确定',
       'cancel': '取消',
       'clear_history': '清空历史',
-      'change_model': '切换模型',
+      'change_model': '切换聊天模型',
+      'change_tts_model': '切换语音模型',
       'create_role': '创建角色',
       'role_list': '角色列表',
 
@@ -207,7 +208,8 @@ class AppTranslations extends Translations {
       'confirm': 'Confirm',
       'cancel': 'Cancel',
       'clear_history': 'Clear History',
-      'change_model': 'Change Model',
+      'change_model': 'Change Chat Model',
+      'change_tts_model': 'Change TTS Model',
       'create_role': 'Create Role',
       'role_list': 'Role List',
 

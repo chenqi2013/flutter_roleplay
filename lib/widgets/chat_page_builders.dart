@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'dart:ui';
 import 'dart:io';
@@ -471,7 +472,8 @@ class ChatPageBuilders {
     required Function() onClearHistory,
     required Function() onNavigateToRolesList,
     required Function() onNavigateToCreateRole,
-    required Function() onNavigateToChangeModel,
+    required Function(RoleplayManageModelType roleplayManageModelType)
+    onNavigateToChangeModel,
     required Function() onNavigateToRoleParams,
     required Widget chatListView,
     required Widget inputBar,
@@ -538,7 +540,8 @@ class ChatPageBuilders {
     required Function() onClearHistory,
     required Function() onNavigateToRolesList,
     required Function() onNavigateToCreateRole,
-    required Function() onNavigateToChangeModel,
+    required Function(RoleplayManageModelType roleplayManageModelType)
+    onNavigateToChangeModel,
     required Function() onNavigateToRoleParams,
     required Widget chatListView,
     required Widget inputBar,
@@ -576,7 +579,8 @@ class ChatPageBuilders {
     required Function() onClearHistory,
     required Function() onNavigateToRolesList,
     required Function() onNavigateToCreateRole,
-    required Function() onNavigateToChangeModel,
+    required Function(RoleplayManageModelType roleplayManageModelType)
+    onNavigateToChangeModel,
     required Function() onNavigateToRoleParams,
   }) {
     // 只在当前角色且名称变化时才重新构建 AppBar
@@ -755,7 +759,8 @@ class ChatPageBuilders {
     required Function() onClearHistory,
     required Function() onNavigateToRolesList,
     required Function() onNavigateToCreateRole,
-    required Function() onNavigateToChangeModel,
+    required Function(RoleplayManageModelType roleplayManageModelType)
+    onNavigateToChangeModel,
     required Function() onNavigateToRoleParams,
   }) {
     return AppBar(
@@ -806,6 +811,11 @@ class ChatPageBuilders {
               text: 'change_model'.tr,
             ),
             _buildSimplePopupMenuItem(
+              value: 'change_tts_model',
+              icon: Icons.settings,
+              text: 'change_tts_model'.tr,
+            ),
+            _buildSimplePopupMenuItem(
               value: 'role_params',
               icon: Icons.tune,
               text: 'role_params'.tr,
@@ -828,7 +838,10 @@ class ChatPageBuilders {
                 onNavigateToCreateRole();
                 break;
               case 'change_model':
-                onNavigateToChangeModel();
+                onNavigateToChangeModel(RoleplayManageModelType.chat);
+                break;
+              case 'change_tts_model':
+                onNavigateToChangeModel(RoleplayManageModelType.tts);
                 break;
               case 'role_params':
                 onNavigateToRoleParams();

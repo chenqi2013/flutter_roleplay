@@ -1,3 +1,4 @@
+import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:rwkv_mobile_flutter/rwkv.dart';
 
 class ModelInfo {
@@ -18,6 +19,7 @@ class ModelInfo {
   final double? presencePenalty;
   final double? frequencyPenalty;
   final double? penaltyDecay;
+  final RoleplayManageModelType? modelType;
 
   ModelInfo({
     required this.id,
@@ -29,6 +31,7 @@ class ModelInfo {
     this.presencePenalty,
     this.frequencyPenalty,
     this.penaltyDecay,
+    this.modelType,
   });
 
   Map<String, dynamic> toJson() {
@@ -42,6 +45,7 @@ class ModelInfo {
       'presencePenalty': presencePenalty,
       'frequencyPenalty': frequencyPenalty,
       'penaltyDecay': penaltyDecay,
+      'modelType': modelType,
     };
   }
 
@@ -56,11 +60,12 @@ class ModelInfo {
       presencePenalty: json['presencePenalty'],
       frequencyPenalty: json['frequencyPenalty'],
       penaltyDecay: json['penaltyDecay'],
+      modelType: json['modelType'],
     );
   }
 
   @override
   String toString() {
-    return 'ModelInfo(id: $id, modelPath: $modelPath, statePath: $statePath, backend: $backend, temperature: $temperature, topP: $topP, presencePenalty: $presencePenalty, frequencyPenalty: $frequencyPenalty, penaltyDecay: $penaltyDecay)';
+    return 'ModelInfo(id: $id, modelPath: $modelPath, statePath: $statePath, backend: $backend, modelType: $modelType, temperature: $temperature, topP: $topP, presencePenalty: $presencePenalty, frequencyPenalty: $frequencyPenalty, penaltyDecay: $penaltyDecay)';
   }
 }

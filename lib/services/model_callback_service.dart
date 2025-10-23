@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:get/get.dart';
 
 /// 模型下载回调函数类型
-typedef ModelDownloadCallback = void Function();
+typedef ModelDownloadCallback = void Function(RoleplayManageModelType type);
 
 /// 全局模型下载回调
 ModelDownloadCallback? _globalModelDownloadCallback;
@@ -45,10 +46,11 @@ void setGlobalStateFileChangeCallback(Function(ModelInfo?)? callback) {
 }
 
 /// 通知需要下载模型
-void notifyModelDownloadRequired() {
+void notifyModelDownloadRequired(RoleplayManageModelType type) {
+  debugPrint('notifyModelDownloadRequired: $type');
   if (_globalModelDownloadCallback != null) {
     debugPrint('通知外部应用需要下载模型');
-    _globalModelDownloadCallback!();
+    _globalModelDownloadCallback!(type);
   } else {
     debugPrint('未设置模型下载回调，无法通知外部应用');
   }

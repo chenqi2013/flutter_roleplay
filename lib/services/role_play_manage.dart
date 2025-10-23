@@ -14,10 +14,12 @@ import 'package:get/get.dart';
 BuildContext? currentContext;
 LanguageService? languageService;
 
+enum RoleplayManageModelType { chat, tts }
+
 class RoleplayManage {
   static Widget createRolePlayChatPage(
     BuildContext context, {
-    VoidCallback? onModelDownloadRequired,
+    Function(RoleplayManageModelType type)? onModelDownloadRequired,
     Function(ModelInfo?)? changeModelCallback,
     VoidCallback? onUpdateRolePlaySessionRequired,
   }) {
@@ -135,7 +137,7 @@ class RoleplayManage {
   static Widget goRolePlay(
     String roleName,
     BuildContext context, {
-    VoidCallback? onModelDownloadRequired,
+    Function(RoleplayManageModelType type)? onModelDownloadRequired,
     VoidCallback? onUpdateRolePlaySessionRequired,
     Function(ModelInfo?)? changeModelCallback,
   }) {

@@ -650,10 +650,11 @@ class _RolePlayChatState extends State<RolePlayChat>
           );
         }
       },
-      onNavigateToChangeModel: () async {
-        debugPrint('onNavigateToChangeModel');
-        notifyModelChangeRequired();
-      },
+      onNavigateToChangeModel:
+          (RoleplayManageModelType roleplayManageModelType) async {
+            debugPrint('onNavigateToChangeModel: $roleplayManageModelType');
+            notifyModelDownloadRequired(roleplayManageModelType);
+          },
       onNavigateToRoleParams: () async {
         if (await _checkAndStopAiReply()) {
           Navigator.push(
