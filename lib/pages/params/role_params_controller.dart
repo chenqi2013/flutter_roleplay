@@ -32,6 +32,7 @@ class RoleParamsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    debugPrint('RoleParamsController onInit');
     _loadParams();
   }
 

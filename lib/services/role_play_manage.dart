@@ -3,6 +3,8 @@ import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/pages/new/createrole_controller.dart';
+import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/services/language_service.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
@@ -34,6 +36,7 @@ class RoleplayManage {
     // 设置全局角色会话更新回调
     setGlobalUpdateRolePlaySessionCallback(onUpdateRolePlaySessionRequired);
 
+    initializeControllers();
     // 初始化语言服务
     _initializeLanguageService();
 
@@ -44,6 +47,18 @@ class RoleplayManage {
     // 让宿主应用的导航栈管理所有页面
 
     return RolePlayChat();
+  }
+
+  static void initializeControllers() {
+    Get.lazyPut<RolesListController>(() => RolesListController(), fenix: true);
+    Get.lazyPut<CreateRoleController>(
+      () => CreateRoleController(),
+      fenix: true,
+    );
+    Get.lazyPut<RoleParamsController>(
+      () => RoleParamsController(),
+      fenix: true,
+    );
   }
 
   // 防止重复初始化的标志
@@ -76,13 +91,13 @@ class RoleplayManage {
         debugPrint('LanguageService已存在，直接使用');
       }
 
-      // 初始化角色参数控制器
-      if (!Get.isRegistered<RoleParamsController>()) {
-        Get.put(RoleParamsController());
-        debugPrint('RoleParamsController已注册');
-      } else {
-        debugPrint('RoleParamsController已存在，直接使用');
-      }
+      // // 初始化角色参数控制器
+      // if (!Get.isRegistered<RoleParamsController>()) {
+      //   Get.put(RoleParamsController());
+      //   debugPrint('RoleParamsController已注册');
+      // } else {
+      //   debugPrint('RoleParamsController已存在，直接使用');
+      // }
 
       _isInitialized = true;
       debugPrint('语言服务初始化完成');
@@ -150,6 +165,7 @@ class RoleplayManage {
 
     // 设置全局模型切换回调
     setGlobalModelChangeCallback(changeModelCallback);
+    initializeControllers();
 
     // 初始化语言服务
     _initializeLanguageService();

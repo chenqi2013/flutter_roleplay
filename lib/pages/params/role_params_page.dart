@@ -7,7 +7,7 @@ import 'role_params_controller.dart';
 
 class RoleParamsPage extends StatelessWidget {
   RoleParamsPage({super.key});
-  final controller = Get.put(RoleParamsController());
+  final controller = Get.find<RoleParamsController>();
 
   @override
   Widget build(BuildContext context) {

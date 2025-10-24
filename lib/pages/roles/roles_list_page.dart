@@ -7,7 +7,7 @@ import 'package:flutter_roleplay/pages/new/createrole_page.dart';
 
 class RolesListPage extends StatelessWidget {
   RolesListPage({super.key});
-  final controller = Get.put(RolesListController());
+  final controller = Get.find<RolesListController>();
   @override
   Widget build(BuildContext context) {
     // // 每次进入页面时刷新角色列表，确保显示最新的角色数据

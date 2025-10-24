@@ -21,6 +21,7 @@ class RolesListController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    debugPrint('RolesListController onInit');
     loadRoles();
 
     // 监听搜索查询变化

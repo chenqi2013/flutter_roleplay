@@ -10,7 +10,7 @@ class CreateRolePage extends StatelessWidget {
 
   CreateRolePage({super.key, this.editRole});
   bool isInit = false;
-  final controller = Get.put(CreateRoleController());
+  final controller = Get.find<CreateRoleController>();
   @override
   Widget build(BuildContext context) {
     if (!isInit) {
