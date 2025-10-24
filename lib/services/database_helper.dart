@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
@@ -10,9 +12,30 @@ import 'package:rwkv_mobile_flutter/types.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
-  DatabaseHelper._internal();
+  DatabaseHelper._internal() {
+    _initializeDatabaseFactory();
+  }
 
   static Database? _database;
+  static bool _factoryInitialized = false;
+
+  /// 初始化数据库工厂（用于桌面平台）
+  void _initializeDatabaseFactory() {
+    if (_factoryInitialized) return;
+
+    // 检查是否为桌面平台（Windows、Linux、macOS）
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // 初始化 FFI
+      sqfliteFfiInit();
+      // 设置全局数据库工厂为 FFI 实现
+      databaseFactory = databaseFactoryFfi;
+      debugPrint('DatabaseHelper: Using sqflite_ffi for desktop platform');
+    } else {
+      debugPrint('DatabaseHelper: Using default sqflite for mobile platform');
+    }
+
+    _factoryInitialized = true;
+  }
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -21,7 +44,19 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'flutter_roleplay.db');
+    String path;
+
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // 桌面平台：使用应用数据目录
+      final dbPath = await getDatabasesPath();
+      path = join(dbPath, 'flutter_roleplay.db');
+      debugPrint('DatabaseHelper: Database path (desktop): $path');
+    } else {
+      // 移动平台：使用默认路径
+      path = join(await getDatabasesPath(), 'flutter_roleplay.db');
+      debugPrint('DatabaseHelper: Database path (mobile): $path');
+    }
+
     return await openDatabase(
       path,
       version: 5, // 升级版本以支持消息分叉
@@ -187,31 +222,35 @@ class DatabaseHelper {
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN parent_id INTEGER
       ''');
-      
+
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN branch_index INTEGER NOT NULL DEFAULT 0
       ''');
-      
+
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN total_branches INTEGER NOT NULL DEFAULT 1
       ''');
-      
+
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN conversation_id TEXT
       ''');
 
       // 为现有数据生成conversation_id
-      final existingMessages = await db.query('chat_messages', orderBy: 'role_name, timestamp ASC');
+      final existingMessages = await db.query(
+        'chat_messages',
+        orderBy: 'role_name, timestamp ASC',
+      );
       final Map<String, String> roleConversationIds = {};
-      
+
       for (final message in existingMessages) {
         final roleName = message['role_name'] as String;
-        
+
         // 为每个角色生成唯一的conversation_id
         if (!roleConversationIds.containsKey(roleName)) {
-          roleConversationIds[roleName] = DateTime.now().millisecondsSinceEpoch.toString() + '_' + roleName;
+          roleConversationIds[roleName] =
+              DateTime.now().millisecondsSinceEpoch.toString() + '_' + roleName;
         }
-        
+
         await db.update(
           'chat_messages',
           {'conversation_id': roleConversationIds[roleName]},
