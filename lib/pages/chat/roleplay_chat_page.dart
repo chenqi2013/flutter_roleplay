@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
+import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
+import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'dart:async';
@@ -391,6 +393,9 @@ class _RolePlayChatState extends State<RolePlayChat>
     _textController.dispose();
     _pageController.dispose();
     disposeScrollListener();
+
+    _controller?.modelService.ttsService?.releaseTTSModel();
+    debugPrint('releaseTTSModel success');
     super.dispose();
     debugPrint('RolePlayChat dispose');
   }

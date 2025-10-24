@@ -52,10 +52,11 @@ class RWKVTTSService extends GetxController {
   Function(String audioFileName, int audioDuration)? onTTSComplete;
   var appDir = '';
   var cacheDir = '';
-
+  int? modelID;
   @override
   void onInit() async {
     super.onInit();
+    debugPrint('RWKVTTSService onInit');
     _setupReceivePortListener();
     appDir = (await getApplicationDocumentsDirectory()).path;
     debugPrint('appDir: $appDir');
@@ -108,6 +109,9 @@ class RWKVTTSService extends GetxController {
           // String result = message.responseBufferContent;
         } else if (message is Speed) {
           // 处理速度信息
+        } else if (message is LoadSteps) {
+          debugPrint("receive LoadSteps: ${message.modelID}");
+          modelID = message.modelID;
         } else if (message is TTSStreamingBuffer) {
           debugPrint("receive TTSStreamingBuffer: $message");
           _onTTSStreamingBuffer(message);
@@ -161,12 +165,17 @@ class RWKVTTSService extends GetxController {
 
     if (_sendPort != null) {
       try {
-        send(to_rwkv.ReleaseTTSModels());
-        await reInitRuntime(
-          backend: backend,
-          modelPath: modelPath,
-          tokenizerPath: tokenizerPath,
-        );
+        if (modelID != null) {
+          send(to_rwkv.ReleaseTTSModels());
+          send(to_rwkv.ReleaseModel(modelID: modelID));
+          debugPrint('_sendPort != null releaseTTSModels');
+        }
+
+        // await reInitRuntime(
+        //   backend: backend,
+        //   modelPath: modelPath,
+        //   tokenizerPath: tokenizerPath,
+        // );
       } catch (e) {
         debugPrint("initRuntime failed: $e");
         // if (!kDebugMode)
@@ -174,16 +183,16 @@ class RWKVTTSService extends GetxController {
         // Alert.error("Failed to load model: $e");
         return;
       }
-    } else {
-      final options = StartOptions(
-        modelPath: modelPath,
-        tokenizerPath: tokenizerPath,
-        backend: backend,
-        sendPort: _receivePort.sendPort,
-        rootIsolateToken: rootIsolateToken!,
-      );
-      await RWKVMobile().runIsolate(options);
+      _sendPort = null;
     }
+    final options = StartOptions(
+      modelPath: modelPath,
+      tokenizerPath: tokenizerPath,
+      backend: backend,
+      sendPort: _receivePort.sendPort,
+      rootIsolateToken: rootIsolateToken!,
+    );
+    await RWKVMobile().runIsolate(options);
 
     while (_sendPort == null) {
       debugPrint("waiting for sendPort...");
@@ -202,7 +211,10 @@ class RWKVTTSService extends GetxController {
     });
 
     send(
-      to_rwkv.LoadSparkTTSModels(
+      to_rwkv.AddTTSModel(
+        modelPath: modelPath,
+        backend: backend,
+        tokenizerPath: tokenizerPath,
         wav2vec2Path: wav2vec2Path,
         bicodecTokenizerPath: bicodecTokenzerPath,
         bicodecDetokenizerPath: detokenizePath,
@@ -225,6 +237,26 @@ class RWKVTTSService extends GetxController {
 
     isSparkTTSModelLoaded = true;
     debugPrint('loadSparkTTS success');
+  }
+
+  void releaseTTSModel() {
+    if (_sendPort == null || !isSparkTTSModelLoaded) {
+      return;
+    }
+    send(to_rwkv.ReleaseTTSModels());
+    send(to_rwkv.ReleaseModel(modelID: modelID));
+    modelID = null;
+    isSparkTTSModelLoaded = false;
+    _sendPort = null;
+    _initRuntimeCompleter = Completer<void>();
+    _getTokensTimer?.cancel();
+    _getTokensTimer = null;
+    _queryTimer?.cancel();
+    _queryTimer = null;
+    _asTimer?.cancel();
+    _asTimer = null;
+    audioStream = null;
+    debugPrint('releaseTTSModel success');
   }
 
   /// 发送消息到 RWKV
@@ -283,6 +315,16 @@ class RWKVTTSService extends GetxController {
     required String outputWavPath,
     required String promptSpeechText,
   }) async {
+    if (!isSparkTTSModelLoaded) {
+      await loadSparkTTS(
+        modelPath: "$appDir/rwkv7-0.1B-g1-respark-voice-tunable-ipa-q8_0.gguf",
+        wav2vec2Path: "$appDir/wav2vec2-large-xlsr-53.mnn",
+        detokenizePath: "$appDir/BiCodecDetokenize.mnn",
+        bicodecTokenzerPath: "$appDir/BiCodecTokenize.mnn",
+        backend: Backend.llamacpp,
+      );
+    }
+
     final audioStream = mp_audio_stream.getAudioStream();
     final res = audioStream.init(
       sampleRate: 16000,

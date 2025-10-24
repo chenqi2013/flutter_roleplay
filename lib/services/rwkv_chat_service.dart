@@ -49,17 +49,18 @@ class RWKVChatService extends GetxController {
   Function(String)? _onMessageGenerated;
   Function()? _onGenerationComplete;
   RolePlayChatController? _controller;
-  RWKVTTSService? _ttsService;
+  RWKVTTSService? ttsService;
   String lastGeneratedContent = ''; // 存储最后生成的完整内容
   var history = <String>[];
   @override
   void onInit() async {
     super.onInit();
+    debugPrint('RolePlayChatController onInit');
     _setupReceivePortListener();
     await _checkAndLoadModel();
-    _ttsService = Get.put(RWKVTTSService());
+    ttsService = Get.put(RWKVTTSService());
     // 设置TTS完成回调
-    _ttsService?.onTTSComplete = _onTTSGenerationComplete;
+    ttsService?.onTTSComplete = _onTTSGenerationComplete;
   }
 
   /// 设置消息生成回调
@@ -148,7 +149,7 @@ class RWKVChatService extends GetxController {
             debugPrint('receive IsGenerating: $generating');
             // 使用最后生成的完整内容进行TTS
             if (lastGeneratedContent.isNotEmpty) {
-              _ttsService?.playTTS(lastGeneratedContent);
+              ttsService?.playTTS(lastGeneratedContent);
               lastGeneratedContent = ''; // 清空以备下次使用
             }
             isNeedSaveAiMessage = false;
