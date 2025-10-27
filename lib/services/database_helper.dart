@@ -7,6 +7,7 @@ import 'package:path/path.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:rwkv_mobile_flutter/types.dart';
 
 class DatabaseHelper {
@@ -59,7 +60,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 7, // 升级版本以支持音频时长
+      version: 8, // 升级版本以支持模型类型
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -114,6 +115,7 @@ class DatabaseHelper {
         model_path TEXT NOT NULL,
         state_path TEXT NOT NULL,
         backend TEXT NOT NULL,
+        model_type TEXT NOT NULL DEFAULT 'chat',
         is_active INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
@@ -139,6 +141,10 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE INDEX idx_model_info_is_active ON model_info (is_active)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_model_info_type ON model_info (model_type, is_active)
     ''');
 
     // 为消息分叉功能创建索引
@@ -293,6 +299,15 @@ class DatabaseHelper {
       ''');
 
       debugPrint('已为 chat_messages 表添加 audio_duration 字段');
+    }
+
+    if (oldVersion < 8) {
+      // 从版本7升级到版本8: 添加模型类型字段
+      await db.execute('''
+        ALTER TABLE model_info ADD COLUMN model_type TEXT NOT NULL DEFAULT 'chat'
+      ''');
+
+      debugPrint('已为 model_info 表添加 model_type 字段');
     }
   }
 
@@ -732,17 +747,23 @@ class DatabaseHelper {
 
   // ==================== 模型信息存储相关方法 ====================
 
-  /// 保存模型信息到本地
+  /// 保存模型信息到本地（根据模型类型分别保存）
   Future<void> saveModelInfo(ModelInfo modelInfo) async {
     try {
       final db = await database;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      // // 首先将所有模型设置为非活跃状态
-      // await db.update('model_info', {'is_active': 0, 'updated_at': now});
+      // 确定模型类型，默认为 chat
+      final modelType = modelInfo.modelType?.name ?? 'chat';
 
-      ///数据库里只保存一条模型信息，把之前的记录先删除
-      await clearAllModelInfo();
+      debugPrint('保存模型信息: type=$modelType, id=${modelInfo.id}');
+
+      // 删除相同类型的旧模型信息
+      await db.delete(
+        'model_info',
+        where: 'model_type = ?',
+        whereArgs: [modelType],
+      );
 
       // 保存新的模型信息并设置为活跃状态
       await db.insert('model_info', {
@@ -750,31 +771,48 @@ class DatabaseHelper {
         'model_path': modelInfo.modelPath,
         'state_path': modelInfo.statePath,
         'backend': modelInfo.backend.name,
+        'model_type': modelType,
         'is_active': 1,
         'created_at': now,
         'updated_at': now,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
 
-      debugPrint('成功保存模型信息: ${modelInfo.id}');
+      debugPrint('成功保存模型信息: type=$modelType, id=${modelInfo.id}');
     } catch (e) {
       debugPrint('保存模型信息失败: $e');
       rethrow;
     }
   }
 
-  /// 获取当前活跃的模型信息
+  /// 获取当前活跃的模型信息（默认获取 chat 类型）
   Future<ModelInfo?> getActiveModelInfo() async {
+    return await getModelInfoByType('chat');
+  }
+
+  /// 根据类型获取模型信息
+  Future<ModelInfo?> getModelInfoByType(String modelType) async {
     try {
       final db = await database;
       final List<Map<String, dynamic>> maps = await db.query(
         'model_info',
-        where: 'is_active = ?',
-        whereArgs: [1],
+        where: 'model_type = ? AND is_active = ?',
+        whereArgs: [modelType, 1],
         limit: 1,
       );
 
       if (maps.isNotEmpty) {
         final map = maps.first;
+
+        // 解析 model_type 字符串为枚举
+        RoleplayManageModelType? type;
+        try {
+          type = RoleplayManageModelType.values.firstWhere(
+            (t) => t.name == map['model_type'],
+          );
+        } catch (e) {
+          type = null;
+        }
+
         final modelInfo = ModelInfo(
           id: map['id'],
           modelPath: map['model_path'],
@@ -783,15 +821,17 @@ class DatabaseHelper {
             (b) => b.name == map['backend'],
             orElse: () => Backend.llamacpp,
           ),
+          modelType: type,
         );
-        debugPrint('获取到活跃模型信息: ${modelInfo.id}');
+
+        debugPrint('获取到 $modelType 类型的模型信息: ${modelInfo.id}');
         return modelInfo;
       }
 
-      debugPrint('没有找到活跃的模型信息');
+      debugPrint('没有找到 $modelType 类型的活跃模型信息');
       return null;
     } catch (e) {
-      debugPrint('获取活跃模型信息失败: $e');
+      debugPrint('获取 $modelType 类型模型信息失败: $e');
       return null;
     }
   }

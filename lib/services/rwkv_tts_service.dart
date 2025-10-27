@@ -4,6 +4,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
+import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/services/database_helper.dart';
+import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
@@ -53,17 +56,81 @@ class RWKVTTSService extends GetxController {
   var appDir = '';
   var cacheDir = '';
   int? modelID;
+  ModelInfo? modelInfo; // 保存当前的 TTS 模型信息
+
   @override
   void onInit() async {
     super.onInit();
     debugPrint('RWKVTTSService onInit');
     _setupReceivePortListener();
-    appDir = (await getApplicationDocumentsDirectory()).path;
-    debugPrint('appDir: $appDir');
-    cacheDir = (await getTemporaryDirectory()).path;
-    debugPrint('cacheDir: $cacheDir');
+
+    // 从数据库加载 TTS 模型信息
+    await _loadTTSModelFromDatabase();
+  }
+
+  /// 从数据库加载 TTS 模型信息
+  Future<void> _loadTTSModelFromDatabase() async {
+    try {
+      final databaseHelper = DatabaseHelper();
+      modelInfo = await databaseHelper.getModelInfoByType('tts');
+
+      if (modelInfo != null) {
+        debugPrint('从数据库加载TTS模型信息: ${modelInfo!.id}');
+        debugPrint('TTS模型路径: ${modelInfo!.modelPath}');
+
+        // 检查模型文件是否存在
+        final modelPath = await CommonUtil.getFileDocumentPath(
+          modelInfo!.modelPath,
+        );
+        if (File(modelPath).existsSync()) {
+          debugPrint('TTS模型文件存在，开始加载: $modelPath');
+          loadTTSModel(modelPath: modelPath);
+        } else {
+          debugPrint('TTS模型文件不存在: $modelPath');
+          debugPrint('需要下载TTS模型');
+        }
+      } else {
+        debugPrint('数据库中没有保存的TTS模型信息');
+        debugPrint('需要下载或配置TTS模型');
+      }
+    } catch (e) {
+      debugPrint('从数据库加载TTS模型信息失败: $e');
+    }
+  }
+
+  /// 保存 TTS 模型信息到数据库
+  Future<void> saveTTSModelInfo(ModelInfo newModelInfo) async {
+    try {
+      final databaseHelper = DatabaseHelper();
+
+      // 确保模型类型为 tts
+      final ttsModelInfo = ModelInfo(
+        id: newModelInfo.id,
+        modelPath: newModelInfo.modelPath,
+        statePath: newModelInfo.statePath,
+        backend: newModelInfo.backend,
+        modelType: RoleplayManageModelType.tts,
+      );
+
+      await databaseHelper.saveModelInfo(ttsModelInfo);
+      modelInfo = ttsModelInfo;
+
+      debugPrint('成功保存 TTS 模型信息到数据库: ${ttsModelInfo.id}');
+      debugPrint('TTS 模型路径: ${ttsModelInfo.modelPath}');
+    } catch (e) {
+      debugPrint('保存 TTS 模型信息到数据库失败: $e');
+    }
+  }
+
+  void loadTTSModel({required String modelPath}) async {
+    if (appDir.isEmpty) {
+      appDir = (await getApplicationDocumentsDirectory()).path;
+      debugPrint('appDir: $appDir');
+      cacheDir = (await getTemporaryDirectory()).path;
+      debugPrint('cacheDir: $cacheDir');
+    }
     loadSparkTTS(
-      modelPath: "$appDir/rwkv7-0.1B-g1-respark-voice-tunable-ipa-q8_0.gguf",
+      modelPath: modelPath,
       wav2vec2Path: "$appDir/wav2vec2-large-xlsr-53.mnn",
       detokenizePath: "$appDir/BiCodecDetokenize.mnn",
       bicodecTokenzerPath: "$appDir/BiCodecTokenize.mnn",
@@ -316,8 +383,33 @@ class RWKVTTSService extends GetxController {
     required String promptSpeechText,
   }) async {
     if (!isSparkTTSModelLoaded) {
+      // 从数据库获取 TTS 模型信息
+      if (modelInfo == null) {
+        final databaseHelper = DatabaseHelper();
+        modelInfo = await databaseHelper.getModelInfoByType('tts');
+      }
+
+      // 如果数据库中没有 TTS 模型信息，直接返回
+      if (modelInfo == null) {
+        debugPrint('没有TTS模型信息，无法生成语音');
+        return;
+      }
+
+      // 获取模型文件路径
+      final modelPath = await CommonUtil.getFileDocumentPath(
+        modelInfo!.modelPath,
+      );
+
+      // 检查模型文件是否存在
+      if (!File(modelPath).existsSync()) {
+        debugPrint('TTS模型文件不存在: $modelPath');
+        return;
+      }
+
+      debugPrint('加载TTS模型: $modelPath');
+
       await loadSparkTTS(
-        modelPath: "$appDir/rwkv7-0.1B-g1-respark-voice-tunable-ipa-q8_0.gguf",
+        modelPath: modelPath,
         wav2vec2Path: "$appDir/wav2vec2-large-xlsr-53.mnn",
         detokenizePath: "$appDir/BiCodecDetokenize.mnn",
         bicodecTokenzerPath: "$appDir/BiCodecTokenize.mnn",

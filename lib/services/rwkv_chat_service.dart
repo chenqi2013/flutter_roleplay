@@ -195,8 +195,12 @@ class RWKVChatService extends GetxController {
               ) !=
               await CommonUtil.getFileDocumentPath(info!.modelPath)) {
         debugPrint('切换了模型');
-        isModelLoaded = false;
-        loadChatModel(info: info);
+        if (info.modelType == RoleplayManageModelType.tts) {
+          debugPrint('切换了tts模型11');
+        } else if (info.modelType == RoleplayManageModelType.chat) {
+          isModelLoaded = false;
+          loadChatModel(info: info);
+        }
       } else if (controller?.modelInfo != null &&
           await CommonUtil.getFileDocumentPath(
                 controller!.modelInfo!.modelPath,
@@ -208,30 +212,43 @@ class RWKVChatService extends GetxController {
               await CommonUtil.getFileDocumentPath(info.statePath)) {
         ///仅仅切换了state文件
         debugPrint('仅仅切换了state文件');
-        changeStatesFile(
-          statePath: await CommonUtil.getFileDocumentPath(info.statePath),
-        );
+        if (info.modelType == RoleplayManageModelType.tts) {
+          debugPrint('切换了tts模型22');
+        } else if (info.modelType == RoleplayManageModelType.chat) {
+          changeStatesFile(
+            statePath: await CommonUtil.getFileDocumentPath(info.statePath),
+          );
+        }
       } else {
-        debugPrint('第一次下载，切换了模型');
-        controller?.modelInfo = info;
-        loadChatModel();
+        if (info?.modelType == RoleplayManageModelType.chat) {
+          controller?.modelInfo = info;
+          debugPrint('第一次下载，切换了chat模型');
+          loadChatModel();
+        } else if (info?.modelType == RoleplayManageModelType.tts) {
+          debugPrint('第一次下载，切换了tts模型');
+          ttsService?.loadTTSModel(modelPath: info?.modelPath ?? '');
+        }
       }
       if (info != null) {
-        // 把当前的 modelinfo 保存到本地
-        controller?.modelInfo = info;
-        RoleParamsController paramsController;
-        // if (Get.isRegistered<RoleParamsController>()) {
-        paramsController = Get.find<RoleParamsController>();
-        // } else {
-        //   paramsController = Get.put(RoleParamsController());
-        // }
-        paramsController.temperature.value = info.temperature ?? 0.6;
-        paramsController.topP.value = info.topP ?? 0.8;
-        paramsController.presencePenalty.value = info.presencePenalty ?? 2.0;
-        paramsController.frequencyPenalty.value = info.frequencyPenalty ?? 0.2;
-        paramsController.penaltyDecay.value = info.penaltyDecay ?? 0.990;
-        paramsController.saveParams();
-
+        if (info.modelType == RoleplayManageModelType.tts) {
+          debugPrint('切换了tts模型33');
+        } else if (info.modelType == RoleplayManageModelType.chat) {
+          // 把当前的 modelinfo 保存到本地
+          controller?.modelInfo = info;
+          RoleParamsController paramsController;
+          // if (Get.isRegistered<RoleParamsController>()) {
+          paramsController = Get.find<RoleParamsController>();
+          // } else {
+          //   paramsController = Get.put(RoleParamsController());
+          // }
+          paramsController.temperature.value = info.temperature ?? 0.6;
+          paramsController.topP.value = info.topP ?? 0.8;
+          paramsController.presencePenalty.value = info.presencePenalty ?? 2.0;
+          paramsController.frequencyPenalty.value =
+              info.frequencyPenalty ?? 0.2;
+          paramsController.penaltyDecay.value = info.penaltyDecay ?? 0.990;
+          paramsController.saveParams();
+        }
         await _saveModelInfoToLocal(info);
       }
     });
