@@ -858,6 +858,9 @@ class ChatPageBuilders {
   static Widget _buildTTSToggleButton(BuildContext context) {
     // 获取 TTS 服务
     final ttsService = Get.find<RWKVTTSService>();
+    // debugPrint(
+    //   '_buildTTSToggleButton - 获取到的TTS实例hashCode: ${ttsService.hashCode}',
+    // );
 
     return Obx(() {
       final isEnabled = ttsService.isTTSEnabled.value;

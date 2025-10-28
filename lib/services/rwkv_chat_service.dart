@@ -58,7 +58,16 @@ class RWKVChatService extends GetxController {
     debugPrint('RolePlayChatController onInit');
     _setupReceivePortListener();
     await _checkAndLoadModel();
-    ttsService = Get.put(RWKVTTSService());
+
+    // 使用 Get.find 获取已存在的 TTS 服务实例，而不是创建新的
+    if (Get.isRegistered<RWKVTTSService>()) {
+      ttsService = Get.find<RWKVTTSService>();
+      debugPrint('使用已存在的 RWKVTTSService 实例');
+    } else {
+      ttsService = Get.put(RWKVTTSService());
+      debugPrint('创建新的 RWKVTTSService 实例');
+    }
+
     // 设置TTS完成回调
     ttsService?.onTTSComplete = _onTTSGenerationComplete;
   }

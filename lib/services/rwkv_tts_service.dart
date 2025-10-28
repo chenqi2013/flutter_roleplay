@@ -66,7 +66,7 @@ class RWKVTTSService extends GetxController {
   @override
   void onInit() async {
     super.onInit();
-    debugPrint('RWKVTTSService onInit');
+    debugPrint('RWKVTTSService onInit - 实例hashCode: ${hashCode}');
     _setupReceivePortListener();
 
     // 加载 TTS 开关状态
@@ -101,6 +101,7 @@ class RWKVTTSService extends GetxController {
       isTTSEnabled.value = newState;
 
       debugPrint('TTS 开关已切换为: ${isTTSEnabled.value ? "开启" : "关闭"}');
+      debugPrint('SharedPreferences 中保存的值: ${prefs.getBool(_ttsEnabledKey)}');
 
       if (isTTSEnabled.value) {
         // 开启时加载模型
@@ -186,10 +187,14 @@ class RWKVTTSService extends GetxController {
 
   void playTTS(String ttsText) async {
     // 检查 TTS 是否开启
+    debugPrint(
+      'playTTS 被调用 - 实例hashCode: ${hashCode}, isTTSEnabled.value = ${isTTSEnabled.value}',
+    );
     if (!isTTSEnabled.value) {
       debugPrint('TTS 功能未开启，跳过语音生成');
       return;
     }
+    debugPrint('TTS 功能已开启，开始生成语音');
 
     // I/flutter (26008): instructionText:
     // I/flutter (26008): promptWavPath: /data/user/0/com.rwkv.tts/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav
