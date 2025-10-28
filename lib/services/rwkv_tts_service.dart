@@ -19,6 +19,7 @@ import 'package:rwkv_mobile_flutter/types.dart';
 import 'package:mp_audio_stream/mp_audio_stream.dart' as mp_audio_stream;
 import 'package:rwkv_mobile_flutter/from_rwkv.dart' as from_rwkv;
 import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// RWKV tts模型管理服务
 class RWKVTTSService extends GetxController {
@@ -58,14 +59,59 @@ class RWKVTTSService extends GetxController {
   int? modelID;
   ModelInfo? modelInfo; // 保存当前的 TTS 模型信息
 
+  // TTS 开关状态 (默认关闭)
+  final RxBool isTTSEnabled = false.obs;
+  static const String _ttsEnabledKey = 'tts_enabled';
+
   @override
   void onInit() async {
     super.onInit();
     debugPrint('RWKVTTSService onInit');
     _setupReceivePortListener();
 
-    // 从数据库加载 TTS 模型信息
-    await _loadTTSModelFromDatabase();
+    // 加载 TTS 开关状态
+    await _loadTTSEnabledState();
+
+    // 如果 TTS 开启，才加载模型
+    if (isTTSEnabled.value) {
+      await _loadTTSModelFromDatabase();
+    } else {
+      debugPrint('TTS 功能已关闭，不加载模型');
+    }
+  }
+
+  /// 加载 TTS 开关状态
+  Future<void> _loadTTSEnabledState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      isTTSEnabled.value = prefs.getBool(_ttsEnabledKey) ?? false;
+      debugPrint('加载 TTS 开关状态: ${isTTSEnabled.value}');
+    } catch (e) {
+      debugPrint('加载 TTS 开关状态失败: $e');
+      isTTSEnabled.value = false;
+    }
+  }
+
+  /// 切换 TTS 开关
+  Future<void> toggleTTS() async {
+    try {
+      final newState = !isTTSEnabled.value;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_ttsEnabledKey, newState);
+      isTTSEnabled.value = newState;
+
+      debugPrint('TTS 开关已切换为: ${isTTSEnabled.value ? "开启" : "关闭"}');
+
+      if (isTTSEnabled.value) {
+        // 开启时加载模型
+        await _loadTTSModelFromDatabase();
+      } else {
+        // 关闭时清理资源
+        debugPrint('TTS 已关闭，不加载模型');
+      }
+    } catch (e) {
+      debugPrint('切换 TTS 开关失败: $e');
+    }
   }
 
   /// 从数据库加载 TTS 模型信息
@@ -139,6 +185,12 @@ class RWKVTTSService extends GetxController {
   }
 
   void playTTS(String ttsText) async {
+    // 检查 TTS 是否开启
+    if (!isTTSEnabled.value) {
+      debugPrint('TTS 功能未开启，跳过语音生成');
+      return;
+    }
+
     // I/flutter (26008): instructionText:
     // I/flutter (26008): promptWavPath: /data/user/0/com.rwkv.tts/cache/assets/lib/tts/Chinese(PRC)_Kafka_8.wav
     // I/flutter (26008): promptSpeechText: ——我们并不是通过物理移动手段找到「星核」的。

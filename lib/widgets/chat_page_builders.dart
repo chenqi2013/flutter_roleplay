@@ -779,6 +779,7 @@ class ChatPageBuilders {
       ),
       centerTitle: true,
       actions: [
+        _buildTTSToggleButton(context),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert, color: Colors.white, size: 28),
           surfaceTintColor: Colors.transparent,
@@ -851,6 +852,44 @@ class ChatPageBuilders {
         ),
       ],
     );
+  }
+
+  /// 构建 TTS 开关按钮
+  static Widget _buildTTSToggleButton(BuildContext context) {
+    // 获取 TTS 服务
+    final ttsService = Get.find<RWKVTTSService>();
+
+    return Obx(() {
+      final isEnabled = ttsService.isTTSEnabled.value;
+
+      return IconButton(
+        icon: Icon(
+          isEnabled ? Icons.volume_up : Icons.volume_off,
+          color: Colors.white,
+          size: 23,
+        ),
+        tooltip: isEnabled ? '关闭语音' : '开启语音',
+        onPressed: () async {
+          await ttsService.toggleTTS();
+
+          // 显示提示
+          if (context.mounted) {
+            final message = ttsService.isTTSEnabled.value ? '语音已开启' : '语音已关闭';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                duration: const Duration(seconds: 1),
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+          }
+        },
+      );
+    });
   }
 
   /// 构建现代优雅的弹出菜单项

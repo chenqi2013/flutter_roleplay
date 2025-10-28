@@ -8,6 +8,7 @@ import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/services/language_service.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
+import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'package:flutter_roleplay/translations/app_translations.dart';
 import 'package:flutter_roleplay/pages/params/role_params_controller.dart';
 import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
@@ -59,6 +60,7 @@ class RoleplayManage {
       () => RoleParamsController(),
       fenix: true,
     );
+    Get.lazyPut<RWKVTTSService>(() => RWKVTTSService(), fenix: true);
   }
 
   // 防止重复初始化的标志
