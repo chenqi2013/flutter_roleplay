@@ -131,7 +131,7 @@ class RWKVTTSService extends GetxController {
         );
         if (File(modelPath).existsSync()) {
           debugPrint('TTS模型文件存在，开始加载: $modelPath');
-          loadTTSModel(modelPath: modelPath);
+          loadTTSModel(modelPath: modelPath, backend: modelInfo!.backend);
         } else {
           debugPrint('TTS模型文件不存在: $modelPath');
           debugPrint('需要下载TTS模型');
@@ -169,7 +169,10 @@ class RWKVTTSService extends GetxController {
     }
   }
 
-  void loadTTSModel({required String modelPath}) async {
+  void loadTTSModel({
+    required String modelPath,
+    required Backend backend,
+  }) async {
     if (appDir.isEmpty) {
       appDir = (await getApplicationDocumentsDirectory()).path;
       debugPrint('appDir: $appDir');
@@ -181,7 +184,7 @@ class RWKVTTSService extends GetxController {
       wav2vec2Path: "$appDir/wav2vec2-large-xlsr-53.mnn",
       detokenizePath: "$appDir/BiCodecDetokenize.mnn",
       bicodecTokenzerPath: "$appDir/BiCodecTokenize.mnn",
-      backend: Backend.llamacpp,
+      backend: backend,
     );
   }
 
@@ -470,7 +473,7 @@ class RWKVTTSService extends GetxController {
         wav2vec2Path: "$appDir/wav2vec2-large-xlsr-53.mnn",
         detokenizePath: "$appDir/BiCodecDetokenize.mnn",
         bicodecTokenzerPath: "$appDir/BiCodecTokenize.mnn",
-        backend: Backend.llamacpp,
+        backend: modelInfo!.backend,
       );
     }
 

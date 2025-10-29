@@ -235,7 +235,10 @@ class RWKVChatService extends GetxController {
           loadChatModel();
         } else if (info?.modelType == RoleplayManageModelType.tts) {
           debugPrint('第一次下载，切换了tts模型');
-          ttsService?.loadTTSModel(modelPath: info?.modelPath ?? '');
+          ttsService?.loadTTSModel(
+            modelPath: info?.modelPath ?? '',
+            backend: info?.backend ?? Backend.llamacpp,
+          );
         }
       }
       if (info != null) {
