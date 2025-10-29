@@ -206,6 +206,10 @@ class RWKVChatService extends GetxController {
         debugPrint('切换了模型');
         if (info.modelType == RoleplayManageModelType.tts) {
           debugPrint('切换了tts模型11');
+          ttsService?.loadTTSModel(
+            modelPath: info.modelPath,
+            backend: info.backend,
+          );
         } else if (info.modelType == RoleplayManageModelType.chat) {
           isModelLoaded = false;
           loadChatModel(info: info);
