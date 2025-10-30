@@ -390,6 +390,13 @@ class RWKVTTSService extends GetxController {
     debugPrint('releaseTTSModel success');
   }
 
+  void stopPlayer() {
+    AudioPlayer audioPlayer = AudioPlayer();
+    if (audioPlayer.state == PlayerState.playing) {
+      audioPlayer.stop();
+    }
+  }
+
   /// 发送消息到 RWKV
   void send(to_rwkv.ToRWKV toRwkv) {
     final sendPort = _sendPort;
