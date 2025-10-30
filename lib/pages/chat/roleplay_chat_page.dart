@@ -434,6 +434,7 @@ class _RolePlayChatState extends State<RolePlayChat>
 
     // 检查是否需要在发送消息前清空聊天状态
     if (needsClearStatesOnNextSend.value) {
+      debugPrint('needsClearStatesOnNextSend.value: true');
       await _controller!.clearStates();
       needsClearStatesOnNextSend.value = false; // 重置标记
     }
@@ -443,7 +444,7 @@ class _RolePlayChatState extends State<RolePlayChat>
         SnackBar(
           content: Text('model_not_loaded'.tr),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
@@ -634,9 +635,12 @@ class _RolePlayChatState extends State<RolePlayChat>
           setState(() {});
         }
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('chat_history_cleared'.tr)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('chat_history_cleared'.tr),
+              duration: const Duration(seconds: 1),
+            ),
+          );
         }
       },
       onNavigateToRolesList: () async {
@@ -702,7 +706,7 @@ class _RolePlayChatState extends State<RolePlayChat>
                     'count': count.toString(),
                   }),
                 ),
-                duration: const Duration(seconds: 2),
+                duration: const Duration(seconds: 1),
               ),
             );
           }

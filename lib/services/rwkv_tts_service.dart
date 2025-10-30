@@ -294,7 +294,9 @@ class RWKVTTSService extends GetxController {
       try {
         if (modelID != null) {
           send(to_rwkv.ReleaseTTSModels());
+          debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
           send(to_rwkv.ReleaseModel(modelID: modelID));
+          debugPrint('to_rwkv.ReleaseModel(modelID:$modelID)，，释放模型');
           debugPrint('_sendPort != null releaseTTSModels modelID: $modelID');
         }
 
@@ -347,6 +349,7 @@ class RWKVTTSService extends GetxController {
         bicodecDetokenizerPath: detokenizePath,
       ),
     );
+    debugPrint('to_rwkv.AddTTSModel()，，添加TTS模型');
 
     final ttsTextNormalizerDatePath = await CommonUtil.fromAssetsToTemp(
       "assets/config/chat/date-zh.fst",
@@ -371,11 +374,13 @@ class RWKVTTSService extends GetxController {
       return;
     }
     if (isGenerating.value == true) {
-      debugPrint('stop Generating TTS');
       send(to_rwkv.Stop());
+      debugPrint('to_rwkv.Stop()，，stop Generating TTS');
     }
     send(to_rwkv.ReleaseTTSModels());
+    debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
     send(to_rwkv.ReleaseModel(modelID: modelID));
+    debugPrint('to_rwkv.ReleaseModel(modelID:$modelID)，，释放模型');
     modelID = null;
     isSparkTTSModelLoaded = false;
     _sendPort = null;
@@ -407,24 +412,24 @@ class RWKVTTSService extends GetxController {
     sendPort.send(toRwkv);
   }
 
-  /// 重新初始化运行时
-  Future<void> reInitRuntime({
-    required String modelPath,
-    required Backend backend,
-    required String tokenizerPath,
-  }) async {
-    prefillSpeed.value = 0;
-    decodeSpeed.value = 0;
-    _initRuntimeCompleter = Completer<void>();
-    send(
-      to_rwkv.ReInitRuntime(
-        modelPath: modelPath,
-        backend: backend,
-        tokenizerPath: tokenizerPath,
-      ),
-    );
-    return _initRuntimeCompleter.future;
-  }
+  // /// 重新初始化运行时
+  // Future<void> reInitRuntime({
+  //   required String modelPath,
+  //   required Backend backend,
+  //   required String tokenizerPath,
+  // }) async {
+  //   prefillSpeed.value = 0;
+  //   decodeSpeed.value = 0;
+  //   _initRuntimeCompleter = Completer<void>();
+  //   send(
+  //     to_rwkv.ReInitRuntime(
+  //       modelPath: modelPath,
+  //       backend: backend,
+  //       tokenizerPath: tokenizerPath,
+  //     ),
+  //   );
+  //   return _initRuntimeCompleter.future;
+  // }
 
   void _startQueryTimer() {
     _queryTimer = Timer.periodic(
@@ -521,6 +526,7 @@ class RWKVTTSService extends GetxController {
         promptSpeechText: promptSpeechText,
       ),
     );
+    debugPrint('to_rwkv.StartTTS()，，开始TTS');
     debugPrint(
       "StartTTS: $ttsText, $instructionText, $promptWavPath, $outputWavPath, $promptSpeechText",
     );

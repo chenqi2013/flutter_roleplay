@@ -105,6 +105,7 @@ class _ChatBubbleState extends State<ChatBubble> {
           SnackBar(
             content: Text('Failed to play audio: $e'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 1),
           ),
         );
       }

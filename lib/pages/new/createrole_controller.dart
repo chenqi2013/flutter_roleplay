@@ -83,7 +83,7 @@ class CreateRoleController extends GetxController {
         SnackBar(
           content: Text('language_switch_chinese'.tr),
           backgroundColor: Colors.blue,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
     } else {
@@ -91,7 +91,7 @@ class CreateRoleController extends GetxController {
         SnackBar(
           content: Text('language_switch_english'.tr),
           backgroundColor: Colors.blue,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
     }
@@ -118,7 +118,7 @@ class CreateRoleController extends GetxController {
           SnackBar(
             content: Text('image_selected_success'.tr),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 1),
           ),
         );
       }
@@ -129,7 +129,7 @@ class CreateRoleController extends GetxController {
             'image_select_failed'.trParams({'error': e.toString()}),
           ),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
     }
@@ -171,7 +171,7 @@ class CreateRoleController extends GetxController {
         SnackBar(
           content: Text('incomplete_info'.tr),
           backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
@@ -188,7 +188,7 @@ class CreateRoleController extends GetxController {
           SnackBar(
             content: Text('duplicate_role_name'.tr),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 1),
           ),
         );
         return;
@@ -204,7 +204,7 @@ class CreateRoleController extends GetxController {
             }),
           ),
           backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
@@ -323,7 +323,7 @@ class CreateRoleController extends GetxController {
                 : 'create_success_message'.trParams({'name': n}),
           ),
           backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
 
@@ -345,7 +345,7 @@ class CreateRoleController extends GetxController {
             'create_failed_message'.trParams({'error': e.toString()}),
           ),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
     } finally {

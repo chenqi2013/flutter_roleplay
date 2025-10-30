@@ -188,7 +188,7 @@ class RolesListController extends GetxController {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('已清空本地角色缓存'),
-        duration: Duration(seconds: 2),
+        duration: Duration(seconds: 1),
       ),
     );
   }
@@ -207,7 +207,7 @@ class RolesListController extends GetxController {
           SnackBar(
             content: Text('cannot_delete_api_role'.tr),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 1),
           ),
         );
         return;
@@ -219,7 +219,7 @@ class RolesListController extends GetxController {
           SnackBar(
             content: Text('cannot_delete_current_role'.tr),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 1),
           ),
         );
         return;
@@ -241,7 +241,7 @@ class RolesListController extends GetxController {
         SnackBar(
           content: Text('role_deleted_success'.trParams({'name': role.name})),
           backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
 
@@ -254,7 +254,7 @@ class RolesListController extends GetxController {
             'delete_failed_message'.trParams({'error': e.toString()}),
           ),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
     }

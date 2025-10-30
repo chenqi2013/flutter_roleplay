@@ -314,7 +314,7 @@ class RoleParamsPage extends StatelessWidget {
         SnackBar(
           content: Text('params_applied_success'.tr),
           backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
     } catch (e) {
@@ -323,7 +323,7 @@ class RoleParamsPage extends StatelessWidget {
         SnackBar(
           content: Text('params_apply_failed'.tr),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
     }
@@ -430,7 +430,7 @@ class RoleParamsPage extends StatelessWidget {
                   SnackBar(
                     content: Text('params_reset_success'.tr),
                     backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 2),
+                    duration: const Duration(seconds: 1),
                   ),
                 );
               },
