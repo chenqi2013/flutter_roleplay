@@ -26,7 +26,7 @@ class CommonUtil {
     debugPrint('initializeDefaultRole: 开始初始化默认角色');
 
     // 初始化时标记需要清空聊天状态
-    needsClearStatesOnNextSend.value = true;
+    // needsClearStatesOnNextSend.value = true;
     debugPrint('initializeDefaultRole: 标记需要在首次发送消息时清空聊天状态');
 
     try {
@@ -141,6 +141,11 @@ class CommonUtil {
       debugPrint('CommonUtil.switchToRole: 开始更新全局变量');
       debugPrint('  - 更新前 roleName.value: ${roleName.value}');
       debugPrint('  - 更新前 roleImage.value: ${roleImage.value}');
+      if (roleName.value.isNotEmpty) {
+        // 标记需要在下次发送消息时清空聊天状态
+        needsClearStatesOnNextSend.value = true;
+        debugPrint('切换了角色，标记需要在下次发送消息时清空聊天状态');
+      }
 
       // 保存更新前的图片路径用于比较
       final oldImagePath = roleImage.value;
@@ -199,10 +204,6 @@ class CommonUtil {
       } else {
         controller = Get.put(RolePlayChatController());
       }
-
-      // 标记需要在下次发送消息时清空聊天状态
-      needsClearStatesOnNextSend.value = true;
-      debugPrint('标记需要在下次发送消息时清空聊天状态');
 
       // 清空图片组件缓存，确保背景图片能正确更新
       ChatPageBuilders.clearMemoryCache();
