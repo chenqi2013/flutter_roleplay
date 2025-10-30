@@ -295,7 +295,7 @@ class RWKVTTSService extends GetxController {
         if (modelID != null) {
           send(to_rwkv.ReleaseTTSModels());
           send(to_rwkv.ReleaseModel(modelID: modelID));
-          debugPrint('_sendPort != null releaseTTSModels');
+          debugPrint('_sendPort != null releaseTTSModels modelID: $modelID');
         }
 
         // await reInitRuntime(
@@ -369,6 +369,10 @@ class RWKVTTSService extends GetxController {
   void releaseTTSModel() {
     if (_sendPort == null || !isSparkTTSModelLoaded) {
       return;
+    }
+    if (isGenerating.value == true) {
+      debugPrint('stop Generating TTS');
+      send(to_rwkv.Stop());
     }
     send(to_rwkv.ReleaseTTSModels());
     send(to_rwkv.ReleaseModel(modelID: modelID));

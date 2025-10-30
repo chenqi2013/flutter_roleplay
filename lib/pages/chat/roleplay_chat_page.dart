@@ -387,15 +387,14 @@ class _RolePlayChatState extends State<RolePlayChat>
       _controller!.stop();
     }
 
-    // 移除生命周期观察者
-    WidgetsBinding.instance.removeObserver(this);
+    // // 移除生命周期观察者
+    // WidgetsBinding.instance.removeObserver(this);
 
     _textController.dispose();
     _pageController.dispose();
     disposeScrollListener();
-
+    // _controller?.modelService.stop();
     _controller?.modelService.ttsService?.releaseTTSModel();
-    debugPrint('releaseTTSModel success');
     super.dispose();
     debugPrint('RolePlayChat dispose');
   }

@@ -563,7 +563,10 @@ class RWKVChatService extends GetxController {
   /// 停止生成
   Future<void> stop() async {
     lastGeneratedContent = ''; // 清空未完成的内容
-    send(to_rwkv.Stop());
+    if (isGenerating.value == true) {
+      debugPrint('stop Generating chat');
+      send(to_rwkv.Stop());
+    }
   }
 
   /// 生成聊天回复流
