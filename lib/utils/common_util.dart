@@ -327,4 +327,17 @@ class CommonUtil {
     var tempFilePath = '$tempDirPath${Platform.pathSeparator}$name';
     return tempFilePath;
   }
+
+  static String getFileName(String filePath) {
+    // String filePath = '/Users/chenqi/Documents/video/test_video.mp4';
+
+    // // 获取文件名（包含扩展名）
+    // String fileName = path.basename(filePath);
+    // print(fileName); // 输出: test_video.mp4
+
+    // 如果只要不带扩展名的文件名
+    String fileNameWithoutExtension = path.basenameWithoutExtension(filePath);
+    debugPrint(fileNameWithoutExtension); // 输出: test_video
+    return fileNameWithoutExtension;
+  }
 }

@@ -26,6 +26,8 @@ var downloadUrl11 =
 const String pageKey = 'jingxuan_chat';
 
 Backend backend = Backend.llamacpp;
+String modelPath = '';
+String statePath = '';
 
 final qnnLibList = {
   "libQnnHtp.so",
