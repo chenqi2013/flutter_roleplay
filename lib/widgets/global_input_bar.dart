@@ -116,15 +116,15 @@ class _GlassInput extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // 麦克风
-              _circleBtn(
-                child: const Icon(
-                  Icons.mic_outlined,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 12),
+              // // 麦克风
+              // _circleBtn(
+              //   child: const Icon(
+              //     Icons.mic_outlined,
+              //     color: Colors.white,
+              //     size: 26,
+              //   ),
+              // ),
+              // const SizedBox(width: 12),
               // 输入框
               Expanded(
                 child: TextField(
