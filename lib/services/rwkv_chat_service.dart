@@ -52,6 +52,7 @@ class RWKVChatService extends GetxController {
   RWKVTTSService? ttsService;
   String lastGeneratedContent = ''; // 存储最后生成的完整内容
   var history = <String>[];
+  bool isHiddenState = false;
   @override
   void onInit() async {
     super.onInit();
@@ -424,7 +425,9 @@ class RWKVChatService extends GetxController {
     );
 
     if (rmpack != null) {
-      send(to_rwkv.LoadInitialStates(rmpack!));
+      if (!isHiddenState) {
+        send(to_rwkv.LoadInitialStates(rmpack!));
+      }
       debugPrint('to_rwkv.LoadInitialStates()，，加载角色扮演的state文件');
       debugPrint('加载角色扮演的state文件: $rmpack');
     }
@@ -434,8 +437,12 @@ class RWKVChatService extends GetxController {
 
   /// 设置模型参数
   void _setupModelParameters() {
+    String stateSrc = '';
+    if (!isHiddenState) {
+      stateSrc = "<state src=\"$rmpack\">";
+    }
     final prompt =
-        "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
+        "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
     send(to_rwkv.SetMaxLength(1000));
     debugPrint('to_rwkv.SetMaxLength(1000)，，设置最大长度');
     // 获取角色参数设置
@@ -525,15 +532,21 @@ class RWKVChatService extends GetxController {
     // send(to_rwkv.ClearStates());
     if (rmpack != null) {
       //   rmpack = statePath;
-      send(to_rwkv.LoadInitialStates(rmpack!));
+      if (!isHiddenState) {
+        send(to_rwkv.LoadInitialStates(rmpack!));
+      }
       debugPrint('to_rwkv.LoadInitialStates()，，加载角色扮演的state文件');
       debugPrint('加载角色扮演的state文件: $rmpack');
     } else {
       debugPrint('没有加载角色扮演的state文件: $rmpack');
     }
 
+    String stateSrc = '';
+    if (!isHiddenState) {
+      stateSrc = "<state src=\"$rmpack\">";
+    }
     final prompt =
-        "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
+        "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
     debugPrint('Set Prompt: $prompt');
     send(to_rwkv.SetPrompt(prompt));
     debugPrint('22to_rwkv.SetPrompt()，，设置提示词');
@@ -559,18 +572,26 @@ class RWKVChatService extends GetxController {
     send(to_rwkv.ClearStates());
     debugPrint('to_rwkv.ClearStates()，，清空状态');
     debugPrint('调用了to_rwkv.ClearStates()');
-    send(to_rwkv.UnloadInitialStates('$rmpack'));
+    if (!isHiddenState) {
+      send(to_rwkv.UnloadInitialStates('$rmpack'));
+    }
     debugPrint('to_rwkv.UnloadInitialStates()，，卸载角色扮演的state文件');
     if (statePath != null) {
       rmpack = statePath;
     }
     if (rmpack != null) {
       debugPrint('切换了state文件: $rmpack');
-      send(to_rwkv.LoadInitialStates(rmpack!));
+      if (!isHiddenState) {
+        send(to_rwkv.LoadInitialStates(rmpack!));
+      }
       debugPrint('to_rwkv.LoadInitialStates()，，加载角色扮演的state文件');
     }
+    String stateSrc = '';
+    if (!isHiddenState) {
+      stateSrc = "<state src=\"$rmpack\">";
+    }
     final prompt =
-        "<state src=\"$rmpack\">System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
+        "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
     debugPrint('changeStatesFile，Set Prompt: $prompt');
     send(to_rwkv.SetPrompt(prompt));
     debugPrint('33to_rwkv.SetPrompt()，，设置提示词');
