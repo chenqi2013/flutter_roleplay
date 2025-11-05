@@ -424,12 +424,14 @@ class RWKVChatService extends GetxController {
       '22modelpath==${CommonUtil.getFileName(modelPath)},statepath=${CommonUtil.getFileName(statePath)},backend=${backend.toString().split('.').last}',
     );
 
-    if (rmpack != null) {
+    if (rmpack != null && rmpack!.isNotEmpty) {
       if (!isHiddenState) {
         send(to_rwkv.LoadInitialStates(rmpack!));
       }
       debugPrint('to_rwkv.LoadInitialStates()，，加载角色扮演的state文件');
       debugPrint('加载角色扮演的state文件: $rmpack');
+    } else {
+      debugPrint('没有加载角色扮演的state文件: $rmpack');
     }
 
     _setupModelParameters();
@@ -530,7 +532,7 @@ class RWKVChatService extends GetxController {
 
     ///切换角色需要clearstate，否则聊天内容会是上一次的角色的。
     // send(to_rwkv.ClearStates());
-    if (rmpack != null) {
+    if (rmpack != null && rmpack!.isNotEmpty) {
       //   rmpack = statePath;
       if (!isHiddenState) {
         send(to_rwkv.LoadInitialStates(rmpack!));
@@ -573,18 +575,24 @@ class RWKVChatService extends GetxController {
     debugPrint('to_rwkv.ClearStates()，，清空状态');
     debugPrint('调用了to_rwkv.ClearStates()');
     if (!isHiddenState) {
-      send(to_rwkv.UnloadInitialStates('$rmpack'));
+      if (rmpack != null && rmpack!.isNotEmpty) {
+        send(to_rwkv.UnloadInitialStates('$rmpack'));
+      } else {
+        debugPrint('没有卸载角色扮演的state文件: $rmpack');
+      }
     }
     debugPrint('to_rwkv.UnloadInitialStates()，，卸载角色扮演的state文件');
     if (statePath != null) {
       rmpack = statePath;
     }
-    if (rmpack != null) {
+    if (rmpack != null && rmpack!.isNotEmpty) {
       debugPrint('切换了state文件: $rmpack');
       if (!isHiddenState) {
         send(to_rwkv.LoadInitialStates(rmpack!));
       }
       debugPrint('to_rwkv.LoadInitialStates()，，加载角色扮演的state文件');
+    } else {
+      debugPrint('没有加载角色扮演的state文件: $rmpack');
     }
     String stateSrc = '';
     if (!isHiddenState) {
