@@ -56,7 +56,7 @@ class RWKVTTSService extends GetxController {
   Function(String audioFileName, int audioDuration)? onTTSComplete;
   var appDir = '';
   var cacheDir = '';
-  int? modelID;
+  int? modelID = 0;
   ModelInfo? modelInfo; // 保存当前的 TTS 模型信息
 
   // TTS 开关状态 (默认关闭)
@@ -73,11 +73,13 @@ class RWKVTTSService extends GetxController {
     await _loadTTSEnabledState();
 
     // 如果 TTS 开启，才加载模型
-    if (isTTSEnabled.value) {
-      await _loadTTSModelFromDatabase();
-    } else {
-      debugPrint('TTS 功能已关闭，不加载模型');
-    }
+    Future.delayed(Duration(seconds: 3), () {
+      if (isTTSEnabled.value) {
+        _loadTTSModelFromDatabase();
+      } else {
+        debugPrint('TTS 功能已关闭，不加载模型');
+      }
+    });
   }
 
   /// 加载 TTS 开关状态
@@ -333,17 +335,25 @@ class RWKVTTSService extends GetxController {
       _getTokensTimer = null;
     }
 
-    _getTokensTimer = Timer.periodic(const Duration(milliseconds: 225), (
-      timer,
-    ) async {
-      send(to_rwkv.GetPrefillAndDecodeSpeed());
-    });
+    // _getTokensTimer = Timer.periodic(const Duration(milliseconds: 225), (
+    //   timer,
+    // ) async {
+    //   send(to_rwkv.GetPrefillAndDecodeSpeed());
+    // });
+
+    // send(
+    //   to_rwkv.AddTTSModel(
+    //     modelPath: modelPath,
+    //     backend: backend,
+    //     tokenizerPath: tokenizerPath,
+    //     wav2vec2Path: wav2vec2Path,
+    //     bicodecTokenizerPath: bicodecTokenzerPath,
+    //     bicodecDetokenizerPath: detokenizePath,
+    //   ),
+    // );
 
     send(
-      to_rwkv.AddTTSModel(
-        modelPath: modelPath,
-        backend: backend,
-        tokenizerPath: tokenizerPath,
+      to_rwkv.LoadSparkTTSModels(
         wav2vec2Path: wav2vec2Path,
         bicodecTokenizerPath: bicodecTokenzerPath,
         bicodecDetokenizerPath: detokenizePath,
