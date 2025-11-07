@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 
 /// 音频项模型
@@ -12,8 +13,8 @@ class AudioItem {
 
   AudioItem({required this.key, required this.name, required this.language});
 
-  String get wavPath => 'config/tts/audio/$key.wav';
-  String get jsonPath => 'config/tts/audio/$key.json';
+  String get wavPath => 'lib/tts/$key.wav';
+  String get jsonPath => 'lib/tts/$key.json';
 }
 
 class AudioListController extends GetxController
@@ -72,7 +73,7 @@ class AudioListController extends GetxController
 
       // 读取 pairs.json 文件
       final jsonString = await rootBundle.loadString(
-        'packages/flutter_roleplay/assets/config/tts/audio/pairs.json',
+        'packages/flutter_roleplay/assets/lib/tts/pairs.json',
       );
       final Map<String, dynamic> pairsMap = json.decode(jsonString);
 
@@ -135,7 +136,14 @@ class AudioListController extends GetxController
       // 播放新的音频
       currentPlayingKey.value = item.key;
       await _audioPlayer.stop();
-      await _audioPlayer.play(AssetSource('config/tts/audio/${item.key}.wav'));
+      debugPrint(
+        'key==${item.key},wavPath==${item.name},jsonPath==${item.language}',
+      );
+      String path = await CommonUtil.fromAssetsToTemp(
+        "assets/lib/tts/${item.key}.wav",
+        targetPath: "assets/lib/tts/${item.key}.wav",
+      );
+      await _audioPlayer.play(DeviceFileSource(path));
 
       debugPrint('开始播放音频: ${item.name} (${item.key})');
     } catch (e) {

@@ -208,12 +208,12 @@ class RWKVTTSService extends GetxController {
     // debugPrint('before playTTS: $ttsText');
     ttsText = ttsText.replaceAll(RegExp(r'[\(（][^\)）]*[\)）]'), '');
     // debugPrint('after playTTS: $ttsText');
-    final Kafka_8wav = await CommonUtil.fromAssetsToTemp(
-      "assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
+    var Kafka_8wav = await CommonUtil.fromAssetsToTemp(
+      "assets/lib/tts/Chinese(PRC)_Hook_21.wav",
     );
-    final Kafka_8json = await CommonUtil.fromAssetsToTemp(
-      "assets/lib/tts/Chinese(PRC)_Kafka_8.json",
-    );
+    // final Kafka_8json = await CommonUtil.fromAssetsToTemp(
+    //   "assets/lib/tts/Chinese(PRC)_Hook_21.json",
+    // );
     int millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
     // 保存当前生成的音频文件名
     currentAudioFileName = '$millisecondsSinceEpoch.wav';
@@ -221,7 +221,7 @@ class RWKVTTSService extends GetxController {
     _runTTS(
       ttsText: ttsText,
       instructionText: "",
-      promptWavPath: "$cacheDir/assets/lib/tts/Chinese(PRC)_Kafka_8.wav",
+      promptWavPath: Kafka_8wav,
       outputWavPath: "$cacheDir/$millisecondsSinceEpoch.wav",
       promptSpeechText: "——我们并不是通过物理移动手段找到「星核」的。",
     );
