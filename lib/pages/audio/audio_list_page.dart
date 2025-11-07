@@ -108,12 +108,15 @@ class AudioListPage extends StatelessWidget {
           final isCurrentPlaying =
               controller.currentPlayingKey.value == audio.key;
           final isPlaying = isCurrentPlaying && controller.isPlaying.value;
+          final isSelected =
+              controller.selectedAudioName.value == '${audio.key}.wav';
 
           return _buildAudioCard(
             controller: controller,
             audio: audio,
             isPlaying: isPlaying,
             isCurrentPlaying: isCurrentPlaying,
+            isSelected: isSelected,
           );
         });
       },
@@ -126,6 +129,7 @@ class AudioListPage extends StatelessWidget {
     required AudioItem audio,
     required bool isPlaying,
     required bool isCurrentPlaying,
+    required bool isSelected,
   }) {
     const primaryColor = Colors.purple;
 
@@ -200,12 +204,9 @@ class AudioListPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                // 音频图标
-                Icon(
-                  Icons.audiotrack_rounded,
-                  color: isCurrentPlaying ? primaryColor : Colors.grey.shade400,
-                  size: 20,
-                ),
+                // 选中状态图标
+                if (isSelected)
+                  const Icon(Icons.check_box, color: primaryColor, size: 24),
               ],
             ),
           ),

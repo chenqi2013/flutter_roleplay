@@ -47,12 +47,28 @@ class AudioListController extends GetxController
   // 播放状态
   final RxBool isPlaying = false.obs;
 
+  // 当前选中的音频名称（从 SharedPreferences 加载）
+  final RxString selectedAudioName = ''.obs;
+
   @override
   void onInit() {
     super.onInit();
     tabController = TabController(length: 3, vsync: this);
+    _loadSelectedAudio();
     _loadAudioData();
     _setupAudioPlayerListeners();
+  }
+
+  /// 加载当前选中的音频
+  Future<void> _loadSelectedAudio() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final audioName = prefs.getString(ttsAudioNameKey) ?? '';
+      selectedAudioName.value = audioName;
+      debugPrint('当前选中的音频: $audioName');
+    } catch (e) {
+      debugPrint('加载选中音频失败: $e');
+    }
   }
 
   @override
@@ -198,6 +214,10 @@ class AudioListController extends GetxController
       ttsAudioName = "${item.key}.wav";
       await prefs.setString(ttsAudioTxtKey, item.txt);
       ttsAudioTxt = item.txt;
+
+      // 更新选中状态
+      selectedAudioName.value = "${item.key}.wav";
+
       await _audioPlayer.play(DeviceFileSource(path));
 
       debugPrint('开始播放音频: ${item.name} (${item.txt})');
