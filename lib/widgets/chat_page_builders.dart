@@ -16,6 +16,7 @@ import 'package:flutter_roleplay/widgets/character_intro.dart';
 import 'package:flutter_roleplay/widgets/chat_bubble.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/dialog/chat_dialogs.dart';
+import 'package:flutter_roleplay/services/model_callback_service.dart';
 
 /// 聊天页面构建器
 class ChatPageBuilders {
@@ -892,18 +893,50 @@ class ChatPageBuilders {
 
           // 显示提示
           if (context.mounted) {
-            final message = ttsService.isTTSEnabled.value ? '语音已开启' : '语音已关闭';
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                duration: const Duration(seconds: 1),
-                behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.only(bottom: 80, left: 20, right: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            if (ttsService.isTTSEnabled.value && ttsService.modelInfo == null) {
+              // TTS 已开启但没有模型，提示用户下载模型
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('语音已开启，但尚未配置TTS模型'),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                  margin: const EdgeInsets.only(
+                    bottom: 80,
+                    left: 20,
+                    right: 20,
+                  ),
+                  action: SnackBarAction(
+                    label: '去配置',
+                    textColor: Colors.white,
+                    onPressed: () {
+                      // 打开 TTS 模型下载页面
+                      notifyModelDownloadRequired(RoleplayManageModelType.tts);
+                    },
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  backgroundColor: Colors.orange,
                 ),
-              ),
-            );
+              );
+            } else {
+              final message = ttsService.isTTSEnabled.value ? '语音已开启' : '语音已关闭';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
+                  duration: const Duration(seconds: 1),
+                  behavior: SnackBarBehavior.floating,
+                  margin: const EdgeInsets.only(
+                    bottom: 80,
+                    left: 20,
+                    right: 20,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
           }
         },
       );
