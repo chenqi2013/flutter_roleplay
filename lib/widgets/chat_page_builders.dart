@@ -475,6 +475,7 @@ class ChatPageBuilders {
     required Function(RoleplayManageModelType roleplayManageModelType)
     onNavigateToChangeModel,
     required Function() onNavigateToRoleParams,
+    required Function() onNavigateToAudioList,
     required Widget chatListView,
     required Widget inputBar,
   }) {
@@ -497,6 +498,7 @@ class ChatPageBuilders {
           onNavigateToCreateRole: onNavigateToCreateRole,
           onNavigateToChangeModel: onNavigateToChangeModel,
           onNavigateToRoleParams: onNavigateToRoleParams,
+          onNavigateToAudioList: onNavigateToAudioList,
           chatListView: chatListView,
           inputBar: inputBar,
         ),
@@ -543,6 +545,7 @@ class ChatPageBuilders {
     required Function(RoleplayManageModelType roleplayManageModelType)
     onNavigateToChangeModel,
     required Function() onNavigateToRoleParams,
+    required Function() onNavigateToAudioList,
     required Widget chatListView,
     required Widget inputBar,
   }) {
@@ -557,6 +560,7 @@ class ChatPageBuilders {
         onNavigateToCreateRole: onNavigateToCreateRole,
         onNavigateToChangeModel: onNavigateToChangeModel,
         onNavigateToRoleParams: onNavigateToRoleParams,
+        onNavigateToAudioList: onNavigateToAudioList,
       ),
       body: SafeArea(
         top: false,
@@ -582,6 +586,7 @@ class ChatPageBuilders {
     required Function(RoleplayManageModelType roleplayManageModelType)
     onNavigateToChangeModel,
     required Function() onNavigateToRoleParams,
+    required Function() onNavigateToAudioList,
   }) {
     // 只在当前角色且名称变化时才重新构建 AppBar
     final bool isCurrentRole = role['name'] == roleName.value;
@@ -598,6 +603,7 @@ class ChatPageBuilders {
       onNavigateToCreateRole: onNavigateToCreateRole,
       onNavigateToChangeModel: onNavigateToChangeModel,
       onNavigateToRoleParams: onNavigateToRoleParams,
+      onNavigateToAudioList: onNavigateToAudioList,
     );
   }
 
@@ -762,6 +768,7 @@ class ChatPageBuilders {
     required Function(RoleplayManageModelType roleplayManageModelType)
     onNavigateToChangeModel,
     required Function() onNavigateToRoleParams,
+    required Function() onNavigateToAudioList,
   }) {
     return AppBar(
       backgroundColor: Colors.black.withValues(alpha: 0.2),
@@ -817,6 +824,11 @@ class ChatPageBuilders {
               text: 'change_tts_model'.tr,
             ),
             _buildSimplePopupMenuItem(
+              value: 'change_voice',
+              icon: Icons.record_voice_over,
+              text: '切换音色',
+            ),
+            _buildSimplePopupMenuItem(
               value: 'role_params',
               icon: Icons.tune,
               text: 'role_params'.tr,
@@ -843,6 +855,9 @@ class ChatPageBuilders {
                 break;
               case 'change_tts_model':
                 onNavigateToChangeModel(RoleplayManageModelType.tts);
+                break;
+              case 'change_voice':
+                onNavigateToAudioList();
                 break;
               case 'role_params':
                 onNavigateToRoleParams();

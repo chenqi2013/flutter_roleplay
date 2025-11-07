@@ -291,7 +291,7 @@ class CommonUtil {
       ByteData data;
       try {
         data = await rootBundle.load(assetsPath);
-        debugPrint('fromAssetsToTemp: load $assetsPath');
+        debugPrint('mainbundle load fromAssetsToTemp: load $assetsPath');
       } catch (e) {
         // 如果主应用中没有，则从 flutter_roleplay 包中加载
         debugPrint(
