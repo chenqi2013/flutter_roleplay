@@ -29,7 +29,10 @@ Backend backend = Backend.llamacpp;
 String modelPath = '';
 String statePath = '';
 String ttsAudioName = 'Chinese(PRC)_Acheron_3.wav';
-String ttsAudioKey = 'ttsAudioKey';
+String ttsAudioTxt = '…我们到了。';
+
+String ttsAudioNameKey = 'ttsAudioNameKey';
+String ttsAudioTxtKey = 'ttsAudioTxtKey';
 
 final qnnLibList = {
   "libQnnHtp.so",

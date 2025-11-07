@@ -12,7 +12,7 @@ class AudioListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          '音频资源',
+          '选择音色',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -93,13 +93,7 @@ class AudioListPage extends StatelessWidget {
   Widget _buildAudioList(List<AudioItem> audios) {
     if (audios.isEmpty) {
       return const Center(
-        child: Text(
-          '暂无音频',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
-          ),
-        ),
+        child: Text('暂无音频', style: TextStyle(fontSize: 16, color: Colors.grey)),
       );
     }
 
@@ -109,9 +103,10 @@ class AudioListPage extends StatelessWidget {
       itemBuilder: (context, index) {
         final audio = audios[index];
         final controller = Get.find<AudioListController>();
-        
+
         return Obx(() {
-          final isCurrentPlaying = controller.currentPlayingKey.value == audio.key;
+          final isCurrentPlaying =
+              controller.currentPlayingKey.value == audio.key;
           final isPlaying = isCurrentPlaying && controller.isPlaying.value;
 
           return _buildAudioCard(
@@ -133,18 +128,16 @@ class AudioListPage extends StatelessWidget {
     required bool isCurrentPlaying,
   }) {
     const primaryColor = Colors.purple;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       decoration: BoxDecoration(
-        color: isCurrentPlaying 
+        color: isCurrentPlaying
             ? primaryColor.withValues(alpha: 0.1)
             : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isCurrentPlaying
-              ? primaryColor
-              : Colors.grey.shade200,
+          color: isCurrentPlaying ? primaryColor : Colors.grey.shade200,
           width: isCurrentPlaying ? 2 : 1,
         ),
         boxShadow: [
@@ -175,12 +168,8 @@ class AudioListPage extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    isPlaying
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
-                    color: isCurrentPlaying
-                        ? Colors.white
-                        : primaryColor,
+                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    color: isCurrentPlaying ? Colors.white : primaryColor,
                     size: 28,
                   ),
                 ),
@@ -214,9 +203,7 @@ class AudioListPage extends StatelessWidget {
                 // 音频图标
                 Icon(
                   Icons.audiotrack_rounded,
-                  color: isCurrentPlaying
-                      ? primaryColor
-                      : Colors.grey.shade400,
+                  color: isCurrentPlaying ? primaryColor : Colors.grey.shade400,
                   size: 20,
                 ),
               ],

@@ -12,11 +12,17 @@ class AudioItem {
   final String key; // 文件名（不含扩展名）
   final String name; // 显示名称
   final String language; // 语言类型
+  final String txt; // 文本
 
-  AudioItem({required this.key, required this.name, required this.language});
+  AudioItem({
+    required this.key,
+    required this.name,
+    required this.language,
+    required this.txt,
+  });
 
-  String get wavPath => 'lib/tts/$key.wav';
-  String get jsonPath => 'lib/tts/$key.json';
+  // String get wavPath => 'lib/tts/$key.wav';
+  // String get jsonPath => 'lib/tts/$key.json';
 }
 
 class AudioListController extends GetxController
@@ -83,21 +89,57 @@ class AudioListController extends GetxController
       final List<AudioItem> english = [];
       final List<AudioItem> japanese = [];
 
-      // 解析数据并分类
-      pairsMap.forEach((key, value) {
-        if (key.startsWith('Chinese(PRC)_')) {
-          chinese.add(AudioItem(key: key, name: value, language: 'Chinese'));
-        } else if (key.startsWith('English_')) {
-          english.add(AudioItem(key: key, name: value, language: 'English'));
-        } else if (key.startsWith('Japanese_')) {
-          japanese.add(AudioItem(key: key, name: value, language: 'Japanese'));
-        }
-      });
+      // 解析数据并分类，同时读取每个音频的 transcription
+      for (final entry in pairsMap.entries) {
+        final key = entry.key;
+        final name = entry.value;
 
-      // 按名称排序
-      chinese.sort((a, b) => a.name.compareTo(b.name));
-      english.sort((a, b) => a.name.compareTo(b.name));
-      japanese.sort((a, b) => a.name.compareTo(b.name));
+        // 读取对应的 JSON 文件获取 transcription
+        String transcription = '';
+        try {
+          final jsonPath = 'packages/flutter_roleplay/assets/lib/tts/$key.json';
+          final jsonContent = await rootBundle.loadString(jsonPath);
+          final jsonData = json.decode(jsonContent);
+          transcription = jsonData['transcription'] ?? '';
+        } catch (e) {
+          debugPrint('读取 $key.json 失败: $e');
+          transcription = ''; // 如果读取失败，使用空字符串
+        }
+
+        if (key.startsWith('Chinese(PRC)_')) {
+          chinese.add(
+            AudioItem(
+              key: key,
+              name: name,
+              language: 'Chinese',
+              txt: transcription,
+            ),
+          );
+        } else if (key.startsWith('English_')) {
+          english.add(
+            AudioItem(
+              key: key,
+              name: name,
+              language: 'English',
+              txt: transcription,
+            ),
+          );
+        } else if (key.startsWith('Japanese_')) {
+          japanese.add(
+            AudioItem(
+              key: key,
+              name: name,
+              language: 'Japanese',
+              txt: transcription,
+            ),
+          );
+        }
+      }
+
+      // // 按名称排序
+      // chinese.sort((a, b) => a.name.compareTo(b.name));
+      // english.sort((a, b) => a.name.compareTo(b.name));
+      // japanese.sort((a, b) => a.name.compareTo(b.name));
 
       chineseAudios.value = chinese;
       englishAudios.value = english;
@@ -106,6 +148,11 @@ class AudioListController extends GetxController
       debugPrint(
         '加载音频数据完成: 中文${chinese.length}个, 英文${english.length}个, 日文${japanese.length}个',
       );
+
+      // 打印前几个示例以验证 transcription 是否正确加载
+      if (chinese.isNotEmpty) {
+        debugPrint('示例音频: ${chinese.first.name} - ${chinese.first.txt}');
+      }
     } catch (e) {
       debugPrint('加载音频数据失败: $e');
       Get.snackbar(
@@ -147,11 +194,13 @@ class AudioListController extends GetxController
       );
 
       var prefs = await SharedPreferences.getInstance();
-      await prefs.setString(ttsAudioKey, "${item.key}.wav");
+      await prefs.setString(ttsAudioNameKey, "${item.key}.wav");
       ttsAudioName = "${item.key}.wav";
+      await prefs.setString(ttsAudioTxtKey, item.txt);
+      ttsAudioTxt = item.txt;
       await _audioPlayer.play(DeviceFileSource(path));
 
-      debugPrint('开始播放音频: ${item.name} (${item.key})');
+      debugPrint('开始播放音频: ${item.name} (${item.txt})');
     } catch (e) {
       debugPrint('播放音频失败: $e');
       Get.snackbar(

@@ -73,10 +73,16 @@ class RWKVTTSService extends GetxController {
     await _loadTTSEnabledState();
 
     var prefs = await SharedPreferences.getInstance();
-    String? audiofilename = await prefs.getString(ttsAudioKey);
-    debugPrint('audiofilename: $audiofilename');
-    if (audiofilename != null) {
-      ttsAudioName = audiofilename;
+    String? audioName = await prefs.getString(ttsAudioNameKey);
+    debugPrint('audioName: $audioName');
+    if (audioName != null) {
+      ttsAudioName = audioName;
+    }
+
+    String? audioTxt = await prefs.getString(ttsAudioTxtKey);
+    debugPrint('audioTxt: $audioTxt');
+    if (audioTxt != null) {
+      ttsAudioTxt = audioTxt;
     }
 
     // 如果 TTS 开启，才加载模型
@@ -232,8 +238,9 @@ class RWKVTTSService extends GetxController {
       instructionText: "",
       promptWavPath: ttsAudioNameTmp,
       outputWavPath: "$cacheDir/$millisecondsSinceEpoch.wav",
-      promptSpeechText: "——我们并不是通过物理移动手段找到「星核」的。",
+      promptSpeechText: ttsAudioTxt,
     );
+    debugPrint('ttsAudioTxt: $ttsAudioTxt，ttsAudioName: $ttsAudioName');
   }
 
   /// 设置接收端口监听器
