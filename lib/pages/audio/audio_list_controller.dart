@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 音频项模型
 class AudioItem {
@@ -143,6 +145,10 @@ class AudioListController extends GetxController
         "assets/lib/tts/${item.key}.wav",
         targetPath: "assets/lib/tts/${item.key}.wav",
       );
+
+      var prefs = await SharedPreferences.getInstance();
+      await prefs.setString(ttsAudioKey, "${item.key}.wav");
+      ttsAudioName = "${item.key}.wav";
       await _audioPlayer.play(DeviceFileSource(path));
 
       debugPrint('开始播放音频: ${item.name} (${item.key})');

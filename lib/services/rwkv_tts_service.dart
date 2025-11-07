@@ -72,6 +72,13 @@ class RWKVTTSService extends GetxController {
     // 加载 TTS 开关状态
     await _loadTTSEnabledState();
 
+    var prefs = await SharedPreferences.getInstance();
+    String? audiofilename = await prefs.getString(ttsAudioKey);
+    debugPrint('audiofilename: $audiofilename');
+    if (audiofilename != null) {
+      ttsAudioName = audiofilename;
+    }
+
     // 如果 TTS 开启，才加载模型
     Future.delayed(Duration(seconds: 3), () {
       if (isTTSEnabled.value) {
@@ -208,9 +215,11 @@ class RWKVTTSService extends GetxController {
     // debugPrint('before playTTS: $ttsText');
     ttsText = ttsText.replaceAll(RegExp(r'[\(（][^\)）]*[\)）]'), '');
     // debugPrint('after playTTS: $ttsText');
-    var Kafka_8wav = await CommonUtil.fromAssetsToTemp(
-      "assets/lib/tts/Chinese(PRC)_Hook_21.wav",
+
+    var ttsAudioNameTmp = await CommonUtil.fromAssetsToTemp(
+      "assets/lib/tts/$ttsAudioName",
     );
+    debugPrint('ttsAudioName: $ttsAudioNameTmp');
     // final Kafka_8json = await CommonUtil.fromAssetsToTemp(
     //   "assets/lib/tts/Chinese(PRC)_Hook_21.json",
     // );
@@ -221,7 +230,7 @@ class RWKVTTSService extends GetxController {
     _runTTS(
       ttsText: ttsText,
       instructionText: "",
-      promptWavPath: Kafka_8wav,
+      promptWavPath: ttsAudioNameTmp,
       outputWavPath: "$cacheDir/$millisecondsSinceEpoch.wav",
       promptSpeechText: "——我们并不是通过物理移动手段找到「星核」的。",
     );

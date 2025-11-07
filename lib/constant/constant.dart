@@ -28,6 +28,8 @@ const String pageKey = 'jingxuan_chat';
 Backend backend = Backend.llamacpp;
 String modelPath = '';
 String statePath = '';
+String ttsAudioName = 'Chinese(PRC)_Acheron_3.wav';
+String ttsAudioKey = 'ttsAudioKey';
 
 final qnnLibList = {
   "libQnnHtp.so",
