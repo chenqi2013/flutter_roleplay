@@ -60,7 +60,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 8, // 升级版本以支持模型类型
+      version: 9, // 升级版本以支持角色音色
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -94,6 +94,7 @@ class DatabaseHelper {
         image TEXT NOT NULL,
         language TEXT NOT NULL DEFAULT 'zh-CN',
         is_custom INTEGER NOT NULL DEFAULT 0,
+        voice TEXT,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -309,6 +310,12 @@ class DatabaseHelper {
 
       debugPrint('已为 model_info 表添加 model_type 字段');
     }
+
+    if (oldVersion < 9) {
+      // 从版本8升级到版本9: 为 roles 表添加 voice 字段
+      await db.execute('ALTER TABLE roles ADD COLUMN voice TEXT');
+      debugPrint('已为 roles 表添加 voice 字段');
+    }
   }
 
   // 插入聊天消息
@@ -500,6 +507,7 @@ class DatabaseHelper {
       // 插入新的API角色数据
       final now = DateTime.now().millisecondsSinceEpoch;
       for (final role in roles) {
+        debugPrint('saveRoles: ${role.toJson()}');
         batch.insert('roles', {
           'id': role.id,
           'name': role.name,
@@ -507,6 +515,7 @@ class DatabaseHelper {
           'image': role.image,
           'language': role.language,
           'is_custom': role.isCustom ? 1 : 0,
+          'voice': role.voice,
           'created_at': now,
           'updated_at': now,
         });
@@ -613,6 +622,7 @@ class DatabaseHelper {
         image: role.image, // 保持原有的图片路径，不使用默认值
         language: role.language,
         isCustom: true,
+        voice: role.voice,
       );
 
       await db.insert('roles', roleWithId.toDbMap());

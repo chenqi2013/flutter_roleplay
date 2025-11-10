@@ -156,6 +156,8 @@ class CommonUtil {
       roleDescription.value = role['description'] as String;
       roleImage.value = newImagePath;
       roleLanguage.value = (role['language'] as String?) ?? 'zh-CN';
+      ttsAudioName = (role['voice'] as String?) ?? 'Chinese(PRC)_Acheron_3.wav';
+      ttsAudioTxt = (role['voiceTxt'] as String?) ?? '…我们到了。';
 
       debugPrint('CommonUtil.switchToRole: 更新后详细信息');
       debugPrint('  - 角色名称: $newRoleName');

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'dart:convert';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
@@ -200,6 +203,48 @@ class _RolePlayChatState extends State<RolePlayChat>
     });
   }
 
+  /// 根据音色文件名设置 TTS 音色
+  Future<void> _setRoleVoice(String voiceFileName) async {
+    try {
+      debugPrint('设置角色音色: $voiceFileName');
+
+      // 去掉 .wav 后缀
+      final voiceKey = voiceFileName.replaceAll('.wav', '');
+
+      // 从 assets 读取对应的 JSON 文件获取 transcription
+      try {
+        final jsonContent = await rootBundle.loadString(
+          'assets/lib/tts/$voiceKey.json',
+        );
+        final jsonData = json.decode(jsonContent) as Map<String, dynamic>;
+        final transcription = jsonData['transcription'] as String?;
+
+        if (transcription != null && transcription.isNotEmpty) {
+          // 保存到 SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(ttsAudioNameKey, voiceFileName);
+          await prefs.setString(ttsAudioTxtKey, transcription);
+
+          // 更新全局变量
+          ttsAudioName = voiceFileName;
+          ttsAudioTxt = transcription;
+
+          debugPrint('角色音色设置完成: $voiceFileName -> $transcription');
+        } else {
+          debugPrint('未找到音色的 transcription: $voiceKey');
+        }
+      } catch (e) {
+        debugPrint('读取音色配置失败: $e');
+        // 如果读取失败，仍然保存音色文件名
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(ttsAudioNameKey, voiceFileName);
+        ttsAudioName = voiceFileName;
+      }
+    } catch (e) {
+      debugPrint('设置角色音色失败: $e');
+    }
+  }
+
   /// 设置特定角色的完整信息
   Future<void> _setSpecificRole(String targetRoleName) async {
     try {
@@ -219,6 +264,7 @@ class _RolePlayChatState extends State<RolePlayChat>
         debugPrint('找到角色信息: ${matchedRole.name}');
         debugPrint('  - 角色描述: ${matchedRole.description}');
         debugPrint('  - 角色图片: ${matchedRole.image}');
+        debugPrint('  - 角色音色: ${matchedRole.voice}');
 
         // 检查组件是否仍然挂载
         if (!mounted || _isDisposed) {
@@ -234,6 +280,11 @@ class _RolePlayChatState extends State<RolePlayChat>
         roleDescription.value = matchedRole.description;
         roleImage.value = matchedRole.image;
         roleLanguage.value = matchedRole.language;
+
+        // 如果角色有指定音色，自动设置 TTS 音色
+        if (matchedRole.voice != null && matchedRole.voice!.isNotEmpty) {
+          await _setRoleVoice(matchedRole.voice!);
+        }
 
         // 清理图片缓存，确保背景图片能正确更新
         ChatPageBuilders.clearMemoryCache();

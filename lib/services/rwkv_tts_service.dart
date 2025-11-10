@@ -72,18 +72,22 @@ class RWKVTTSService extends GetxController {
     // 加载 TTS 开关状态
     await _loadTTSEnabledState();
 
-    var prefs = await SharedPreferences.getInstance();
-    String? audioName = await prefs.getString(ttsAudioNameKey);
-    debugPrint('audioName: $audioName');
-    if (audioName != null) {
-      ttsAudioName = audioName;
-    }
+    // var prefs = await SharedPreferences.getInstance();
+    // String? audioName = await prefs.getString(ttsAudioNameKey);
+    // debugPrint('audioName: $audioName');
+    // if (audioName != null) {
+    //   ttsAudioName = audioName;
+    // }
 
-    String? audioTxt = await prefs.getString(ttsAudioTxtKey);
-    debugPrint('audioTxt: $audioTxt');
-    if (audioTxt != null) {
-      ttsAudioTxt = audioTxt;
-    }
+    // String? audioTxt = await prefs.getString(ttsAudioTxtKey);
+    // debugPrint('audioTxt: $audioTxt');
+    // if (audioTxt != null) {
+    //   ttsAudioTxt = audioTxt;
+    // }
+    // 注意：音色配置 (ttsAudioName, ttsAudioTxt) 现在由角色的 voice 字段决定
+    // 在进入聊天页面时，会根据角色的 voice 字段自动设置音色
+    // 这里不再从 SharedPreferences 读取，确保音色始终与当前角色匹配
+    debugPrint('TTS 音色将由角色配置决定，当前默认: $ttsAudioName');
 
     // 如果 TTS 开启，才加载模型
     Future.delayed(Duration(seconds: 3), () {
