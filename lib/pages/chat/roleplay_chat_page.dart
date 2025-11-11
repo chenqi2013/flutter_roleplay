@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'dart:convert';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
-import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
-import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'dart:async';
@@ -46,9 +42,6 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   // 防止重复角色切换的标志
   bool _isPageSwitching = false;
-
-  // 防止初始化时触发角色切换监听器
-  bool _isInitializingRole = false;
 
   // 防止组件销毁后继续执行操作
   bool _isDisposed = false;
@@ -204,42 +197,24 @@ class _RolePlayChatState extends State<RolePlayChat>
   }
 
   /// 根据音色文件名设置 TTS 音色
-  Future<void> _setRoleVoice(String voiceFileName) async {
+  /// 设置角色音色
+  /// 
+  /// [voiceFileName] 音色文件名，如 "Chinese(PRC)_Aventurine_4.wav"
+  /// [voiceTxt] 音色文本，如 "…我们到了。"
+  Future<void> _setRoleVoice(String voiceFileName, String voiceTxt) async {
     try {
-      debugPrint('设置角色音色: $voiceFileName');
+      debugPrint('设置角色音色: $voiceFileName -> $voiceTxt');
 
-      // 去掉 .wav 后缀
-      final voiceKey = voiceFileName.replaceAll('.wav', '');
+      // 保存到 SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(ttsAudioNameKey, voiceFileName);
+      await prefs.setString(ttsAudioTxtKey, voiceTxt);
 
-      // 从 assets 读取对应的 JSON 文件获取 transcription
-      try {
-        final jsonContent = await rootBundle.loadString(
-          'assets/lib/tts/$voiceKey.json',
-        );
-        final jsonData = json.decode(jsonContent) as Map<String, dynamic>;
-        final transcription = jsonData['transcription'] as String?;
+      // 更新全局变量
+      ttsAudioName = voiceFileName;
+      ttsAudioTxt = voiceTxt;
 
-        if (transcription != null && transcription.isNotEmpty) {
-          // 保存到 SharedPreferences
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(ttsAudioNameKey, voiceFileName);
-          await prefs.setString(ttsAudioTxtKey, transcription);
-
-          // 更新全局变量
-          ttsAudioName = voiceFileName;
-          ttsAudioTxt = transcription;
-
-          debugPrint('角色音色设置完成: $voiceFileName -> $transcription');
-        } else {
-          debugPrint('未找到音色的 transcription: $voiceKey');
-        }
-      } catch (e) {
-        debugPrint('读取音色配置失败: $e');
-        // 如果读取失败，仍然保存音色文件名
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(ttsAudioNameKey, voiceFileName);
-        ttsAudioName = voiceFileName;
-      }
+      debugPrint('角色音色设置完成');
     } catch (e) {
       debugPrint('设置角色音色失败: $e');
     }
@@ -272,9 +247,6 @@ class _RolePlayChatState extends State<RolePlayChat>
           return;
         }
 
-        // 设置初始化标志，避免触发角色切换监听器
-        _isInitializingRole = true;
-
         // 直接设置角色信息，避免使用 CommonUtil.switchToRole 的异步操作
         roleName.value = matchedRole.name;
         roleDescription.value = matchedRole.description;
@@ -282,8 +254,11 @@ class _RolePlayChatState extends State<RolePlayChat>
         roleLanguage.value = matchedRole.language;
 
         // 如果角色有指定音色，自动设置 TTS 音色
-        if (matchedRole.voice != null && matchedRole.voice!.isNotEmpty) {
-          await _setRoleVoice(matchedRole.voice!);
+        if (matchedRole.voice != null && 
+            matchedRole.voice!.isNotEmpty &&
+            matchedRole.voiceTxt != null &&
+            matchedRole.voiceTxt!.isNotEmpty) {
+          await _setRoleVoice(matchedRole.voice!, matchedRole.voiceTxt!);
         }
 
         // 清理图片缓存，确保背景图片能正确更新
@@ -309,9 +284,6 @@ class _RolePlayChatState extends State<RolePlayChat>
         //   usedRoles[existingIndex] = Map<String, dynamic>.from(roleMap);
         //   debugPrint('角色信息已更新在usedRoles列表中');
         // }
-
-        // 重置初始化标志
-        _isInitializingRole = false;
 
         debugPrint('特定角色设置完成: ${roleName.value}');
       } else {
@@ -852,27 +824,6 @@ class _RolePlayChatState extends State<RolePlayChat>
     });
   }
 
-  /// 同步 PageController 到当前角色位置
-  void _syncPageController(List<Map<String, dynamic>> roles) {
-    final currentRoleIndex = roles.indexWhere(
-      (role) => role['name'] == roleName.value,
-    );
-
-    if (currentRoleIndex >= 0 && _pageController.hasClients) {
-      final currentPage = _pageController.page?.round() ?? 0;
-      if (currentPage != currentRoleIndex) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_pageController.hasClients) {
-            _pageController.animateToPage(
-              currentRoleIndex,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }
-        });
-      }
-    }
-  }
 
   // ===== 分支管理处理函数 =====
 

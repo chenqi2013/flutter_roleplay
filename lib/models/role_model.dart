@@ -33,6 +33,7 @@ class RoleModel {
   final String language;
   final bool isCustom; // true: 用户自定义角色, false: API获取的角色
   final String? voice; // TTS 音色文件名，如 "Chinese(PRC)_Aventurine_4.wav"
+  final String? voiceTxt; // TTS 音色文本，如 "…我们到了。"
 
   RoleModel({
     required this.id,
@@ -42,6 +43,7 @@ class RoleModel {
     required this.language,
     this.isCustom = false, // 默认为API角色
     this.voice, // 可选的音色字段
+    this.voiceTxt, // 可选的音色文本字段
   });
 
   factory RoleModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class RoleModel {
       language: json['language'] as String? ?? 'zh-CN', // 默认中文
       isCustom: json['isCustom'] as bool? ?? false, // API数据默认为false
       voice: json['voice'] as String?, // 可选的音色字段
+      voiceTxt: json['voice_txt'] as String?, // 可选的音色文本字段
     );
   }
 
@@ -64,6 +67,7 @@ class RoleModel {
     String? image,
     String? language,
     String? voice,
+    String? voiceTxt,
   }) {
     // 只有当image为null或空字符串时才使用默认图片
     final String finalImage = (image != null && image.isNotEmpty)
@@ -81,6 +85,7 @@ class RoleModel {
       language: language ?? 'zh-CN', // 默认中文
       isCustom: true,
       voice: voice,
+      voiceTxt: voiceTxt,
     );
   }
 
@@ -93,6 +98,7 @@ class RoleModel {
       'language': language,
       'isCustom': isCustom,
       'voice': voice,
+      'voice_txt': voiceTxt,
     };
   }
 
@@ -105,6 +111,7 @@ class RoleModel {
       'language': language,
       'isCustom': isCustom,
       'voice': voice,
+      'voice_txt': voiceTxt,
     };
   }
 
@@ -118,6 +125,7 @@ class RoleModel {
       'language': language,
       'is_custom': isCustom ? 1 : 0, // SQLite使用整数表示布尔值
       'voice': voice,
+      'voice_txt': voiceTxt,
       'created_at': DateTime.now().millisecondsSinceEpoch,
       'updated_at': DateTime.now().millisecondsSinceEpoch,
     };
@@ -133,6 +141,7 @@ class RoleModel {
       language: map['language'] as String? ?? 'zh-CN', // 默认中文，兼容旧数据
       isCustom: (map['is_custom'] as int) == 1,
       voice: map['voice'] as String?, // 从数据库读取音色字段
+      voiceTxt: map['voice_txt'] as String?, // 从数据库读取音色文本字段
     );
   }
 }

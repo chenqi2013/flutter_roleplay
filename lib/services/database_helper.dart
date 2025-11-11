@@ -60,7 +60,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 9, // 升级版本以支持角色音色
+      version: 10, // 升级版本以支持角色音色文本
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -95,6 +95,7 @@ class DatabaseHelper {
         language TEXT NOT NULL DEFAULT 'zh-CN',
         is_custom INTEGER NOT NULL DEFAULT 0,
         voice TEXT,
+        voice_txt TEXT,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -316,6 +317,12 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE roles ADD COLUMN voice TEXT');
       debugPrint('已为 roles 表添加 voice 字段');
     }
+
+    if (oldVersion < 10) {
+      // 从版本9升级到版本10: 为 roles 表添加 voice_txt 字段
+      await db.execute('ALTER TABLE roles ADD COLUMN voice_txt TEXT');
+      debugPrint('已为 roles 表添加 voice_txt 字段');
+    }
   }
 
   // 插入聊天消息
@@ -516,6 +523,7 @@ class DatabaseHelper {
           'language': role.language,
           'is_custom': role.isCustom ? 1 : 0,
           'voice': role.voice,
+          'voice_txt': role.voiceTxt,
           'created_at': now,
           'updated_at': now,
         });
@@ -623,6 +631,7 @@ class DatabaseHelper {
         language: role.language,
         isCustom: true,
         voice: role.voice,
+        voiceTxt: role.voiceTxt,
       );
 
       await db.insert('roles', roleWithId.toDbMap());
