@@ -50,6 +50,9 @@ class AudioListController extends GetxController
   // 当前选中的音频名称（从 SharedPreferences 加载）
   final RxString selectedAudioName = ''.obs;
 
+  // 是否为选择模式（用于创建角色时选择音色）
+  final RxBool isSelectMode = false.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -241,6 +244,16 @@ class AudioListController extends GetxController
     await _audioPlayer.stop();
     currentPlayingKey.value = '';
     isPlaying.value = false;
+  }
+
+  /// 选择音色（用于创建角色时）
+  void selectVoice(AudioItem item, BuildContext context) {
+    final result = {
+      'voice': '${item.key}.wav',
+      'voiceTxt': item.txt,
+    };
+    debugPrint('选择音色: ${item.key}.wav -> ${item.txt}');
+    Navigator.of(context).pop(result);
   }
 
   /// 获取当前Tab的音频列表

@@ -2,20 +2,28 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/constant/theme.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
+import 'package:flutter_roleplay/pages/audio/audio_list_page.dart';
 import 'package:get/get.dart';
 import 'createrole_controller.dart';
 
-class CreateRolePage extends StatelessWidget {
+class CreateRolePage extends StatefulWidget {
   final RoleModel? editRole;
 
-  CreateRolePage({super.key, this.editRole});
+  const CreateRolePage({super.key, this.editRole});
+
+  @override
+  State<CreateRolePage> createState() => _CreateRolePageState();
+}
+
+class _CreateRolePageState extends State<CreateRolePage> {
   bool isInit = false;
   final controller = Get.find<CreateRoleController>();
+
   @override
   Widget build(BuildContext context) {
     if (!isInit) {
       isInit = true;
-      controller.updateEditRole(editRole);
+      controller.updateEditRole(widget.editRole);
     }
     final EdgeInsets safe = MediaQuery.of(context).padding;
     return Theme(
@@ -25,7 +33,9 @@ class CreateRolePage extends StatelessWidget {
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: Text(
-            editRole != null ? 'edit_role_title'.tr : 'create_role_title'.tr,
+            widget.editRole != null
+                ? 'edit_role_title'.tr
+                : 'create_role_title'.tr,
           ),
           centerTitle: true,
         ),
@@ -134,6 +144,128 @@ class CreateRolePage extends StatelessWidget {
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // 音色选择
+                    _GlassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '角色音色',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '选择角色专属的语音音色（可选）',
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Obx(
+                            () => InkWell(
+                              onTap: () async {
+                                // 导航到音色列表页面
+                                final result =
+                                    await Navigator.push<Map<String, dynamic>>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const AudioListPage(
+                                              isSelectMode: true,
+                                            ),
+                                      ),
+                                    );
+
+                                // 处理返回的音色数据
+                                if (result != null &&
+                                    result['voice'] != null &&
+                                    result['voiceTxt'] != null) {
+                                  controller.setSelectedVoice(
+                                    result['voice'] as String,
+                                    result['voiceTxt'] as String,
+                                  );
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.record_voice_over,
+                                      color:
+                                          controller.selectedVoice.value.isEmpty
+                                          ? Colors.white54
+                                          : Colors.purple,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        controller.selectedVoice.value.isEmpty
+                                            ? '点击选择音色'
+                                            : controller.selectedVoice.value
+                                                  .replaceAll('.wav', '')
+                                                  .replaceAll('_', ' '),
+                                        style: TextStyle(
+                                          color:
+                                              controller
+                                                  .selectedVoice
+                                                  .value
+                                                  .isEmpty
+                                              ? Colors.white54
+                                              : Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                    if (controller
+                                        .selectedVoice
+                                        .value
+                                        .isNotEmpty)
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.close,
+                                          color: Colors.white54,
+                                          size: 18,
+                                        ),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        onPressed: () {
+                                          controller.clearSelectedVoice();
+                                        },
+                                      ),
+                                    if (controller.selectedVoice.value.isEmpty)
+                                      Icon(
+                                        Icons.chevron_right,
+                                        color: Colors.white54,
+                                        size: 20,
+                                      ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ],

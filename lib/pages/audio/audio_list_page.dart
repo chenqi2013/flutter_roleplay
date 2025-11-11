@@ -3,11 +3,17 @@ import 'package:flutter_roleplay/pages/audio/audio_list_controller.dart';
 import 'package:get/get.dart';
 
 class AudioListPage extends StatelessWidget {
-  const AudioListPage({super.key});
+  final bool isSelectMode; // 是否为选择模式（用于创建角色时选择音色）
+  
+  const AudioListPage({
+    super.key,
+    this.isSelectMode = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(AudioListController());
+    controller.isSelectMode.value = isSelectMode;
 
     return Scaffold(
       appBar: AppBar(
@@ -117,6 +123,7 @@ class AudioListPage extends StatelessWidget {
             isPlaying: isPlaying,
             isCurrentPlaying: isCurrentPlaying,
             isSelected: isSelected,
+            context: context,
           );
         });
       },
@@ -130,6 +137,7 @@ class AudioListPage extends StatelessWidget {
     required bool isPlaying,
     required bool isCurrentPlaying,
     required bool isSelected,
+    required BuildContext context,
   }) {
     const primaryColor = Colors.purple;
 
@@ -154,15 +162,15 @@ class AudioListPage extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: () => controller.toggleAudio(audio),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                // 播放按钮图标
-                Container(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              // 播放按钮图标
+              InkWell(
+                onTap: () => controller.toggleAudio(audio),
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
@@ -177,38 +185,55 @@ class AudioListPage extends StatelessWidget {
                     size: 28,
                   ),
                 ),
-                const SizedBox(width: 16),
-                // 音频名称
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        audio.name,
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: isCurrentPlaying
-                              ? primaryColor
-                              : Colors.black87,
-                        ),
+              ),
+              const SizedBox(width: 16),
+              // 音频名称
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      audio.name,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: isCurrentPlaying
+                            ? primaryColor
+                            : Colors.black87,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _extractCharacterInfo(audio.key),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _extractCharacterInfo(audio.key),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                // 选中状态图标
-                if (isSelected)
-                  const Icon(Icons.check_box, color: primaryColor, size: 24),
-              ],
-            ),
+              ),
+              // 在选择模式下显示"选择"按钮
+              if (controller.isSelectMode.value)
+                ElevatedButton(
+                  onPressed: () => controller.selectVoice(audio, context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('选择'),
+                ),
+              // 在非选择模式下显示选中状态图标
+              if (!controller.isSelectMode.value && isSelected)
+                const Icon(Icons.check_box, color: primaryColor, size: 24),
+            ],
           ),
         ),
       ),

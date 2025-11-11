@@ -31,11 +31,25 @@ class CreateRoleController extends GetxController {
       } else {
         imageUrl.value = '';
       }
+
+      // 如果有音色，设置音色数据
+      if (newEditRole.voice != null && newEditRole.voice!.isNotEmpty) {
+        selectedVoice.value = newEditRole.voice!;
+      } else {
+        selectedVoice.value = '';
+      }
+      if (newEditRole.voiceTxt != null && newEditRole.voiceTxt!.isNotEmpty) {
+        selectedVoiceTxt.value = newEditRole.voiceTxt!;
+      } else {
+        selectedVoiceTxt.value = '';
+      }
     } else {
       // 创建模式：输入框初始化为空
       nameController.text = '';
       descController.text = '';
       imageUrl.value = '';
+      selectedVoice.value = '';
+      selectedVoiceTxt.value = '';
     }
 
     descLength.value = descController.text.characters.length;
@@ -51,6 +65,8 @@ class CreateRoleController extends GetxController {
   final RxString selectedLanguage = 'zh-CN'.obs; // 默认中文
   final Rx<File?> selectedImage = Rx<File?>(null);
   final RxString imageUrl = ''.obs;
+  final RxString selectedVoice = ''.obs; // 选中的音色文件名
+  final RxString selectedVoiceTxt = ''.obs; // 选中的音色文本
   static const int descMaxLength = 600;
 
   // 数据库辅助类
@@ -162,6 +178,19 @@ class CreateRoleController extends GetxController {
     imageUrl.value = '';
   }
 
+  /// 设置选中的音色
+  void setSelectedVoice(String voiceFileName, String voiceTxt) {
+    selectedVoice.value = voiceFileName;
+    selectedVoiceTxt.value = voiceTxt;
+    debugPrint('设置音色: $voiceFileName -> $voiceTxt');
+  }
+
+  /// 清除选中的音色
+  void clearSelectedVoice() {
+    selectedVoice.value = '';
+    selectedVoiceTxt.value = '';
+  }
+
   Future<void> onConfirm(BuildContext context) async {
     final String n = nameController.text.trim();
     final String d = descController.text.trim();
@@ -229,6 +258,14 @@ class CreateRoleController extends GetxController {
       late final RoleModel customRole;
       late final int roleId;
 
+      // 准备音色数据（如果未选择则为null）
+      final String? finalVoice = selectedVoice.value.isNotEmpty 
+          ? selectedVoice.value 
+          : null;
+      final String? finalVoiceTxt = selectedVoiceTxt.value.isNotEmpty 
+          ? selectedVoiceTxt.value 
+          : null;
+
       if (isEditMode) {
         // 编辑模式：更新现有角色
         customRole = RoleModel.createCustom(
@@ -237,6 +274,8 @@ class CreateRoleController extends GetxController {
           description: d,
           language: selectedLanguage.value,
           image: finalImagePath,
+          voice: finalVoice,
+          voiceTxt: finalVoiceTxt,
         );
 
         await _dbHelper.updateCustomRole(customRole);
@@ -250,6 +289,8 @@ class CreateRoleController extends GetxController {
           description: d,
           language: selectedLanguage.value,
           image: finalImagePath,
+          voice: finalVoice,
+          voiceTxt: finalVoiceTxt,
         );
 
         roleId = await _dbHelper.saveCustomRole(customRole);
