@@ -24,6 +24,7 @@ dependencies:
   shared_preferences: ^2.5.3
   image_picker: ^1.1.2
   uuid: ^4.5.1
+  flutter_svg: ^2.0.14
   # dio: ^5.9.0
   rwkv_downloader:
     # path: ../rwkv_downloader
