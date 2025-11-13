@@ -4,6 +4,8 @@ import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
+import 'package:flutter_roleplay/widgets/glass_container.dart';
+import 'package:path/path.dart';
 
 class RolesListPage extends StatelessWidget {
   RolesListPage({super.key});
@@ -45,12 +47,12 @@ class RolesListPage extends StatelessWidget {
             ],
           ),
         ),
-        child: _buildBody(),
+        child: _buildBody(context),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(BuildContext context) {
     return Obx(() {
       if (controller.isLoading.value) {
         return const Center(
@@ -100,9 +102,9 @@ class RolesListPage extends StatelessWidget {
 
       return Column(
         children: [
-          // 搜索框
-          _buildSearchBar(),
-          // 角色列表
+          // 顶部欢迎文本
+          _buildWelcomeHeader(),
+          // 角色列表 - GridView + 底部按钮
           Expanded(
             child: RefreshIndicator(
               onRefresh: controller.refreshRoles,
@@ -113,18 +115,33 @@ class RolesListPage extends StatelessWidget {
                   // 显示无搜索结果
                   return _buildNoSearchResults();
                 }
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  itemCount: displayRoles.length,
-                  itemBuilder: (context, index) {
-                    final role = displayRoles[index];
-                    return _RoleCard(
-                      role: role,
-                      onTap: () => controller.selectRole(role, context),
-                      onDelete: () =>
-                          controller.deleteCustomRole(role, context),
-                    );
-                  },
+                return CustomScrollView(
+                  slivers: [
+                    // GridView 角色列表
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, // 2列
+                              crossAxisSpacing: 12, // 列间距
+                              mainAxisSpacing: 12, // 行间距
+                              childAspectRatio: 0.7, // 调整宽高比，让卡片更高
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final role = displayRoles[index];
+                          return _RoleGridCard(
+                            role: role,
+                            onTap: () => controller.selectRole(role, context),
+                            onDelete: () =>
+                                controller.deleteCustomRole(role, context),
+                          );
+                        }, childCount: displayRoles.length),
+                      ),
+                    ),
+                    // 底部创建角色按钮
+                    SliverToBoxAdapter(child: _buildCreateRoleButton(context)),
+                  ],
                 );
               }),
             ),
@@ -134,43 +151,129 @@ class RolesListPage extends StatelessWidget {
     });
   }
 
-  /// 构建搜索框
-  Widget _buildSearchBar() {
+  /// 构建欢迎头部
+  Widget _buildWelcomeHeader() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Hi,欢迎来到',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black.withValues(alpha: 0.8),
+                  height: 1.4,
+                ),
+              ),
+              Image.asset(
+                'packages/flutter_roleplay/assets/svg/roleicon.png',
+                width: 24,
+                height: 24,
+              ),
+              Text(
+                '扮演',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black.withValues(alpha: 0.8),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '请选择你想对话的角色或创建角色。',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black.withValues(alpha: 0.8),
+              height: 1.4,
+            ),
           ),
         ],
       ),
-      child: Obx(
-        () => TextField(
-          onChanged: controller.searchRoles,
-          decoration: InputDecoration(
-            hintText: 'search_roles_hint'.tr,
-            prefixIcon: const Icon(Icons.search, color: Colors.grey),
-            suffixIcon: controller.searchQuery.value.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.grey),
-                    onPressed: controller.clearSearch,
-                  )
-                : null,
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
+    );
+  }
+
+  /// 构建底部创建角色按钮
+  Widget _buildCreateRoleButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+      child: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            // 跳转到创建角色页面
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CreateRolePage()),
+            ).then((_) {
+              // 从创建页面返回后刷新列表
+              controller.loadRoles();
+            });
+          },
+          child: GlassContainer(
+            borderRadius: 16,
+            borderWidth: 2,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '创建我的角色',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
     );
   }
+
+  /// 构建搜索框（已注释）
+  // Widget _buildSearchBar() {
+  //   return Container(
+  //     margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white.withValues(alpha: 0.9),
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withValues(alpha: 0.1),
+  //           blurRadius: 8,
+  //           offset: const Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Obx(
+  //       () => TextField(
+  //         onChanged: controller.searchRoles,
+  //         decoration: InputDecoration(
+  //           hintText: 'search_roles_hint'.tr,
+  //           prefixIcon: const Icon(Icons.search, color: Colors.grey),
+  //           suffixIcon: controller.searchQuery.value.isNotEmpty
+  //               ? IconButton(
+  //                   icon: const Icon(Icons.clear, color: Colors.grey),
+  //                   onPressed: controller.clearSearch,
+  //                 )
+  //               : null,
+  //           border: InputBorder.none,
+  //           contentPadding: const EdgeInsets.symmetric(
+  //             horizontal: 16,
+  //             vertical: 12,
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   /// 构建无搜索结果页面
   Widget _buildNoSearchResults() {
@@ -213,325 +316,223 @@ class RolesListPage extends StatelessWidget {
   }
 }
 
-class _RoleCard extends StatefulWidget {
+/// GridView 角色卡片（图片背景 + 底部信息）
+class _RoleGridCard extends StatelessWidget {
   final RoleModel role;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
-  const _RoleCard({
+  const _RoleGridCard({
     required this.role,
     required this.onTap,
     required this.onDelete,
   });
 
   @override
-  State<_RoleCard> createState() => _RoleCardState();
-}
-
-class _RoleCardState extends State<_RoleCard> {
-  bool _isExpanded = false;
-
-  /// 检查文本是否超过指定行数
-  bool _isTextOverflowing(
-    String text,
-    TextStyle style,
-    int maxLines,
-    double maxWidth,
-  ) {
-    final textPainter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      maxLines: maxLines,
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout(maxWidth: maxWidth);
-    return textPainter.didExceedMaxLines;
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Dismissible(
-      key: Key('role_${widget.role.id}'),
-      direction: widget.role.isCustom
-          ? DismissDirection.endToStart
-          : DismissDirection.none,
-      dismissThresholds: const {
-        DismissDirection.endToStart: 0.25, // 侧滑到1/4位置就触发
-      },
-      confirmDismiss: (direction) async {
-        if (!widget.role.isCustom) return false;
-        return await _showDeleteConfirmDialog();
-      },
-      onDismissed: (direction) {
-        widget.onDelete();
-      },
-      background: widget.role.isCustom
-          ? Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 20),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.delete, color: Colors.white, size: 30),
-            )
-          : null,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: 0.95),
-                  Colors.grey.shade50.withValues(alpha: 0.95),
-                ],
-              ),
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: role.isCustom ? _showDeleteDialog : null,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+              spreadRadius: 0,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.purple, Colors.blue],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        widget.role.name,
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 背景图片
+              _buildBackgroundImage(),
+
+              // 渐变遮罩（从透明到黑色）
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.2),
+                      Colors.black.withValues(alpha: 0.85),
+                    ],
+                    stops: const [0.0, 0.6, 1.0],
+                  ),
+                ),
+              ),
+
+              // 底部信息
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 角色名字
+                      Text(
+                        role.name,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const Spacer(),
-                    // 当前角色选中标识
-                    Obx(
-                      () => roleName.value == widget.role.name
-                          ? Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                              size: 24,
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                    // 自定义角色操作按钮（仅在不使用时显示）
-                    if (widget.role.isCustom && !_isRoleInUse()) ...[
-                      const SizedBox(width: 8),
-                      // 编辑按钮
-                      GestureDetector(
-                        onTap: () => _handleEditButtonTap(),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Icon(
-                            Icons.edit_outlined,
-                            size: 20,
-                            color: Colors.blue.shade600,
-                          ),
+                      const SizedBox(height: 6),
+                      // 角色简介
+                      Text(
+                        role.description,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 11,
+                          height: 1.3,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      // 删除按钮
-                      GestureDetector(
-                        onTap: () => _handleDeleteButtonTap(),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Icon(
-                            Icons.delete_outline,
-                            size: 20,
-                            color: Colors.red.shade600,
-                          ),
-                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                _buildDescription(),
-                // const SizedBox(height: 8),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.end,
-                //   children: [
-                //     Text(
-                //       'tap_to_select'.tr,
-                //       style: TextStyle(
-                //         color: Colors.blue.shade600,
-                //         fontSize: 12,
-                //         fontWeight: FontWeight.w500,
-                //       ),
-                //     ),
-                //     const SizedBox(width: 4),
-                //     Icon(
-                //       Icons.arrow_forward_ios,
-                //       size: 12,
-                //       color: Colors.blue.shade600,
-                //     ),
-                //   ],
-                // ),
-              ],
-            ),
+              ),
+
+              // 选中标识
+              Obx(
+                () => roleName.value == role.name
+                    ? Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade400,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.4),
+                                blurRadius: 6,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+
+              // 自定义角色标识
+              if (role.isCustom)
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      '自定义',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  /// 显示删除角色确认对话框
-  Future<bool> _showDeleteConfirmDialog() async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('delete_confirm_title'.tr),
-              content: Text(
-                'delete_role_confirm'.trParams({'name': widget.role.name}),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text('cancel'.tr),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  child: Text('delete'.tr),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
+  Widget _buildBackgroundImage() {
+    // 如果有图片路径，显示图片，否则显示渐变背景
+    if (role.image.isNotEmpty) {
+      return Image.network(
+        role.image,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          // 加载失败时显示默认渐变背景
+          return _buildGradientBackground();
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return _buildGradientBackground();
+        },
+      );
+    }
+    return _buildGradientBackground();
   }
 
-  /// 检查角色是否正在使用中
-  bool _isRoleInUse() {
-    // 检查是否是当前角色
-    if (roleName.value == widget.role.name) {
-      return true;
-    }
-
-    // 检查是否在使用过的角色列表中
-    for (var usedRole in usedRoles) {
-      if (usedRole['name'] == widget.role.name) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /// 处理右上角编辑按钮点击
-  void _handleEditButtonTap() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CreateRolePage(editRole: widget.role),
+  Widget _buildGradientBackground() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purple.withValues(alpha: 0.6),
+            Colors.blue.withValues(alpha: 0.6),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.person,
+          size: 64,
+          color: Colors.white.withValues(alpha: 0.5),
+        ),
       ),
     );
-
-    // 如果编辑成功，刷新角色列表
-    if (result != null) {
-      // 获取控制器并刷新列表
-      final controller = Get.find<RolesListController>();
-      controller.loadRoles();
-    }
   }
 
-  /// 处理右上角删除按钮点击
-  Future<void> _handleDeleteButtonTap() async {
-    final confirmed = await _showDeleteConfirmDialog();
-    if (confirmed) {
-      widget.onDelete();
-    }
-  }
-
-  /// 构建可展开的描述组件
-  Widget _buildDescription() {
-    final descriptionStyle = TextStyle(
-      color: Colors.grey.shade700,
-      fontSize: 14,
-      height: 1.4,
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // 检查文本是否超过4行
-        final isOverflowing = _isTextOverflowing(
-          widget.role.description,
-          descriptionStyle,
-          4,
-          constraints.maxWidth,
-        );
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.role.description,
-              style: descriptionStyle,
-              maxLines: _isExpanded ? null : 4,
-              overflow: _isExpanded
-                  ? TextOverflow.visible
-                  : TextOverflow.ellipsis,
-            ),
-            // 只有当文本超过4行时才显示展开/收起按钮
-            if (isOverflowing)
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isExpanded = !_isExpanded;
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        _isExpanded ? 'collapse'.tr : 'expand'.tr,
-                        style: TextStyle(
-                          color: Colors.blue.shade600,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Icon(
-                        _isExpanded ? Icons.expand_less : Icons.expand_more,
-                        size: 16,
-                        color: Colors.blue.shade600,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
+  void _showDeleteDialog() {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('删除角色'),
+        content: Text('确定要删除角色 "${role.name}" 吗？'),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('取消')),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              onDelete();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('删除'),
+          ),
+        ],
+      ),
     );
   }
 }
