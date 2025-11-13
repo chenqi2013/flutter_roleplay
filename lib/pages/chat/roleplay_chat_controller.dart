@@ -12,6 +12,7 @@ import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
 import 'package:flutter_roleplay/services/chat_stream_service.dart';
 import 'package:flutter_roleplay/services/message_branch_manager.dart';
+// import 'package:rwkv_mobile_flutter/to_rwkv.dart' as to_rwkv;
 
 class RolePlayChatController extends GetxController {
   /// Context for showing dialogs - can be set externally
@@ -120,6 +121,12 @@ class RolePlayChatController extends GetxController {
       _pendingUserMessage = null;
     }
   }
+
+  // Future<void> killIsolate() async {
+  //   modelService.send(to_rwkv.ClearStates());
+  //   modelService.send(to_rwkv.ReleaseModel(modelID: 0));
+  //   modelService.rwkvMobile.killIsolate();
+  // }
 
   // 流式聊天完成 - 委托给模型服务
   Stream<String> streamLocalChatCompletions({String content = '介绍下自己'}) {

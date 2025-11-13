@@ -53,6 +53,7 @@ class RWKVChatService extends GetxController {
   String lastGeneratedContent = ''; // 存储最后生成的完整内容
   var history = <String>[];
   bool isHiddenState = false;
+  final RWKVMobile rwkvMobile = RWKVMobile();
   @override
   void onInit() async {
     super.onInit();
@@ -180,6 +181,7 @@ class RWKVChatService extends GetxController {
             );
             if (_getTokensTimer != null) {
               _getTokensTimer!.cancel();
+              _getTokensTimer = null;
             }
           }
         }
@@ -406,7 +408,7 @@ class RWKVChatService extends GetxController {
       sendPort: _receivePort.sendPort,
       rootIsolateToken: rootIsolateToken!,
     );
-    await RWKVMobile().runIsolate(options);
+    await rwkvMobile.runIsolate(options);
 
     while (_sendPort == null) {
       debugPrint("waiting for sendPort...");

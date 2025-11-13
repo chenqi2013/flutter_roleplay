@@ -198,7 +198,7 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   /// 根据音色文件名设置 TTS 音色
   /// 设置角色音色
-  /// 
+  ///
   /// [voiceFileName] 音色文件名，如 "Chinese(PRC)_Aventurine_4.wav"
   /// [voiceTxt] 音色文本，如 "…我们到了。"
   Future<void> _setRoleVoice(String voiceFileName, String voiceTxt) async {
@@ -254,7 +254,7 @@ class _RolePlayChatState extends State<RolePlayChat>
         roleLanguage.value = matchedRole.language;
 
         // 如果角色有指定音色，自动设置 TTS 音色
-        if (matchedRole.voice != null && 
+        if (matchedRole.voice != null &&
             matchedRole.voice!.isNotEmpty &&
             matchedRole.voiceTxt != null &&
             matchedRole.voiceTxt!.isNotEmpty) {
@@ -410,7 +410,9 @@ class _RolePlayChatState extends State<RolePlayChat>
     if (_controller != null && _controller!.isGenerating.value) {
       _controller!.stop();
     }
-
+    // Future.delayed(const Duration(seconds: 2), () {
+    //   _controller!.killIsolate();
+    // });
     // // 移除生命周期观察者
     // WidgetsBinding.instance.removeObserver(this);
 
@@ -823,7 +825,6 @@ class _RolePlayChatState extends State<RolePlayChat>
       }
     });
   }
-
 
   // ===== 分支管理处理函数 =====
 

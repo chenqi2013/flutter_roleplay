@@ -62,6 +62,7 @@ class RWKVTTSService extends GetxController {
   // TTS 开关状态 (默认关闭)
   final RxBool isTTSEnabled = false.obs;
   static const String _ttsEnabledKey = 'tts_enabled';
+  final RWKVMobile rwkvMobile = RWKVMobile();
 
   @override
   void onInit() async {
@@ -343,7 +344,7 @@ class RWKVTTSService extends GetxController {
       sendPort: _receivePort.sendPort,
       rootIsolateToken: rootIsolateToken!,
     );
-    await RWKVMobile().runIsolate(options);
+    await rwkvMobile.runIsolate(options);
 
     while (_sendPort == null) {
       debugPrint("waiting for sendPort...");

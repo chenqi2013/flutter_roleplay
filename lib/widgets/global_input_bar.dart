@@ -85,131 +85,135 @@ class _GlassInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-        child: Container(
-          height: height,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(28),
-            // border: Border.all(
-            //   color: Colors.white.withValues(alpha: 0.2),
-            //   width: 0.5,
-            // ),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: Colors.black.withValues(alpha: 0.1),
-            //     blurRadius: 20,
-            //     offset: const Offset(0, 8),
-            //     spreadRadius: 0,
-            //   ),
-            //   BoxShadow(
-            //     color: Colors.white.withValues(alpha: 0.1),
-            //     blurRadius: 8,
-            //     offset: const Offset(0, -2),
-            //     spreadRadius: 0,
-            //   ),
-            // ],
-          ),
-          child: Row(
-            children: [
-              // // 麦克风
-              // _circleBtn(
-              //   child: const Icon(
-              //     Icons.mic_outlined,
-              //     color: Colors.white,
-              //     size: 26,
-              //   ),
-              // ),
-              // const SizedBox(width: 12),
-              // 输入框
-              Expanded(
-                child: TextField(
-                  enabled: !isLoading, // 加载时禁用输入
-                  style: TextStyle(
-                    color: isLoading ? Colors.white38 : Colors.white,
-                    fontSize: 16,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: isLoading
-                        ? 'ai_replying'.tr
-                        : (roleName.isNotEmpty
-                              ? 'send_message_to'.trParams({'name': roleName})
-                              : 'send_message_to_ai'.tr),
-                    hintStyle: TextStyle(
-                      color: isLoading ? Colors.white38 : Colors.white,
-                      fontSize: 16,
-                    ),
-                    border: InputBorder.none,
-                    filled: true,
-                    fillColor: Colors.transparent, // 背景透明
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  controller: controller,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: isLoading
-                      ? null
-                      : (value) {
-                          sendMessage();
-                        },
-                ),
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        // 渐变边框
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0x1AFFFFFF), // 10% 白色
+            Color(0x99FFFFFF), // 60% 白色
+            Color(0x1AFFFFFF), // 10% 白色
+            Color(0x99FFFFFF), // 60% 白色
+          ],
+          stops: [0.0, 0.25, 0.5, 1.0],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(0), // 边框宽度
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(26),
               ),
-              const SizedBox(width: 12),
-              // 右侧按钮们
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Row(
                 children: [
+                  // // 麦克风
                   // _circleBtn(
-                  //   gradient: const [Color(0x66FFC107), Color(0x33FF9800)],
-                  //   borderColor: const Color(0x88FFC107),
                   //   child: const Icon(
-                  //     Icons.flash_on_outlined,
-                  //     color: Colors.amber,
+                  //     Icons.mic_outlined,
+                  //     color: Colors.white,
                   //     size: 26,
                   //   ),
                   // ),
-                  // const SizedBox(width: 10),
-                  Stack(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          sendMessage();
-                        },
-                        child: _circleBtn(
-                          child: const Icon(
-                            Icons.send,
-                            color: Colors.white,
-                            size: 26,
-                          ),
-                        ),
+                  // const SizedBox(width: 12),
+                  // 输入框
+                  Expanded(
+                    child: TextField(
+                      enabled: !isLoading, // 加载时禁用输入
+                      style: TextStyle(
+                        color: isLoading ? Colors.white38 : Colors.white,
+                        fontSize: 16,
                       ),
-                      // Positioned(
-                      //   top: 6,
-                      //   right: 6,
-                      //   child: Container(
-                      //     width: 8,
-                      //     height: 8,
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.red,
-                      //       shape: BoxShape.circle,
-                      //       boxShadow: [
-                      //         BoxShadow(
-                      //           color: Colors.red.withValues(alpha: 0.5),
-                      //           blurRadius: 4,
-                      //           offset: const Offset(0, 1),
-                      //         ),
-                      //       ],
-                      //     ),
+                      decoration: InputDecoration(
+                        hintText: isLoading
+                            ? 'ai_replying'.tr
+                            : (roleName.isNotEmpty
+                                  ? 'send_message_to'.trParams({
+                                      'name': roleName,
+                                    })
+                                  : 'send_message_to_ai'.tr),
+                        hintStyle: TextStyle(
+                          color: isLoading ? Colors.white38 : Colors.white,
+                          fontSize: 16,
+                        ),
+                        border: InputBorder.none,
+                        filled: true,
+                        fillColor: Colors.transparent, // 背景透明
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      controller: controller,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: isLoading
+                          ? null
+                          : (value) {
+                              sendMessage();
+                            },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // 右侧按钮们
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // _circleBtn(
+                      //   gradient: const [Color(0x66FFC107), Color(0x33FF9800)],
+                      //   borderColor: const Color(0x88FFC107),
+                      //   child: const Icon(
+                      //     Icons.flash_on_outlined,
+                      //     color: Colors.amber,
+                      //     size: 26,
                       //   ),
                       // ),
+                      // const SizedBox(width: 10),
+                      Stack(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              sendMessage();
+                            },
+                            child: _circleBtn(
+                              child: const Icon(
+                                Icons.send,
+                                color: Colors.white,
+                                size: 26,
+                              ),
+                            ),
+                          ),
+                          // Positioned(
+                          //   top: 6,
+                          //   right: 6,
+                          //   child: Container(
+                          //     width: 8,
+                          //     height: 8,
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.red,
+                          //       shape: BoxShape.circle,
+                          //       boxShadow: [
+                          //         BoxShadow(
+                          //           color: Colors.red.withValues(alpha: 0.5),
+                          //           blurRadius: 4,
+                          //           offset: const Offset(0, 1),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
+                        ],
+                      ),
                     ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -224,21 +228,7 @@ class _GlassInput extends StatelessWidget {
     controller?.clear();
   }
 
-  static Widget _circleBtn({
-    List<Color>? gradient,
-    Color? borderColor,
-    required Widget child,
-  }) {
-    final List<Color> colorsList =
-        gradient ??
-        [
-          Colors.white.withValues(alpha: 0.25),
-          Colors.white.withValues(alpha: 0.1),
-          Colors.black.withValues(alpha: 0.1),
-        ];
-    final List<double>? stopsList = colorsList.length == 3
-        ? const [0.0, 0.6, 1.0]
-        : null;
+  static Widget _circleBtn({required Widget child}) {
     return Center(child: child);
   }
 }
