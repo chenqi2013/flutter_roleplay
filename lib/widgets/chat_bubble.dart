@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
@@ -162,9 +163,19 @@ class _ChatBubbleState extends State<ChatBubble> {
         ),
         child: Container(
           margin: const EdgeInsets.only(left: 50),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: const BoxDecoration(
-            color: Color(0xFFFFC107),
+            // 渐变边框
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0x1AFFFFFF), // 10% 白色
+                Color(0x99FFFFFF), // 60% 白色
+                Color(0x1AFFFFFF), // 10% 白色
+                Color(0x99FFFFFF), // 60% 白色
+              ],
+              stops: [0.0, 0.25, 0.5, 1.0],
+            ),
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(18),
               topRight: Radius.circular(18),
@@ -172,13 +183,42 @@ class _ChatBubbleState extends State<ChatBubble> {
               bottomRight: Radius.circular(4),
             ),
           ),
-          child: Text(
-            widget.message.content.trim(),
-            style: const TextStyle(
-              color: Colors.black87,
-              fontSize: 15,
-              height: 1.35,
-              fontWeight: FontWeight.w400,
+          child: Padding(
+            padding: const EdgeInsets.all(0), // 边框宽度
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(2),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(2),
+                    ),
+                  ),
+                  child: Text(
+                    widget.message.content.trim(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'Source Han Sans SC',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),

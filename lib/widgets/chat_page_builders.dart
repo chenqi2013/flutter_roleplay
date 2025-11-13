@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
+import 'package:flutter_roleplay/widgets/glass_container.dart';
+import 'package:flutter_svg/svg.dart';
 import 'dart:ui';
 import 'dart:io';
 import 'package:get/get.dart';
@@ -774,9 +776,25 @@ class ChatPageBuilders {
     return AppBar(
       backgroundColor: Colors.black.withValues(alpha: 0.2),
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
-        onPressed: onBackPressed,
+      leadingWidth: 60, // 设置 leading 区域宽度
+      leading: Center(
+        child: InkWell(
+          onTap: onBackPressed,
+          borderRadius: BorderRadius.circular(60),
+          child: GlassContainer(
+            borderRadius: 20,
+            borderWidth: 0,
+            padding: const EdgeInsets.all(8),
+            child: SvgPicture.asset(
+              'packages/flutter_roleplay/assets/svg/close.svg',
+              width: 13,
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+        ),
       ),
       title: Text(
         roleName.value,
