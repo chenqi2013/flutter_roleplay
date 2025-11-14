@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_roleplay/pages/params/model_params_page.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
@@ -694,7 +695,9 @@ class _RolePlayChatState extends State<RolePlayChat>
         if (await _checkAndStopAiReply()) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => RoleParamsPage()),
+            MaterialPageRoute(
+              builder: (context) => ModelParamsPage(),
+            ), //RoleParamsPage
           );
         }
       },
