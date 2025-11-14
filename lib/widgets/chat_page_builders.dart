@@ -137,6 +137,15 @@ class ChatPageBuilders {
     }
   }
 
+  /// 公共方法：构建图片组件（供外部使用）
+  static Widget buildImageWidget(
+    String imagePath, {
+    BoxFit fit = BoxFit.cover,
+    Key? key,
+  }) {
+    return _buildImageWidget(imagePath, fit: fit, key: key);
+  }
+
   /// 构建图片组件，支持网络图片和本地图片，带离线缓存
   static Widget _buildImageWidget(
     String imagePath, {

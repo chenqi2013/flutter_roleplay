@@ -5,6 +5,7 @@ import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
+import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
 
 class RolesListPage extends StatelessWidget {
   RolesListPage({super.key});
@@ -478,21 +479,11 @@ class _RoleGridCard extends StatelessWidget {
   }
 
   Widget _buildBackgroundImage() {
-    // 如果有图片路径，显示图片，否则显示渐变背景
+    // 如果有图片路径，使用 ChatPageBuilders 的缓存图片加载
     if (role.image.isNotEmpty) {
-      return Image.network(
-        role.image,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          // 加载失败时显示默认渐变背景
-          return _buildGradientBackground();
-        },
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return _buildGradientBackground();
-        },
-      );
+      return ChatPageBuilders.buildImageWidget(role.image, fit: BoxFit.cover);
     }
+    // 没有图片时显示渐变背景
     return _buildGradientBackground();
   }
 

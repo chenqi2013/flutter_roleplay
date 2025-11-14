@@ -232,15 +232,15 @@ class DatabaseHelper {
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN parent_id INTEGER
       ''');
-
+      
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN branch_index INTEGER NOT NULL DEFAULT 0
       ''');
-
+      
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN total_branches INTEGER NOT NULL DEFAULT 1
       ''');
-
+      
       await db.execute('''
         ALTER TABLE chat_messages ADD COLUMN conversation_id TEXT
       ''');
@@ -251,16 +251,16 @@ class DatabaseHelper {
         orderBy: 'role_name, timestamp ASC',
       );
       final Map<String, String> roleConversationIds = {};
-
+      
       for (final message in existingMessages) {
         final roleName = message['role_name'] as String;
-
+        
         // 为每个角色生成唯一的conversation_id
         if (!roleConversationIds.containsKey(roleName)) {
           roleConversationIds[roleName] =
               DateTime.now().millisecondsSinceEpoch.toString() + '_' + roleName;
         }
-
+        
         await db.update(
           'chat_messages',
           {'conversation_id': roleConversationIds[roleName]},
