@@ -7,13 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ModelParamsController extends GetxController {
   final dbHelper = DatabaseHelper();
 
-  // 聊天模型列表
-  final RxList<ModelInfo> chatModels = <ModelInfo>[].obs;
-  final Rx<ModelInfo?> selectedChatModel = Rx<ModelInfo?>(null);
-
-  // TTS模型列表
-  final RxList<ModelInfo> ttsModels = <ModelInfo>[].obs;
-  final Rx<ModelInfo?> selectedTTSModel = Rx<ModelInfo?>(null);
+  // 当前使用的模型
+  final Rx<ModelInfo?> currentChatModel = Rx<ModelInfo?>(null);
+  final Rx<ModelInfo?> currentTTSModel = Rx<ModelInfo?>(null);
 
   // TTS语言选择 (中文/英文/日语)
   final RxString ttsLanguage = '中文'.obs;
@@ -40,31 +36,13 @@ class ModelParamsController extends GetxController {
     try {
       isLoading.value = true;
 
-      // 加载聊天模型
-      final allChatModels = await dbHelper.getAllModelInfo();
-      chatModels.value = allChatModels
-          .where((m) => m.modelType?.name == 'chat')
-          .toList();
-
-      // 加载TTS模型
-      ttsModels.value = allChatModels
-          .where((m) => m.modelType?.name == 'tts')
-          .toList();
-
-      // 加载当前选中的模型
+      // 从数据库读取当前使用的聊天模型
       final activeChatModel = await dbHelper.getModelInfoByType('chat');
-      if (activeChatModel != null) {
-        selectedChatModel.value = activeChatModel;
-      } else if (chatModels.isNotEmpty) {
-        selectedChatModel.value = chatModels.first;
-      }
+      currentChatModel.value = activeChatModel;
 
+      // 从数据库读取当前使用的TTS模型
       final activeTTSModel = await dbHelper.getModelInfoByType('tts');
-      if (activeTTSModel != null) {
-        selectedTTSModel.value = activeTTSModel;
-      } else if (ttsModels.isNotEmpty) {
-        selectedTTSModel.value = ttsModels.first;
-      }
+      currentTTSModel.value = activeTTSModel;
 
       // 加载保存的设置
       await loadSettings();
@@ -72,7 +50,7 @@ class ModelParamsController extends GetxController {
       debugPrint('加载模型失败: $e');
       Get.snackbar(
         '加载失败',
-        '无法加载模型列表: $e',
+        '无法加载模型信息: $e',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
@@ -91,20 +69,6 @@ class ModelParamsController extends GetxController {
       voiceRole.value = prefs.getString('voice_role') ?? '帝王';
     } catch (e) {
       debugPrint('加载设置失败: $e');
-    }
-  }
-
-  /// 选择聊天模型
-  void selectChatModel(ModelInfo? model) {
-    if (model != null) {
-      selectedChatModel.value = model;
-    }
-  }
-
-  /// 选择TTS模型
-  void selectTTSModel(ModelInfo? model) {
-    if (model != null) {
-      selectedTTSModel.value = model;
     }
   }
 
@@ -145,15 +109,6 @@ class ModelParamsController extends GetxController {
       await prefs.setDouble('style_value', styleValue.value);
       await prefs.setString('voice_role', voiceRole.value);
 
-      // 保存选中的模型到数据库（标记为激活）
-      if (selectedChatModel.value != null) {
-        await dbHelper.saveModelInfo(selectedChatModel.value!);
-      }
-
-      if (selectedTTSModel.value != null) {
-        await dbHelper.saveModelInfo(selectedTTSModel.value!);
-      }
-
       Get.snackbar(
         '保存成功',
         '模型参数配置已保存',
@@ -181,7 +136,8 @@ class ModelParamsController extends GetxController {
   }
 
   /// 获取模型显示名称
-  String getModelDisplayName(ModelInfo model) {
+  String getModelDisplayName(ModelInfo? model) {
+    if (model == null) return '未配置';
     // 从 ID 或路径中提取模型名称
     final name = model.id.split('/').last;
     return name.replaceAll('.bin', '').replaceAll('_', ' ');

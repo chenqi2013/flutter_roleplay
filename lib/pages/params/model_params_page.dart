@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/params/model_params_controller.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
+import 'package:flutter_roleplay/models/model_info.dart';
 
 class ModelParamsPage extends StatelessWidget {
   ModelParamsPage({super.key});
@@ -11,74 +12,67 @@ class ModelParamsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.purple.withValues(alpha: 0.3),
-              Colors.blue.withValues(alpha: 0.3),
-              Colors.red.withValues(alpha: 0.2),
-            ],
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // SVG 背景图
+          Positioned.fill(
+            child: Image.asset(
+              'packages/flutter_roleplay/assets/svg/rolebg.png',
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: Obx(() {
-                  if (controller.isLoading.value) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
+          // 内容层
+          SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context),
+                Expanded(
+                  child: Obx(() {
+                    if (controller.isLoading.value) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      );
+                    }
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 当前聊天模型
+                          _buildModelInfo(
+                            title: '选择聊天模型',
+                            modelRx: controller.currentChatModel,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // 当前语音模型
+                          _buildModelInfo(
+                            title: '选择语音模型',
+                            modelRx: controller.currentTTSModel,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // TTS语言选择
+                          _buildTTSLanguageSelector(),
+                          const SizedBox(height: 16),
+
+                          // 风格滑块
+                          _buildStyleSlider(),
+                          const SizedBox(height: 16),
+
+                          // 语音角色选择
+                          _buildVoiceRoleSelector(),
+                        ],
+                      ),
                     );
-                  }
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 选择聊天模型
-                        _buildModelSelector(
-                          title: '选择聊天模型',
-                          models: controller.chatModels,
-                          selectedModel: controller.selectedChatModel.value,
-                          onChanged: (model) =>
-                              controller.selectChatModel(model),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 选择语音模型
-                        _buildModelSelector(
-                          title: '选择语音模型',
-                          models: controller.ttsModels,
-                          selectedModel: controller.selectedTTSModel.value,
-                          onChanged: (model) =>
-                              controller.selectTTSModel(model),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // TTS语言选择
-                        _buildTTSLanguageSelector(),
-                        const SizedBox(height: 16),
-
-                        // 风格滑块
-                        _buildStyleSlider(),
-                        const SizedBox(height: 16),
-
-                        // 语音角色选择
-                        _buildVoiceRoleSelector(),
-                      ],
-                    ),
-                  );
-                }),
-              ),
-              _buildSaveButton(context),
-            ],
+                  }),
+                ),
+                _buildSaveButton(context),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -134,17 +128,15 @@ class ModelParamsPage extends StatelessWidget {
     );
   }
 
-  /// 构建模型选择器
-  Widget _buildModelSelector({
+  /// 构建模型信息展示
+  Widget _buildModelInfo({
     required String title,
-    required List models,
-    required dynamic selectedModel,
-    required void Function(dynamic) onChanged,
+    required Rx<ModelInfo?> modelRx,
   }) {
     return GlassContainer(
       borderRadius: 16,
       borderWidth: 0,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -155,35 +147,21 @@ class ModelParamsPage extends StatelessWidget {
               fontSize: 14,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Obx(
             () => Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton(
-                  value: selectedModel,
-                  isExpanded: true,
-                  dropdownColor: Colors.grey.shade800,
-                  style: const TextStyle(color: Colors.white),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  items: models.map((model) {
-                    return DropdownMenuItem(
-                      value: model,
-                      child: Text(
-                        controller.getModelDisplayName(model),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: onChanged,
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+              // decoration: BoxDecoration(
+              //   color: Colors.black.withValues(alpha: 0.3),
+              //   borderRadius: BorderRadius.circular(12),
+              // ),
+              child: Text(
+                controller.getModelDisplayName(modelRx.value),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -199,8 +177,7 @@ class ModelParamsPage extends StatelessWidget {
       borderRadius: 16,
       borderWidth: 0,
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Text(
             'TTS语言',
@@ -209,45 +186,49 @@ class ModelParamsPage extends StatelessWidget {
               fontSize: 14,
             ),
           ),
-          const SizedBox(height: 12),
-          Obx(
-            () => Row(
-              children: controller.ttsLanguages.map((lang) {
-                final isSelected = controller.ttsLanguage.value == lang;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => controller.selectTTSLanguage(lang),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? Colors.white.withValues(alpha: 0.2)
-                            : Colors.black.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isSelected
-                              ? Colors.white.withValues(alpha: 0.5)
-                              : Colors.transparent,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          lang,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontSize: 14,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Obx(
+              () => Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: controller.ttsLanguages.map((lang) {
+                    final isSelected = controller.ttsLanguage.value == lang;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => controller.selectTTSLanguage(lang),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              lang,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.black
+                                    : Colors.white.withValues(alpha: 0.5),
+                                fontSize: 14,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
           ),
         ],
@@ -341,69 +322,30 @@ class ModelParamsPage extends StatelessWidget {
     return GlassContainer(
       borderRadius: 16,
       borderWidth: 0,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '为改政选择角色',
+            '选择角色',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
               fontSize: 14,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Obx(
-            () => Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: controller.voiceRoles.map((role) {
-                final isSelected = controller.voiceRole.value == role;
-                return GestureDetector(
-                  onTap: () => controller.selectVoiceRole(role),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? Colors.red.withValues(alpha: 0.5)
-                          : Colors.black.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected
-                            ? Colors.white.withValues(alpha: 0.5)
-                            : Colors.transparent,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isSelected
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_unchecked,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          role,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontSize: 14,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
+            () => Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+              child: Text(
+                controller.voiceRole.value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ),
         ],
@@ -413,38 +355,36 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建保存按钮
   Widget _buildSaveButton(BuildContext context) {
-    return Positioned(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SafeArea(
-          child: Obx(
-            () => GestureDetector(
-              onTap: controller.isSaving.value
-                  ? null
-                  : controller.saveConfiguration,
-              child: GlassContainer(
-                borderRadius: 16,
-                borderWidth: 2,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: controller.isSaving.value
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          '保存以上配置',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: SafeArea(
+        child: Obx(
+          () => GestureDetector(
+            onTap: controller.isSaving.value
+                ? null
+                : controller.saveConfiguration,
+            child: GlassContainer(
+              borderRadius: 16,
+              borderWidth: 2,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: controller.isSaving.value
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
                         ),
-                ),
+                      )
+                    : const Text(
+                        '保存以上配置',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
           ),
