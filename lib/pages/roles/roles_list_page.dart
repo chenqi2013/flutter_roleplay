@@ -5,7 +5,6 @@ import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
-import 'package:path/path.dart';
 
 class RolesListPage extends StatelessWidget {
   RolesListPage({super.key});
@@ -164,21 +163,23 @@ class RolesListPage extends StatelessWidget {
               Text(
                 'Hi,欢迎来到',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black.withValues(alpha: 0.8),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black.withValues(alpha: 0.45),
                   height: 1.4,
                 ),
               ),
               Image.asset(
                 'packages/flutter_roleplay/assets/svg/roleicon.png',
-                width: 24,
-                height: 24,
+                width: 36,
+                height: 36,
               ),
               Text(
                 '扮演',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black.withValues(alpha: 0.8),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black.withValues(alpha: 0.45),
                   height: 1.4,
                 ),
               ),
@@ -188,8 +189,9 @@ class RolesListPage extends StatelessWidget {
           Text(
             '请选择你想对话的角色或创建角色。',
             style: TextStyle(
-              fontSize: 14,
-              color: Colors.black.withValues(alpha: 0.8),
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: Colors.black.withValues(alpha: 0.45),
               height: 1.4,
             ),
           ),
@@ -200,9 +202,8 @@ class RolesListPage extends StatelessWidget {
 
   /// 构建底部创建角色按钮
   Widget _buildCreateRoleButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-      child: SafeArea(
+    return SafeArea(
+      child: Center(
         child: GestureDetector(
           onTap: () {
             // 跳转到创建角色页面
@@ -214,27 +215,27 @@ class RolesListPage extends StatelessWidget {
               controller.loadRoles();
             });
           },
-          child: GlassContainer(
-            borderRadius: 16,
-            borderWidth: 2,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
+          child: SizedBox(
+            width: 126,
+            height: 48,
+            child: GlassContainer(
+              borderRadius: 70,
+              borderWidth: 0.5,
+              child: const Center(
+                child: Text(
                   '创建我的角色',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
       ),
-    );
+    ).marginOnly(bottom: 20);
   }
 
   /// 构建搜索框（已注释）
@@ -385,8 +386,8 @@ class _RoleGridCard extends StatelessWidget {
                         role.name,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
                           letterSpacing: 0.3,
                         ),
                         maxLines: 1,
@@ -398,7 +399,8 @@ class _RoleGridCard extends StatelessWidget {
                         role.description,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 11,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
                           height: 1.3,
                         ),
                         maxLines: 3,

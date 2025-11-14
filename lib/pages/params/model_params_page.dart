@@ -364,12 +364,12 @@ class ModelParamsPage extends StatelessWidget {
                 ? null
                 : controller.saveConfiguration,
             child: SizedBox(
-              width: 150,
-              height: 60,
+              width: 126,
+              height: 48,
               child: GlassContainer(
-                borderRadius: 16,
+                borderRadius: 70,
                 borderWidth: 0.5,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                // padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Center(
                   child: controller.isSaving.value
                       ? const SizedBox(
@@ -384,8 +384,8 @@ class ModelParamsPage extends StatelessWidget {
                           '保存以上配置',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                 ),

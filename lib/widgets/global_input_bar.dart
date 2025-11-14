@@ -162,18 +162,21 @@ class _GlassInput extends StatelessWidget {
         // 发送按钮
         InkWell(
           onTap: isLoading ? null : sendMessage,
-          borderRadius: BorderRadius.circular(145),
-          child: GlassContainer(
-            borderRadius: 145,
-            borderWidth: 0,
-            padding: const EdgeInsets.all(16),
-            child: SvgPicture.asset(
-              'packages/flutter_roleplay/assets/svg/send.svg',
-              width: 24,
-              height: 24,
-              colorFilter: ColorFilter.mode(
-                isLoading ? Colors.white38 : Colors.white,
-                BlendMode.srcIn,
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: GlassContainer(
+              borderRadius: 24,
+              borderWidth: 0,
+              padding: const EdgeInsets.all(13),
+              child: SvgPicture.asset(
+                'packages/flutter_roleplay/assets/svg/send.svg',
+                width: 17,
+                height: 17,
+                colorFilter: ColorFilter.mode(
+                  isLoading ? Colors.white38 : Colors.white,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
           ),

@@ -776,18 +776,17 @@ class ChatPageBuilders {
     return AppBar(
       backgroundColor: Colors.black.withValues(alpha: 0.2),
       elevation: 0,
-      leadingWidth: 60, // 设置 leading 区域宽度
+      leadingWidth: 64, // 设置 leading 区域宽度
       leading: Center(
         child: InkWell(
           onTap: onBackPressed,
-          borderRadius: BorderRadius.circular(60),
           child: GlassContainer(
             borderRadius: 20,
             borderWidth: 0,
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(14),
             child: SvgPicture.asset(
               'packages/flutter_roleplay/assets/svg/close.svg',
-              width: 13,
+              height: 12,
               colorFilter: const ColorFilter.mode(
                 Colors.white,
                 BlendMode.srcIn,
