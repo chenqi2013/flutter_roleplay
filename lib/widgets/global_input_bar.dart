@@ -96,10 +96,8 @@ class _GlassInput extends StatelessWidget {
             height: height,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
-              // 渐变边框
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+              // Angular Gradient (角度渐变边框)
+              gradient: const SweepGradient(
                 colors: [
                   Color(0x1AFFFFFF), // 10% 白色
                   Color(0x99FFFFFF), // 60% 白色
@@ -110,16 +108,16 @@ class _GlassInput extends StatelessWidget {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(0), // 边框宽度
+              padding: const EdgeInsets.all(0.5), // 边框宽度 0.5px
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(27.5),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  filter: ImageFilter.blur(sigmaX: 63.1, sigmaY: 63.1),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(26),
+                      color: Colors.black.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(27.5),
                     ),
                     child: Center(
                       child: TextField(

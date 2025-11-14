@@ -18,16 +18,14 @@ class GlassContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? 16.0;
-    final width = borderWidth ?? 2.0;
+    final width = borderWidth ?? 0.5;
     final innerRadius = radius - width;
 
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
-        // 渐变边框
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        // Angular Gradient (角度渐变边框)
+        gradient: SweepGradient(
           colors: [
             Color(0x1AFFFFFF), // 10% 白色
             Color(0x99FFFFFF), // 60% 白色
@@ -38,15 +36,16 @@ class GlassContainer extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(width), // 边框宽度
+        padding: EdgeInsets.all(width), // 边框宽度 0.5px
         child: ClipRRect(
           borderRadius: BorderRadius.circular(innerRadius),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            filter: ImageFilter.blur(sigmaX: 63.1, sigmaY: 63.1), // Blur 63.1
             child: Container(
               padding: padding,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.2),
+                // Colors: #000000 35% + Effects Opacity 10%
+                color: Colors.black.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(innerRadius),
               ),
               child: child,

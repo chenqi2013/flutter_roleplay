@@ -164,10 +164,8 @@ class _ChatBubbleState extends State<ChatBubble> {
         child: Container(
           margin: const EdgeInsets.only(left: 50),
           decoration: const BoxDecoration(
-            // 渐变边框
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+            // Angular Gradient (角度渐变边框)
+            gradient: SweepGradient(
               colors: [
                 Color(0x1AFFFFFF), // 10% 白色
                 Color(0x99FFFFFF), // 60% 白色
@@ -180,33 +178,33 @@ class _ChatBubbleState extends State<ChatBubble> {
               topLeft: Radius.circular(18),
               topRight: Radius.circular(18),
               bottomLeft: Radius.circular(18),
-              bottomRight: Radius.circular(4),
+              bottomRight: Radius.circular(18),
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(0), // 边框宽度
+            padding: const EdgeInsets.all(0.5), // 边框宽度 0.5px
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(2),
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+                bottomLeft: Radius.circular(18),
+                bottomRight: Radius.circular(18),
               ),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                filter: ImageFilter.blur(sigmaX: 63.1, sigmaY: 63.1),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
-                      bottomRight: Radius.circular(2),
-                    ),
+                    color: Colors.black.withValues(alpha: 0.35),
+                    // borderRadius: const BorderRadius.only(
+                    //   topLeft: Radius.circular(17.5),
+                    //   topRight: Radius.circular(17.5),
+                    //   bottomLeft: Radius.circular(17.5),
+                    //   bottomRight: Radius.circular(3.5),
+                    // ),
                   ),
                   child: Text(
                     widget.message.content.trim(),
@@ -240,21 +238,48 @@ class _ChatBubbleState extends State<ChatBubble> {
           ),
           child: Container(
             margin: const EdgeInsets.only(right: 40),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.6),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-                bottomLeft: Radius.circular(6),
-                bottomRight: Radius.circular(20),
+            decoration: const BoxDecoration(
+              // Angular Gradient (角度渐变边框)
+              gradient: SweepGradient(
+                colors: [
+                  Color(0x1AFFFFFF), // 10% 白色
+                  Color(0x99FFFFFF), // 60% 白色
+                  Color(0x1AFFFFFF), // 10% 白色
+                  Color(0x99FFFFFF), // 60% 白色
+                ],
+                stops: [0.0, 0.25, 0.5, 1.0],
               ),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+                bottomLeft: Radius.circular(18),
+                bottomRight: Radius.circular(18),
               ),
             ),
-            child: _buildThinkingContent(),
+            child: Padding(
+              padding: const EdgeInsets.all(0.5), // 边框宽度 0.5px
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(18),
+                  topRight: Radius.circular(18),
+                  bottomLeft: Radius.circular(18),
+                  bottomRight: Radius.circular(18),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 63.1, sigmaY: 63.1),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.35),
+                    ),
+                    child: _buildThinkingContent(),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       );
@@ -270,69 +295,96 @@ class _ChatBubbleState extends State<ChatBubble> {
         ),
         child: Container(
           margin: const EdgeInsets.only(right: 40),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.6),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-              bottomLeft: Radius.circular(6),
-              bottomRight: Radius.circular(20),
+          decoration: const BoxDecoration(
+            // Angular Gradient (角度渐变边框)
+            gradient: SweepGradient(
+              colors: [
+                Color(0x1AFFFFFF), // 10% 白色
+                Color(0x99FFFFFF), // 60% 白色
+                Color(0x1AFFFFFF), // 10% 白色
+                Color(0x99FFFFFF), // 60% 白色
+              ],
+              stops: [0.0, 0.25, 0.5, 1.0],
             ),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.1),
-              width: 1,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
+              bottomLeft: Radius.circular(18),
+              bottomRight: Radius.circular(18),
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 音频图标（如果有音频文件）
-              if (widget.message.audioFileName != null &&
-                  widget.message.audioFileName!.isNotEmpty)
-                _buildAudioIcon(),
+          child: Padding(
+            padding: const EdgeInsets.all(0.5), // 边框宽度 0.5px
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+                bottomLeft: Radius.circular(18),
+                bottomRight: Radius.circular(18),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 63.1, sigmaY: 63.1),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.35),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 音频图标（如果有音频文件）
+                      if (widget.message.audioFileName != null &&
+                          widget.message.audioFileName!.isNotEmpty)
+                        _buildAudioIcon(),
 
-              // 消息内容
-              ...segments.map((segment) {
-                if (segment.isAction) {
-                  // 动作描述：斜体、更亮的灰色、较小字号
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(
-                      segment.text, // 已经包含原始括号（英文或中文）
-                      style: const TextStyle(
-                        color: Color(0xFFCCCCCC), // 更亮的灰色
-                        fontSize: 15,
-                        height: 1.4,
-                        fontStyle: FontStyle.italic, // 斜体
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  );
-                } else {
-                  // 普通对话：正常样式
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 1),
-                    child: Text(
-                      segment.text,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        height: 1.4,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  );
-                }
-              }),
+                      // 消息内容
+                      ...segments.map((segment) {
+                        if (segment.isAction) {
+                          // 动作描述：斜体、更亮的灰色、较小字号
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Text(
+                              segment.text, // 已经包含原始括号（英文或中文）
+                              style: const TextStyle(
+                                color: Color(0xFFCCCCCC), // 更亮的灰色
+                                fontSize: 15,
+                                height: 1.4,
+                                fontStyle: FontStyle.italic, // 斜体
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          );
+                        } else {
+                          // 普通对话：正常样式
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 1),
+                            child: Text(
+                              segment.text,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                height: 1.4,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          );
+                        }
+                      }),
 
-              // 分支指示器和重新生成按钮同一行
-              if ((widget.showBranchIndicator &&
-                      widget.message.totalBranches > 1) ||
-                  (!widget.message.isUser &&
-                      widget.onRegeneratePressed != null))
-                _buildActionRow(),
-            ],
+                      // 分支指示器和重新生成按钮同一行
+                      if ((widget.showBranchIndicator &&
+                              widget.message.totalBranches > 1) ||
+                          (!widget.message.isUser &&
+                              widget.onRegeneratePressed != null))
+                        _buildActionRow(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
