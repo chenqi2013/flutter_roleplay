@@ -696,8 +696,8 @@ class _RolePlayChatState extends State<RolePlayChat>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ModelParamsPage(),
-            ), //RoleParamsPage
+              builder: (context) => RoleParamsPage(),
+            ), //ModelParamsPage
           );
         }
       },
