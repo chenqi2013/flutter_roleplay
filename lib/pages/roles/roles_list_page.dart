@@ -17,38 +17,8 @@ class RolesListPage extends StatelessWidget {
     //   controller.loadRoles();
     // });
     return Scaffold(
-      appBar: AppBar(
-        title: Text('roles_list_title'.tr),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.purple.withValues(alpha: 0.8),
-                Colors.blue.withValues(alpha: 0.8),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.purple.withValues(alpha: 0.1),
-              Colors.blue.withValues(alpha: 0.1),
-            ],
-          ),
-        ),
-        child: _buildBody(context),
-      ),
+      backgroundColor: Colors.transparent,
+      body: _buildBody(context),
     );
   }
 
@@ -166,7 +136,7 @@ class RolesListPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black.withValues(alpha: 0.45),
+                  color: Colors.white.withValues(alpha: 0.45),
                   height: 1.4,
                 ),
               ),
@@ -180,7 +150,7 @@ class RolesListPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black.withValues(alpha: 0.45),
+                  color: Colors.white.withValues(alpha: 0.45),
                   height: 1.4,
                 ),
               ),
@@ -192,7 +162,7 @@ class RolesListPage extends StatelessWidget {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w500,
-              color: Colors.black.withValues(alpha: 0.45),
+              color: Colors.white.withValues(alpha: 0.45),
               height: 1.4,
             ),
           ),

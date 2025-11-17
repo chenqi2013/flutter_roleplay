@@ -3,6 +3,7 @@ import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/pages/main/home_page.dart';
 import 'package:flutter_roleplay/pages/new/createrole_controller.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/services/language_service.dart';
@@ -47,7 +48,7 @@ class RoleplayManage {
     // 直接返回RolePlayChat页面，不创建新的MaterialApp
     // 让宿主应用的导航栈管理所有页面
 
-    return RolePlayChat();
+    return HomePage(); //RolePlayChat
   }
 
   static void initializeControllers() {
@@ -178,7 +179,7 @@ class RoleplayManage {
     // 直接返回RolePlayChat页面，不创建新的MaterialApp
     // 让宿主应用的导航栈管理所有页面
     debugPrint('goRolePlay: $roleName');
-    return RolePlayChat(roleName: roleName);
+    return HomePage(); //RolePlayChat(roleName: roleName)
   }
 
   /// 一个删除对话的接口

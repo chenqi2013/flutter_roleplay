@@ -433,7 +433,15 @@ class ChatPageBuilders {
   }
 
   /// 构建单个聊天页面
-  static Widget buildSingleChatPage({required Widget chatScaffold}) {
+  static Widget buildSingleChatPage({
+    required Widget chatScaffold,
+    bool showBackground = true,
+  }) {
+    if (!showBackground) {
+      // 不显示背景，直接返回chatScaffold
+      return chatScaffold;
+    }
+
     return Obx(() {
       final imageUrl = roleImage.value;
       debugPrint('buildSingleChatPage: 当前图片URL = $imageUrl');
@@ -490,8 +498,27 @@ class ChatPageBuilders {
     required Function() onNavigateToAudioList,
     required Widget chatListView,
     required Widget inputBar,
+    bool showBackground = true,
   }) {
     final role = usedRoles[index];
+
+    if (!showBackground) {
+      // 不显示背景，直接返回前景内容
+      return _buildResponsiveForeground(
+        role: role,
+        index: index,
+        context: context,
+        onBackPressed: onBackPressed,
+        onClearHistory: onClearHistory,
+        onNavigateToRolesList: onNavigateToRolesList,
+        onNavigateToCreateRole: onNavigateToCreateRole,
+        onNavigateToChangeModel: onNavigateToChangeModel,
+        onNavigateToRoleParams: onNavigateToRoleParams,
+        onNavigateToAudioList: onNavigateToAudioList,
+        chatListView: chatListView,
+        inputBar: inputBar,
+      );
+    }
 
     return Stack(
       key: ValueKey('page_content_${role['name']}_$index'),

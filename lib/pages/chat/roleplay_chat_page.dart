@@ -20,7 +20,6 @@ import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
 import 'package:flutter_roleplay/mixins/scroll_management_mixin.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_page.dart';
-import 'package:flutter_roleplay/pages/params/role_params_page.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_page.dart';
 
 class RolePlayChat extends StatefulWidget {
@@ -696,8 +695,8 @@ class _RolePlayChatState extends State<RolePlayChat>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RoleParamsPage(),
-            ), //ModelParamsPage
+              builder: (context) => ModelParamsPage(),
+            ), //RoleParamsPage
           );
         }
       },
@@ -711,6 +710,7 @@ class _RolePlayChatState extends State<RolePlayChat>
       },
       chatListView: _buildChatListView(),
       inputBar: _buildInputBar(),
+      showBackground: false, // 不显示背景，由HomePage统一管理
     );
   }
 
@@ -814,6 +814,7 @@ class _RolePlayChatState extends State<RolePlayChat>
       if (roles.isEmpty) {
         return ChatPageBuilders.buildSingleChatPage(
           chatScaffold: _buildChatScaffold(),
+          showBackground: false, // 不显示背景，由HomePage统一管理
         );
       } else {
         // // 检查当前角色位置并同步 PageController

@@ -12,67 +12,55 @@ class ModelParamsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // SVG 背景图
-          Positioned.fill(
-            child: Image.asset(
-              'packages/flutter_roleplay/assets/svg/rolebg.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // 内容层
-          SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(context),
-                Expanded(
-                  child: Obx(() {
-                    if (controller.isLoading.value) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      );
-                    }
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 当前聊天模型
-                          _buildModelInfo(
-                            title: '选择聊天模型',
-                            modelRx: controller.currentChatModel,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // 当前语音模型
-                          _buildModelInfo(
-                            title: '选择语音模型',
-                            modelRx: controller.currentTTSModel,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // TTS语言选择
-                          _buildTTSLanguageSelector(),
-                          const SizedBox(height: 16),
-
-                          // 风格滑块
-                          _buildStyleSlider(),
-                          const SizedBox(height: 16),
-
-                          // 语音角色选择
-                          _buildVoiceRoleSelector(),
-                        ],
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 当前聊天模型
+                      _buildModelInfo(
+                        title: '选择聊天模型',
+                        modelRx: controller.currentChatModel,
                       ),
-                    );
-                  }),
-                ),
-                _buildSaveButton(context),
-              ],
+                      const SizedBox(height: 16),
+
+                      // 当前语音模型
+                      _buildModelInfo(
+                        title: '选择语音模型',
+                        modelRx: controller.currentTTSModel,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // TTS语言选择
+                      _buildTTSLanguageSelector(),
+                      const SizedBox(height: 16),
+
+                      // 风格滑块
+                      _buildStyleSlider(),
+                      const SizedBox(height: 16),
+
+                      // 语音角色选择
+                      _buildVoiceRoleSelector(),
+                    ],
+                  ),
+                );
+              }),
             ),
-          ),
-        ],
+            _buildSaveButton(context),
+          ],
+        ),
       ),
     );
   }
@@ -83,16 +71,16 @@ class ModelParamsPage extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => Get.back(),
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-              ),
-              const Spacer(),
-            ],
-          ),
-          const SizedBox(height: 8),
+          // Row(
+          //   children: [
+          //     IconButton(
+          //       onPressed: () => Get.back(),
+          //       icon: const Icon(Icons.arrow_back, color: Colors.white),
+          //     ),
+          //     const Spacer(),
+          //   ],
+          // ),
+          // const SizedBox(height: 8),
           Row(
             children: [
               Text(
