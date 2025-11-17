@@ -22,13 +22,90 @@ class ModelParamsController extends GetxController {
   final RxString voiceRole = '帝王'.obs;
   final List<String> voiceRoles = ['帝王', '少女', '青年', '老者', '孩童'];
 
+  // 解码参数相关
+  final RxBool showDetailedParams = false.obs; // 是否显示详细参数
+  final RxInt presetLevel = 2.obs; // 预设档位 (0-4，对应5个档位)
+  
+  // 解码参数值
+  final RxDouble temperature = 1.0.obs;
+  final RxDouble topP = 0.3.obs;
+  final RxDouble presencePenalty = 0.5.obs;
+  final RxDouble frequencyPenalty = 0.5.obs;
+  final RxDouble penaltyDecay = 0.996.obs;
+  
+  // TextEditingController for input fields - 直接初始化
+  late final TextEditingController tempController = 
+      TextEditingController(text: temperature.value.toString());
+  late final TextEditingController topPController = 
+      TextEditingController(text: topP.value.toString());
+  late final TextEditingController presenceController = 
+      TextEditingController(text: presencePenalty.value.toString());
+  late final TextEditingController frequencyController = 
+      TextEditingController(text: frequencyPenalty.value.toString());
+  late final TextEditingController decayController = 
+      TextEditingController(text: penaltyDecay.value.toString());
+
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
+  
+  // 预设档位配置
+  final List<Map<String, dynamic>> presetConfigs = [
+    {
+      'name': '狂想曲',
+      'temp': 0.6,
+      'topp': 0.8,
+      'presence': 2.0,
+      'frequency': 0.2,
+      'decay': 0.99,
+    },
+    {
+      'name': '沸腾',
+      'temp': 0.8,
+      'topp': 0.6,
+      'presence': 1.2,
+      'frequency': 0.35,
+      'decay': 0.993,
+    },
+    {
+      'name': '日常',
+      'temp': 1.0,
+      'topp': 0.3,
+      'presence': 0.5,
+      'frequency': 0.5,
+      'decay': 0.996,
+    },
+    {
+      'name': '克制',
+      'temp': 0.5,
+      'topp': 0.3,
+      'presence': 0.2,
+      'frequency': 0.2,
+      'decay': 0.996,
+    },
+    {
+      'name': '留白',
+      'temp': 0.3,
+      'topp': 0.3,
+      'presence': 0.0,
+      'frequency': 0.0,
+      'decay': 0.996,
+    },
+  ];
 
   @override
   void onInit() {
     super.onInit();
     loadModelsAndSettings();
+  }
+  
+  @override
+  void onClose() {
+    tempController.dispose();
+    topPController.dispose();
+    presenceController.dispose();
+    frequencyController.dispose();
+    decayController.dispose();
+    super.onClose();
   }
 
   /// 加载模型和设置
@@ -67,6 +144,17 @@ class ModelParamsController extends GetxController {
       ttsLanguage.value = prefs.getString('tts_language') ?? '中文';
       styleValue.value = prefs.getDouble('style_value') ?? 0.5;
       voiceRole.value = prefs.getString('voice_role') ?? '帝王';
+      
+      // 加载解码参数
+      presetLevel.value = prefs.getInt('preset_level') ?? 2;
+      temperature.value = prefs.getDouble('temperature') ?? 1.0;
+      topP.value = prefs.getDouble('top_p') ?? 0.3;
+      presencePenalty.value = prefs.getDouble('presence_penalty') ?? 0.5;
+      frequencyPenalty.value = prefs.getDouble('frequency_penalty') ?? 0.5;
+      penaltyDecay.value = prefs.getDouble('penalty_decay') ?? 0.996;
+      
+      // 更新输入框
+      _updateTextControllers();
     } catch (e) {
       debugPrint('加载设置失败: $e');
     }
@@ -98,6 +186,62 @@ class ModelParamsController extends GetxController {
     }
   }
 
+  /// 切换详细参数显示
+  void toggleDetailedParams() {
+    showDetailedParams.value = !showDetailedParams.value;
+  }
+  
+  /// 设置预设档位
+  void setPresetLevel(int level) {
+    if (level < 0 || level >= presetConfigs.length) return;
+    
+    presetLevel.value = level;
+    final config = presetConfigs[level];
+    
+    temperature.value = config['temp'];
+    topP.value = config['topp'];
+    presencePenalty.value = config['presence'];
+    frequencyPenalty.value = config['frequency'];
+    penaltyDecay.value = config['decay'];
+    
+    _updateTextControllers();
+  }
+  
+  /// 更新 TextEditingController
+  void _updateTextControllers() {
+    tempController.text = temperature.value.toString();
+    topPController.text = topP.value.toString();
+    presenceController.text = presencePenalty.value.toString();
+    frequencyController.text = frequencyPenalty.value.toString();
+    decayController.text = penaltyDecay.value.toString();
+  }
+  
+  /// 从输入框更新参数值
+  void updateParameterFromInput(String paramName, String value) {
+    try {
+      final doubleValue = double.parse(value);
+      switch (paramName) {
+        case 'temp':
+          temperature.value = doubleValue;
+          break;
+        case 'topp':
+          topP.value = doubleValue;
+          break;
+        case 'presence':
+          presencePenalty.value = doubleValue;
+          break;
+        case 'frequency':
+          frequencyPenalty.value = doubleValue;
+          break;
+        case 'decay':
+          penaltyDecay.value = doubleValue;
+          break;
+      }
+    } catch (e) {
+      debugPrint('解析参数失败: $e');
+    }
+  }
+
   /// 保存配置
   Future<void> saveConfiguration() async {
     try {
@@ -108,6 +252,14 @@ class ModelParamsController extends GetxController {
       await prefs.setString('tts_language', ttsLanguage.value);
       await prefs.setDouble('style_value', styleValue.value);
       await prefs.setString('voice_role', voiceRole.value);
+      
+      // 保存解码参数
+      await prefs.setInt('preset_level', presetLevel.value);
+      await prefs.setDouble('temperature', temperature.value);
+      await prefs.setDouble('top_p', topP.value);
+      await prefs.setDouble('presence_penalty', presencePenalty.value);
+      await prefs.setDouble('frequency_penalty', frequencyPenalty.value);
+      await prefs.setDouble('penalty_decay', penaltyDecay.value);
 
       Get.snackbar(
         '保存成功',

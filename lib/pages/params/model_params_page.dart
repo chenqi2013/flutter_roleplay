@@ -15,6 +15,7 @@ class ModelParamsPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             _buildHeader(context),
             Expanded(
@@ -68,8 +69,9 @@ class ModelParamsPage extends StatelessWidget {
   /// 构建头部
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           // Row(
           //   children: [
@@ -224,7 +226,7 @@ class ModelParamsPage extends StatelessWidget {
     );
   }
 
-  /// 构建风格滑块
+  /// 构建解码参数区域
   Widget _buildStyleSlider() {
     return GlassContainer(
       borderRadius: 16,
@@ -233,75 +235,166 @@ class ModelParamsPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '拖动选择风格',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Obx(
-            () => SliderTheme(
-              data: SliderThemeData(
-                trackHeight: 4,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
-                activeTrackColor: Colors.white.withValues(alpha: 0.8),
-                inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
-                thumbColor: Colors.white,
-                overlayColor: Colors.white.withValues(alpha: 0.2),
-              ),
-              child: Slider(
-                value: controller.styleValue.value,
-                min: 0.0,
-                max: 1.0,
-                onChanged: controller.updateStyleValue,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
+          // 标题和切换按钮
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '无聊的',
+                '解码参数',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 14,
                 ),
               ),
               Obx(
-                () => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    controller.getStyleDescription(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                () => GestureDetector(
+                  onTap: controller.toggleDetailedParams,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      controller.showDetailedParams.value ? '档位模式' : '详细参数',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
               ),
-              Text(
-                '疯狂的',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 12,
-                ),
-              ),
             ],
           ),
+          const SizedBox(height: 16),
+          // 动态内容：档位模式 或 详细参数
+          Obx(() {
+            if (controller.showDetailedParams.value) {
+              return _buildDetailedParams();
+            } else {
+              return _buildPresetLevels();
+            }
+          }),
         ],
       ),
+    );
+  }
+
+  /// 构建预设档位（刻度尺样式）
+  Widget _buildPresetLevels() {
+    return Column(
+      children: [
+        // 刻度尺
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(5, (index) {
+            return Expanded(
+              child: Obx(
+                () => GestureDetector(
+                  onTap: () => controller.setPresetLevel(index),
+                  child: Column(
+                    children: [
+                      // 刻度线
+                      Container(
+                        height: 12,
+                        width: 2,
+                        color: controller.presetLevel.value == index
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.3),
+                      ),
+                      const SizedBox(height: 4),
+                      // 档位名称
+                      Text(
+                        controller.presetConfigs[index]['name'],
+                        style: TextStyle(
+                          color: controller.presetLevel.value == index
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.5),
+                          fontSize: 11,
+                          fontWeight: controller.presetLevel.value == index
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 12),
+        // 连接线
+        Container(height: 2, color: Colors.white.withValues(alpha: 0.2)),
+      ],
+    );
+  }
+
+  /// 构建详细参数输入
+  Widget _buildDetailedParams() {
+    return Column(
+      children: [
+        _buildParamRow('温度', controller.tempController, 'temp'),
+        const SizedBox(height: 12),
+        _buildParamRow('Top P', controller.topPController, 'topp'),
+        const SizedBox(height: 12),
+        _buildParamRow('存在惩罚', controller.presenceController, 'presence'),
+        const SizedBox(height: 12),
+        _buildParamRow('频率惩罚', controller.frequencyController, 'frequency'),
+        const SizedBox(height: 12),
+        _buildParamRow('惩罚衰减', controller.decayController, 'decay'),
+      ],
+    );
+  }
+
+  /// 构建单个参数行
+  Widget _buildParamRow(
+    String label,
+    TextEditingController textController,
+    String paramName,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.9),
+            fontSize: 13,
+          ),
+        ),
+        Container(
+          width: 80,
+          height: 32,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            controller: textController,
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+            textAlign: TextAlign.center,
+            textAlignVertical: TextAlignVertical.center,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              isDense: true,
+            ),
+            onChanged: (value) {
+              controller.updateParameterFromInput(paramName, value);
+            },
+          ),
+        ),
+      ],
     );
   }
 
