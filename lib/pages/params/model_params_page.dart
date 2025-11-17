@@ -4,6 +4,9 @@ import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/params/model_params_controller.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/services/role_play_manage.dart';
+import 'package:flutter_roleplay/services/model_callback_service.dart';
+import 'package:flutter_roleplay/pages/audio/audio_list_page.dart';
 
 class ModelParamsPage extends StatelessWidget {
   ModelParamsPage({super.key});
@@ -34,6 +37,7 @@ class ModelParamsPage extends StatelessWidget {
                       _buildModelInfo(
                         title: '选择聊天模型',
                         modelRx: controller.currentChatModel,
+                        modelType: RoleplayManageModelType.chat,
                       ),
                       const SizedBox(height: 16),
 
@@ -41,6 +45,7 @@ class ModelParamsPage extends StatelessWidget {
                       _buildModelInfo(
                         title: '选择语音模型',
                         modelRx: controller.currentTTSModel,
+                        modelType: RoleplayManageModelType.tts,
                       ),
                       const SizedBox(height: 16),
 
@@ -53,7 +58,7 @@ class ModelParamsPage extends StatelessWidget {
                       const SizedBox(height: 16),
 
                       // 语音角色选择
-                      _buildVoiceRoleSelector(),
+                      _buildVoiceRoleSelector(context),
                     ],
                   ),
                 );
@@ -122,6 +127,7 @@ class ModelParamsPage extends StatelessWidget {
   Widget _buildModelInfo({
     required String title,
     required Rx<ModelInfo?> modelRx,
+    required RoleplayManageModelType modelType,
   }) {
     return GlassContainer(
       borderRadius: 16,
@@ -139,19 +145,33 @@ class ModelParamsPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Obx(
-            () => Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
-              // decoration: BoxDecoration(
-              //   color: Colors.black.withValues(alpha: 0.3),
-              //   borderRadius: BorderRadius.circular(12),
-              // ),
-              child: Text(
-                controller.getModelDisplayName(modelRx.value),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+            () => GestureDetector(
+              onTap: () {
+                // 点击模型名称打开模型切换
+                notifyModelDownloadRequired(modelType);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        controller.getModelDisplayName(modelRx.value),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: Colors.white.withValues(alpha: 0.5),
+                      size: 20,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -399,7 +419,7 @@ class ModelParamsPage extends StatelessWidget {
   }
 
   /// 构建语音角色选择器
-  Widget _buildVoiceRoleSelector() {
+  Widget _buildVoiceRoleSelector(BuildContext context) {
     return GlassContainer(
       borderRadius: 16,
       borderWidth: 0,
@@ -408,7 +428,7 @@ class ModelParamsPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '选择角色',
+            '选择音色',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
               fontSize: 14,
@@ -416,15 +436,38 @@ class ModelParamsPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Obx(
-            () => Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
-              child: Text(
-                controller.voiceRole.value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+            () => GestureDetector(
+              onTap: () {
+                // 点击音色名称打开音色选择页面
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AudioListPage(),
+                  ),
+                );
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        controller.voiceRole.value,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: Colors.white.withValues(alpha: 0.5),
+                      size: 20,
+                    ),
+                  ],
                 ),
               ),
             ),
