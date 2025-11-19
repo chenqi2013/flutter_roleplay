@@ -490,11 +490,11 @@ class _ImageSelector extends GetView<CreateRoleController> {
       () => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'role_image_hint'.tr,
-            style: const TextStyle(color: Colors.white54, fontSize: 12),
-          ),
-          const SizedBox(height: 12),
+          // Text(
+          //   'role_image_hint'.tr,
+          //   style: const TextStyle(color: Colors.white54, fontSize: 12),
+          // ),
+          // const SizedBox(height: 12),
           Row(
             children: [
               // 图片预览区域

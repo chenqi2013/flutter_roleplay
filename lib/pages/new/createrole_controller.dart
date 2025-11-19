@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/pages/main/home_controller.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 
@@ -259,11 +260,11 @@ class CreateRoleController extends GetxController {
       late final int roleId;
 
       // 准备音色数据（如果未选择则为null）
-      final String? finalVoice = selectedVoice.value.isNotEmpty 
-          ? selectedVoice.value 
+      final String? finalVoice = selectedVoice.value.isNotEmpty
+          ? selectedVoice.value
           : null;
-      final String? finalVoiceTxt = selectedVoiceTxt.value.isNotEmpty 
-          ? selectedVoiceTxt.value 
+      final String? finalVoiceTxt = selectedVoiceTxt.value.isNotEmpty
+          ? selectedVoiceTxt.value
           : null;
 
       if (isEditMode) {
@@ -391,6 +392,12 @@ class CreateRoleController extends GetxController {
       );
     } finally {
       isCreating.value = false;
+    }
+    // 切换 HomePage 到第一个 tab（聊天 tab）
+    if (Get.isRegistered<HomeController>()) {
+      final homeController = Get.find<HomeController>();
+      homeController.switchTab(0);
+      debugPrint('已切换到聊天 tab');
     }
   }
 
