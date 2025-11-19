@@ -50,7 +50,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                 // 主要内容
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(16, 8, 16, 120 + safe.bottom),
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + safe.bottom),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -360,18 +360,50 @@ class _CreateRolePageState extends State<CreateRolePage> {
                             ],
                           ),
                         ),
+                        // 创建角色按钮
+                        const SizedBox(height: 32),
+                        Center(
+                          child: Obx(
+                            () => GestureDetector(
+                              onTap: controller.canSubmit.value && !controller.isCreating.value
+                                  ? () => controller.onConfirm(context)
+                                  : null,
+                              child: SizedBox(
+                                width: 126,
+                                height: 48,
+                                child: GlassContainer(
+                                  borderRadius: 70,
+                                  borderWidth: 0.5,
+                                  child: Center(
+                                    child: controller.isCreating.value
+                                        ? const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : Text(
+                                            'create_role_button'.tr,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
                 ),
               ],
-            ),
-            // 底部毛玻璃确认栏
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: _buildBottomBar(context, safe),
             ),
           ],
         ),
@@ -429,55 +461,6 @@ class _CreateRolePageState extends State<CreateRolePage> {
       ),
     );
   }
-
-  // 构建底部栏
-  Widget _buildBottomBar(BuildContext context, EdgeInsets safe) {
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + safe.bottom),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.white.withValues(alpha: 0.05),
-                Colors.white.withValues(alpha: 0.02),
-                Colors.black.withValues(alpha: 0.3),
-                Colors.black.withValues(alpha: 0.6),
-              ],
-              stops: const [0.0, 0.2, 0.7, 1.0],
-            ),
-            border: Border(
-              top: BorderSide(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 0.5,
-              ),
-            ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Obx(
-                    () => _PrimaryButton(
-                      onTap: controller.canSubmit.value
-                          ? () => controller.onConfirm(context)
-                          : null,
-                      label: 'create_role_button'.tr,
-                      enabled: controller.canSubmit.value,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 InputDecoration _inputDecoration(String hint) {
@@ -507,69 +490,6 @@ InputDecoration _inputDecoration(String hint) {
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
   );
-}
-
-class _PrimaryButton extends StatelessWidget {
-  final VoidCallback? onTap;
-  final String label;
-  final bool enabled;
-  const _PrimaryButton({
-    required this.onTap,
-    required this.label,
-    this.enabled = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final Widget content = Container(
-      height: 48,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: enabled
-              ? [
-                  const Color(0xFF6A8DFF).withValues(alpha: 0.9),
-                  const Color(0xFF9B7BFF).withValues(alpha: 0.9),
-                ]
-              : [
-                  Colors.white.withValues(alpha: 0.1),
-                  Colors.black.withValues(alpha: 0.1),
-                ],
-        ),
-        border: Border.all(
-          color: enabled
-              ? Colors.white.withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.15),
-          width: 0.8,
-        ),
-        boxShadow: [
-          if (enabled)
-            BoxShadow(
-              color: const Color(0xFF6A8DFF).withValues(alpha: 0.35),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: TextStyle(
-            color: enabled ? Colors.white : Colors.white70,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.4,
-          ),
-        ),
-      ),
-    );
-
-    if (!enabled) return content;
-
-    return GestureDetector(onTap: onTap, child: content);
-  }
 }
 
 class _ImageSelector extends GetView<CreateRoleController> {
