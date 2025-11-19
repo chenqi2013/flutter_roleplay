@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/params/model_params_controller.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
-import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_page.dart';
+import 'package:flutter_roleplay/constant/constant.dart';
 
 class ModelParamsPage extends StatelessWidget {
   ModelParamsPage({super.key});
@@ -36,7 +36,6 @@ class ModelParamsPage extends StatelessWidget {
                       // 当前聊天模型
                       _buildModelInfo(
                         title: '选择聊天模型',
-                        modelRx: controller.currentChatModel,
                         modelType: RoleplayManageModelType.chat,
                       ),
                       const SizedBox(height: 16),
@@ -44,7 +43,6 @@ class ModelParamsPage extends StatelessWidget {
                       // 当前语音模型
                       _buildModelInfo(
                         title: '选择语音模型',
-                        modelRx: controller.currentTTSModel,
                         modelType: RoleplayManageModelType.tts,
                       ),
                       const SizedBox(height: 16),
@@ -126,9 +124,13 @@ class ModelParamsPage extends StatelessWidget {
   /// 构建模型信息展示
   Widget _buildModelInfo({
     required String title,
-    required Rx<ModelInfo?> modelRx,
     required RoleplayManageModelType modelType,
   }) {
+    // 根据模型类型选择对应的全局响应式变量
+    final modelPathRx = modelType == RoleplayManageModelType.chat
+        ? chatmodelPath
+        : ttsmodelPath;
+
     return GlassContainer(
       borderRadius: 16,
       borderWidth: 0,
@@ -146,12 +148,9 @@ class ModelParamsPage extends StatelessWidget {
           const SizedBox(height: 8),
           Obx(
             () => GestureDetector(
-              onTap: () async {
+              onTap: () {
                 // 点击模型名称打开模型切换
                 notifyModelDownloadRequired(modelType);
-                // 等待一段时间后刷新数据（等待模型切换完成）
-                await Future.delayed(const Duration(milliseconds: 500));
-                controller.loadModelsAndSettings();
               },
               child: Container(
                 width: double.infinity,
@@ -161,7 +160,7 @@ class ModelParamsPage extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        controller.getModelDisplayName(modelRx.value),
+                        _getModelDisplayName(modelPathRx.value),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 15,
@@ -182,6 +181,21 @@ class ModelParamsPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// 从模型路径提取显示名称
+  String _getModelDisplayName(String path) {
+    if (path.isEmpty) return '未配置';
+
+    // 从路径中提取文件名
+    final fileName = path.split('/').last;
+
+    // 去掉扩展名和下划线，使其更易读
+    return fileName
+        .replaceAll('.bin', '')
+        .replaceAll('.pth', '')
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ');
   }
 
   /// 构建TTS语言选择器

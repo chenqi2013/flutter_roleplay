@@ -149,6 +149,7 @@ class RWKVTTSService extends GetxController {
         final modelPath = await CommonUtil.getFileDocumentPath(
           modelInfo!.modelPath,
         );
+        ttsmodelPath.value = modelPath;
         if (File(modelPath).existsSync()) {
           debugPrint('TTS模型文件存在，开始加载: $modelPath');
           loadTTSModel(modelPath: modelPath, backend: modelInfo!.backend);
@@ -514,7 +515,7 @@ class RWKVTTSService extends GetxController {
       }
 
       debugPrint('加载TTS模型: $modelPath');
-
+      ttsmodelPath.value = modelPath;
       await loadSparkTTS(
         modelPath: modelPath,
         wav2vec2Path: "$appDir/wav2vec2-large-xlsr-53.mnn",

@@ -166,7 +166,7 @@ class RWKVChatService extends GetxController {
             isNeedSaveAiMessage = false;
             _onGenerationComplete?.call();
             String stateLoadPath = await CommonUtil.getFilePath(
-              '${CommonUtil.getFileName(modelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
+              '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
             );
             send(
               to_rwkv.SaveRuntimeStateByHistory(
@@ -177,7 +177,7 @@ class RWKVChatService extends GetxController {
             debugPrint('to_rwkv.SaveRuntimeStateByHistory()，，保存角色缓存state');
             debugPrint('保存角色缓存state: $stateLoadPath');
             debugPrint(
-              '11modelpath==${CommonUtil.getFileName(modelPath.value)},statepath=${CommonUtil.getFileName(statePath.value)},backend=${backend.toString().split('.').last}',
+              '11modelpath==${CommonUtil.getFileName(chatmodelPath.value)},statepath=${CommonUtil.getFileName(statePath.value)},backend=${backend.toString().split('.').last}',
             );
             if (_getTokensTimer != null) {
               _getTokensTimer!.cancel();
@@ -204,6 +204,17 @@ class RWKVChatService extends GetxController {
     // 设置模型下载完成回调，当外部应用通知下载完成时重新加载模型
     setGlobalModelDownloadCompleteCallback((ModelInfo? info) async {
       debugPrint('modelDownloadCompleteCallback: ${info?.toString()}');
+      if (info != null) {
+        if (info.modelType == RoleplayManageModelType.chat) {
+          chatmodelPath.value = await CommonUtil.getFileDocumentPath(
+            info.modelPath,
+          );
+        } else {
+          ttsmodelPath.value = await CommonUtil.getFileDocumentPath(
+            info.modelPath,
+          );
+        }
+      }
       if (controller?.modelInfo != null &&
           await CommonUtil.getFileDocumentPath(
                 controller!.modelInfo!.modelPath,
@@ -327,7 +338,7 @@ class RWKVChatService extends GetxController {
           File(
             await CommonUtil.getFileDocumentPath(modelInfo.modelPath),
           ).existsSync()) {
-        modelPath.value = await CommonUtil.getFileDocumentPath(
+        chatmodelPath.value = await CommonUtil.getFileDocumentPath(
           modelInfo.modelPath,
         );
         statePath.value = await CommonUtil.getFileDocumentPath(
@@ -349,13 +360,16 @@ class RWKVChatService extends GetxController {
       return;
     }
     if (info != null) {
-      modelPath.value = await CommonUtil.getFileDocumentPath(info.modelPath);
+      chatmodelPath.value = await CommonUtil.getFileDocumentPath(
+        info.modelPath,
+      );
       statePath.value = await CommonUtil.getFileDocumentPath(info.statePath);
       backend = info.backend;
     }
     debugPrint(
-      'loadChatModel， backend: $backend, modelPath: $modelPath, statePath: $statePath',
+      'loadChatModel， backend: $backend, modelPath: $chatmodelPath, statePath: $statePath',
     );
+
     if (Platform.isAndroid && backend == Backend.qnn) {
       for (final lib in qnnLibList) {
         await CommonUtil.fromAssetsToTemp(
@@ -406,7 +420,7 @@ class RWKVChatService extends GetxController {
     }
 
     final options = StartOptions(
-      modelPath: modelPath.value,
+      modelPath: chatmodelPath.value,
       tokenizerPath: tokenizerPath,
       backend: backend,
       sendPort: _receivePort.sendPort,
@@ -421,13 +435,13 @@ class RWKVChatService extends GetxController {
 
     ///加载角色缓存state
     String stateLoadPath = await CommonUtil.getFilePath(
-      '${CommonUtil.getFileName(modelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
+      '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
     );
     send(to_rwkv.LoadRuntimeStateToMemory(stateLoadPath: stateLoadPath));
     debugPrint('11to_rwkv.LoadRuntimeStateToMemory()，，加载角色缓存cache');
     debugPrint('加载角色缓存state: $stateLoadPath');
     debugPrint(
-      '22modelpath==${CommonUtil.getFileName(modelPath.value)},statepath=${CommonUtil.getFileName(statePath.value)},backend=${backend.toString().split('.').last}',
+      '22modelpath==${CommonUtil.getFileName(chatmodelPath.value)},statepath=${CommonUtil.getFileName(statePath.value)},backend=${backend.toString().split('.').last}',
     );
 
     if (rmpack != null && rmpack!.isNotEmpty) {
@@ -527,13 +541,13 @@ class RWKVChatService extends GetxController {
 
     ///加载角色缓存state
     String stateLoadPath = await CommonUtil.getFilePath(
-      '${CommonUtil.getFileName(modelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
+      '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
     );
     send(to_rwkv.LoadRuntimeStateToMemory(stateLoadPath: stateLoadPath));
     debugPrint('22to_rwkv.LoadRuntimeStateToMemory()，，加载角色缓存cache');
     debugPrint('加载角色缓存state: $stateLoadPath');
     debugPrint(
-      '33modelpath==${CommonUtil.getFileName(modelPath.value)},statepath=${CommonUtil.getFileName(statePath.value)},backend=${backend.toString().split('.').last}',
+      '33modelpath==${CommonUtil.getFileName(chatmodelPath.value)},statepath=${CommonUtil.getFileName(statePath.value)},backend=${backend.toString().split('.').last}',
     );
 
     ///切换角色需要clearstate，否则聊天内容会是上一次的角色的。
