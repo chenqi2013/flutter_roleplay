@@ -191,8 +191,16 @@ class ModelParamsController extends GetxController {
   }
 
   /// 选择TTS语言
-  void selectTTSLanguage(String language) {
+  void selectTTSLanguage(String language) async {
     ttsLanguage.value = language;
+    // 立即保存到 SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('tts_language', language);
+      debugPrint('TTS语言已保存: $language');
+    } catch (e) {
+      debugPrint('保存TTS语言失败: $e');
+    }
   }
 
   /// 更新风格值
@@ -222,7 +230,7 @@ class ModelParamsController extends GetxController {
   }
 
   /// 设置预设档位
-  void setPresetLevel(int level) {
+  void setPresetLevel(int level) async {
     if (level < 0 || level >= presetConfigs.length) return;
 
     presetLevel.value = level;
@@ -235,6 +243,20 @@ class ModelParamsController extends GetxController {
     penaltyDecay.value = config['decay'];
 
     _updateTextControllers();
+    
+    // 立即保存到 SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('preset_level', level);
+      await prefs.setDouble('temperature', temperature.value);
+      await prefs.setDouble('top_p', topP.value);
+      await prefs.setDouble('presence_penalty', presencePenalty.value);
+      await prefs.setDouble('frequency_penalty', frequencyPenalty.value);
+      await prefs.setDouble('penalty_decay', penaltyDecay.value);
+      debugPrint('解码参数档位已保存: ${config['name']}');
+    } catch (e) {
+      debugPrint('保存解码参数失败: $e');
+    }
   }
 
   /// 更新 TextEditingController
@@ -247,7 +269,7 @@ class ModelParamsController extends GetxController {
   }
 
   /// 从输入框更新参数值
-  void updateParameterFromInput(String paramName, String value) {
+  void updateParameterFromInput(String paramName, String value) async {
     try {
       final doubleValue = double.parse(value);
       switch (paramName) {
@@ -267,6 +289,27 @@ class ModelParamsController extends GetxController {
           penaltyDecay.value = doubleValue;
           break;
       }
+      
+      // 立即保存到 SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      switch (paramName) {
+        case 'temp':
+          await prefs.setDouble('temperature', doubleValue);
+          break;
+        case 'topp':
+          await prefs.setDouble('top_p', doubleValue);
+          break;
+        case 'presence':
+          await prefs.setDouble('presence_penalty', doubleValue);
+          break;
+        case 'frequency':
+          await prefs.setDouble('frequency_penalty', doubleValue);
+          break;
+        case 'decay':
+          await prefs.setDouble('penalty_decay', doubleValue);
+          break;
+      }
+      debugPrint('参数已保存: $paramName = $doubleValue');
     } catch (e) {
       debugPrint('解析参数失败: $e');
     }

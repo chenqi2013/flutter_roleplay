@@ -5,6 +5,7 @@ import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/services/role_api_service.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
+import 'package:flutter_roleplay/pages/main/home_controller.dart';
 
 class RolesListController extends GetxController {
   // 响应式状态变量
@@ -115,8 +116,15 @@ class RolesListController extends GetxController {
     // 使用统一的切换角色函数
     CommonUtil.switchToRole(role.toMap());
 
+    // 切换 HomePage 到第一个 tab（聊天 tab）
+    if (Get.isRegistered<HomeController>()) {
+      final homeController = Get.find<HomeController>();
+      homeController.switchTab(0);
+      debugPrint('已切换到聊天 tab');
+    }
+
     // 使用Flutter原生导航返回上一页
-    Navigator.of(context).pop();
+    // Navigator.of(context).pop();
 
     // // 显示选择成功的提示
     // ScaffoldMessenger.of(context).showSnackBar(
