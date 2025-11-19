@@ -26,8 +26,8 @@ var downloadUrl11 =
 const String pageKey = 'jingxuan_chat';
 
 Backend backend = Backend.llamacpp;
-String modelPath = '';
-String statePath = '';
+var modelPath = ''.obs;
+var statePath = ''.obs;
 String ttsAudioName = 'Chinese(PRC)_Acheron_3.wav';
 String ttsAudioTxt = '…我们到了。';
 
