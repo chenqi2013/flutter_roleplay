@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/params/model_params_controller.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
@@ -435,54 +436,62 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建语音角色选择器
   Widget _buildVoiceRoleSelector(BuildContext context) {
-    return GlassContainer(
-      borderRadius: 16,
-      borderWidth: 0,
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '选择音色',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 14,
+    return Obx(
+      () => GestureDetector(
+        onTap: () async {
+          // 以 modal bottom sheet 方式弹出音色选择页面（半屏）
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: AudioListPage(ttsLanguage: controller.ttsLanguage.value),
             ),
-          ),
-          const SizedBox(height: 8),
-          Obx(
-            () => GestureDetector(
-              onTap: () async {
-                // 以 modal bottom sheet 方式弹出音色选择页面（半屏）
-                await showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.6,
-                    child: AudioListPage(
-                      ttsLanguage: controller.ttsLanguage.value,
-                    ),
-                  ),
-                );
-                // 关闭后刷新数据
-                controller.loadModelsAndSettings();
-              },
-              child: Container(
+          );
+          // 关闭后刷新数据
+          controller.loadModelsAndSettings();
+        },
+        child: GlassContainer(
+          borderRadius: 16,
+          borderWidth: 0,
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '选择音色',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Text(
-                        controller.voiceRole.value,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
+                    Row(
+                      children: [
+                        SvgPicture.asset(
+                          'packages/flutter_roleplay/assets/svg/voice.svg',
+                          height: 17,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.white,
+                            BlendMode.srcIn,
+                          ),
                         ),
-                      ),
+                        Text(
+                          controller.voiceRole.value,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ).marginOnly(left: 6),
+                      ],
                     ),
                     Icon(
                       Icons.chevron_right,
@@ -492,9 +501,9 @@ class ModelParamsPage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
