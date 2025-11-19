@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_roleplay/constant/constant.dart';
 
 class ModelParamsController extends GetxController {
   final dbHelper = DatabaseHelper();
@@ -25,29 +26,34 @@ class ModelParamsController extends GetxController {
   // 解码参数相关
   final RxBool showDetailedParams = false.obs; // 是否显示详细参数
   final RxInt presetLevel = 2.obs; // 预设档位 (0-4，对应5个档位)
-  
+
   // 解码参数值
   final RxDouble temperature = 1.0.obs;
   final RxDouble topP = 0.3.obs;
   final RxDouble presencePenalty = 0.5.obs;
   final RxDouble frequencyPenalty = 0.5.obs;
   final RxDouble penaltyDecay = 0.996.obs;
-  
+
   // TextEditingController for input fields - 直接初始化
-  late final TextEditingController tempController = 
-      TextEditingController(text: temperature.value.toString());
-  late final TextEditingController topPController = 
-      TextEditingController(text: topP.value.toString());
-  late final TextEditingController presenceController = 
-      TextEditingController(text: presencePenalty.value.toString());
-  late final TextEditingController frequencyController = 
-      TextEditingController(text: frequencyPenalty.value.toString());
-  late final TextEditingController decayController = 
-      TextEditingController(text: penaltyDecay.value.toString());
+  late final TextEditingController tempController = TextEditingController(
+    text: temperature.value.toString(),
+  );
+  late final TextEditingController topPController = TextEditingController(
+    text: topP.value.toString(),
+  );
+  late final TextEditingController presenceController = TextEditingController(
+    text: presencePenalty.value.toString(),
+  );
+  late final TextEditingController frequencyController = TextEditingController(
+    text: frequencyPenalty.value.toString(),
+  );
+  late final TextEditingController decayController = TextEditingController(
+    text: penaltyDecay.value.toString(),
+  );
 
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
-  
+
   // 预设档位配置
   final List<Map<String, dynamic>> presetConfigs = [
     {
@@ -97,7 +103,7 @@ class ModelParamsController extends GetxController {
     super.onInit();
     loadModelsAndSettings();
   }
-  
+
   @override
   void onClose() {
     tempController.dispose();
@@ -143,8 +149,12 @@ class ModelParamsController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       ttsLanguage.value = prefs.getString('tts_language') ?? '中文';
       styleValue.value = prefs.getDouble('style_value') ?? 0.5;
-      voiceRole.value = prefs.getString('voice_role') ?? '帝王';
-      
+
+      // 加载实际的音色名称（从全局变量或SharedPreferences）
+      final savedAudioName = prefs.getString(ttsAudioNameKey) ?? ttsAudioName;
+      // 从文件名提取显示名称（去掉扩展名和前缀）
+      voiceRole.value = _extractVoiceName(savedAudioName);
+
       // 加载解码参数
       presetLevel.value = prefs.getInt('preset_level') ?? 2;
       temperature.value = prefs.getDouble('temperature') ?? 1.0;
@@ -152,11 +162,31 @@ class ModelParamsController extends GetxController {
       presencePenalty.value = prefs.getDouble('presence_penalty') ?? 0.5;
       frequencyPenalty.value = prefs.getDouble('frequency_penalty') ?? 0.5;
       penaltyDecay.value = prefs.getDouble('penalty_decay') ?? 0.996;
-      
+
       // 更新输入框
       _updateTextControllers();
     } catch (e) {
       debugPrint('加载设置失败: $e');
+    }
+  }
+
+  /// 从音频文件名提取显示名称
+  String _extractVoiceName(String audioFileName) {
+    // 例如: "Chinese(PRC)_Acheron_3.wav" -> "Acheron"
+    try {
+      // 去掉扩展名
+      final nameWithoutExt = audioFileName
+          .replaceAll('.wav', '')
+          .replaceAll('.mp3', '');
+      // 按下划线分割
+      final parts = nameWithoutExt.split('_');
+      // 如果有多个部分，取中间的名称部分
+      if (parts.length >= 2) {
+        return parts[1]; // 返回角色名称部分
+      }
+      return nameWithoutExt;
+    } catch (e) {
+      return audioFileName;
     }
   }
 
@@ -190,23 +220,23 @@ class ModelParamsController extends GetxController {
   void toggleDetailedParams() {
     showDetailedParams.value = !showDetailedParams.value;
   }
-  
+
   /// 设置预设档位
   void setPresetLevel(int level) {
     if (level < 0 || level >= presetConfigs.length) return;
-    
+
     presetLevel.value = level;
     final config = presetConfigs[level];
-    
+
     temperature.value = config['temp'];
     topP.value = config['topp'];
     presencePenalty.value = config['presence'];
     frequencyPenalty.value = config['frequency'];
     penaltyDecay.value = config['decay'];
-    
+
     _updateTextControllers();
   }
-  
+
   /// 更新 TextEditingController
   void _updateTextControllers() {
     tempController.text = temperature.value.toString();
@@ -215,7 +245,7 @@ class ModelParamsController extends GetxController {
     frequencyController.text = frequencyPenalty.value.toString();
     decayController.text = penaltyDecay.value.toString();
   }
-  
+
   /// 从输入框更新参数值
   void updateParameterFromInput(String paramName, String value) {
     try {
@@ -252,7 +282,7 @@ class ModelParamsController extends GetxController {
       await prefs.setString('tts_language', ttsLanguage.value);
       await prefs.setDouble('style_value', styleValue.value);
       await prefs.setString('voice_role', voiceRole.value);
-      
+
       // 保存解码参数
       await prefs.setInt('preset_level', presetLevel.value);
       await prefs.setDouble('temperature', temperature.value);

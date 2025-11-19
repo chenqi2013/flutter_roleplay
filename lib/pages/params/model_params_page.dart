@@ -146,9 +146,12 @@ class ModelParamsPage extends StatelessWidget {
           const SizedBox(height: 8),
           Obx(
             () => GestureDetector(
-              onTap: () {
+              onTap: () async {
                 // 点击模型名称打开模型切换
                 notifyModelDownloadRequired(modelType);
+                // 等待一段时间后刷新数据（等待模型切换完成）
+                await Future.delayed(const Duration(milliseconds: 500));
+                controller.loadModelsAndSettings();
               },
               child: Container(
                 width: double.infinity,
@@ -437,14 +440,16 @@ class ModelParamsPage extends StatelessWidget {
           const SizedBox(height: 8),
           Obx(
             () => GestureDetector(
-              onTap: () {
+              onTap: () async {
                 // 点击音色名称打开音色选择页面
-                Navigator.push(
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AudioListPage(),
                   ),
                 );
+                // 返回后刷新数据
+                controller.loadModelsAndSettings();
               },
               child: Container(
                 width: double.infinity,
