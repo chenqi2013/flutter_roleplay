@@ -590,17 +590,6 @@ class ChatPageBuilders {
   }) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: _buildResponsiveAppBar(
-        role: role,
-        context: context,
-        onBackPressed: onBackPressed,
-        onClearHistory: onClearHistory,
-        onNavigateToRolesList: onNavigateToRolesList,
-        onNavigateToCreateRole: onNavigateToCreateRole,
-        onNavigateToChangeModel: onNavigateToChangeModel,
-        onNavigateToRoleParams: onNavigateToRoleParams,
-        onNavigateToAudioList: onNavigateToAudioList,
-      ),
       body: SafeArea(
         top: false,
         bottom: false,
