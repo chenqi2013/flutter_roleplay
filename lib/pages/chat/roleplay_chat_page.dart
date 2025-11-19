@@ -30,7 +30,13 @@ class RolePlayChat extends StatefulWidget {
 }
 
 class _RolePlayChatState extends State<RolePlayChat>
-    with WidgetsBindingObserver, ScrollManagementMixin {
+    with
+        WidgetsBindingObserver,
+        ScrollManagementMixin,
+        AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   final ChatStateManager _stateManager = ChatStateManager();
   StreamSubscription<String>? _streamSub;
   final TextEditingController _textController = TextEditingController();
@@ -802,6 +808,7 @@ class _RolePlayChatState extends State<RolePlayChat>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // 必须调用以保持状态
     return _buildMainContent();
   }
 
