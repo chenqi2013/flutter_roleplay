@@ -819,14 +819,16 @@ class _RolePlayChatState extends State<RolePlayChat>
       final roles = usedRoles;
 
       if (roles.isEmpty) {
-        return ChatPageBuilders.buildSingleChatPage(
-          chatScaffold: _buildChatScaffold(),
-          showBackground: false, // 不显示背景，由HomePage统一管理
-        );
+        debugPrint('roles.isEmpty=true');
+        // return ChatPageBuilders.buildSingleChatPage(
+        //   chatScaffold: _buildChatScaffold(),
+        //   showBackground: false, // 不显示背景，由HomePage统一管理
+        // );
+        return SizedBox.shrink();
       } else {
         // // 检查当前角色位置并同步 PageController
         // _syncPageController(roles);
-
+        debugPrint('roles.isEmpty=false');
         return ChatPageBuilders.buildSwipeableChatPages(
           pageController: _pageController,
           usedRoles: roles,
