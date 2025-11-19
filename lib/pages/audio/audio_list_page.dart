@@ -153,27 +153,43 @@ class AudioListPage extends StatelessWidget {
     required BuildContext context,
   }) {
     return GestureDetector(
-      onTap: () => controller.toggleAudio(audio),
+      onTap: () {
+        if (isSelectMode) {
+          // 选择模式：返回选中的音色数据
+          Navigator.of(
+            context,
+          ).pop({'voice': '${audio.key}.wav', 'voiceTxt': audio.name});
+        } else {
+          // 非选择模式下点击非播放按钮区域也播放
+          controller.toggleAudio(audio);
+        }
+      },
       child: GlassContainer(
         borderRadius: 16,
         borderWidth: isSelected ? 2 : 0.5,
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // 播放按钮（左边）
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isCurrentPlaying
-                    ? Colors.white.withValues(alpha: 0.3)
-                    : Colors.white.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                color: Colors.white,
-                size: 24,
+            // 播放按钮（左边）- 独立处理点击事件
+            GestureDetector(
+              onTap: () {
+                // 播放按钮：始终播放音频
+                controller.toggleAudio(audio);
+              },
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isCurrentPlaying
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : Colors.white.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
             ),
             const SizedBox(width: 12),

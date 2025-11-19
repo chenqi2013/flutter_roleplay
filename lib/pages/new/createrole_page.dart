@@ -230,7 +230,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 16,
-                                      vertical: 14,
+                                      vertical: 10,
                                     ),
                                     decoration: BoxDecoration(
                                       color: Colors.white.withValues(
@@ -246,32 +246,20 @@ class _CreateRolePageState extends State<CreateRolePage> {
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(
-                                          Icons.record_voice_over,
-                                          color:
-                                              controller
-                                                  .selectedVoice
-                                                  .value
-                                                  .isEmpty
-                                              ? Colors.white54
-                                              : Colors.purple,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 12),
                                         Expanded(
                                           child: Text(
                                             controller
-                                                    .selectedVoice
+                                                    .selectedVoiceTxt
                                                     .value
                                                     .isEmpty
                                                 ? '点击选择音色'
-                                                : controller.selectedVoice.value
-                                                      .replaceAll('.wav', '')
-                                                      .replaceAll('_', ' '),
+                                                : controller
+                                                      .selectedVoiceTxt
+                                                      .value,
                                             style: TextStyle(
                                               color:
                                                   controller
-                                                      .selectedVoice
+                                                      .selectedVoiceTxt
                                                       .value
                                                       .isEmpty
                                                   ? Colors.white54
@@ -281,26 +269,27 @@ class _CreateRolePageState extends State<CreateRolePage> {
                                           ),
                                         ),
                                         if (controller
-                                            .selectedVoice
+                                            .selectedVoiceTxt
                                             .value
                                             .isNotEmpty)
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.close,
-                                              color: Colors.white54,
-                                              size: 18,
-                                            ),
-                                            padding: EdgeInsets.zero,
-                                            constraints: const BoxConstraints(),
-                                            onPressed: () {
+                                          GestureDetector(
+                                            onTap: () {
                                               controller.clearSelectedVoice();
                                             },
+                                            child: const Padding(
+                                              padding: EdgeInsets.only(left: 8),
+                                              child: Icon(
+                                                Icons.close,
+                                                color: Colors.white54,
+                                                size: 18,
+                                              ),
+                                            ),
                                           ),
                                         if (controller
-                                            .selectedVoice
+                                            .selectedVoiceTxt
                                             .value
                                             .isEmpty)
-                                          Icon(
+                                          const Icon(
                                             Icons.chevron_right,
                                             color: Colors.white54,
                                             size: 20,
@@ -365,7 +354,9 @@ class _CreateRolePageState extends State<CreateRolePage> {
                         Center(
                           child: Obx(
                             () => GestureDetector(
-                              onTap: controller.canSubmit.value && !controller.isCreating.value
+                              onTap:
+                                  controller.canSubmit.value &&
+                                      !controller.isCreating.value
                                   ? () => controller.onConfirm(context)
                                   : null,
                               child: SizedBox(
