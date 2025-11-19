@@ -1,114 +1,127 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_controller.dart';
+import 'package:flutter_roleplay/widgets/glass_container.dart';
 import 'package:get/get.dart';
 
 class AudioListPage extends StatelessWidget {
   final bool isSelectMode; // 是否为选择模式（用于创建角色时选择音色）
-  
-  const AudioListPage({
-    super.key,
-    this.isSelectMode = false,
-  });
+  final String? ttsLanguage; // TTS语言类型（中文/英文/日语）
+
+  const AudioListPage({super.key, this.isSelectMode = false, this.ttsLanguage});
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(AudioListController());
     controller.isSelectMode.value = isSelectMode;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          '选择音色',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.purple.withValues(alpha: 0.8),
-                Colors.blue.withValues(alpha: 0.8),
-              ],
-            ),
-          ),
-        ),
-        bottom: TabBar(
-          controller: controller.tabController,
-          indicatorColor: Colors.white,
-          indicatorWeight: 3,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          labelStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.normal,
-          ),
-          tabs: const [
-            Tab(text: '中文'),
-            Tab(text: 'English'),
-            Tab(text: '日本語'),
-          ],
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.purple.withValues(alpha: 0.1),
-              Colors.blue.withValues(alpha: 0.1),
-            ],
-          ),
-        ),
-        child: Obx(() {
-          if (controller.isLoading.value) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
-              ),
-            );
-          }
+      child: Column(
+        children: [
+          // 顶部拖动条
+          _buildDragHandle(),
+          // 标题
+          _buildHeader(),
+          // 内容
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
+              }
 
-          return TabBarView(
-            controller: controller.tabController,
-            children: [
-              _buildAudioList(controller.chineseAudios),
-              _buildAudioList(controller.englishAudios),
-              _buildAudioList(controller.japaneseAudios),
-            ],
-          );
-        }),
+              // 根据TTS语言类型选择对应的音频列表
+              final audios = _getAudiosByLanguage(controller);
+              return _buildAudioGrid(audios, controller);
+            }),
+          ),
+        ],
       ),
     );
   }
 
-  /// 构建音频列表
-  Widget _buildAudioList(List<AudioItem> audios) {
+  /// 根据语言类型获取对应的音频列表
+  List<AudioItem> _getAudiosByLanguage(AudioListController controller) {
+    if (ttsLanguage == null) {
+      return controller.chineseAudios; // 默认中文
+    }
+
+    switch (ttsLanguage) {
+      case '中文':
+        return controller.chineseAudios;
+      case '英文':
+        return controller.englishAudios;
+      case '日语':
+        return controller.japaneseAudios;
+      default:
+        return controller.chineseAudios;
+    }
+  }
+
+  /// 构建拖动条
+  Widget _buildDragHandle() {
+    return Container(
+      margin: const EdgeInsets.only(top: 12, bottom: 8),
+      width: 40,
+      height: 4,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+  }
+
+  /// 构建头部
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        children: [
+          Text(
+            '选择音色',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建音频网格（两列）
+  Widget _buildAudioGrid(
+    List<AudioItem> audios,
+    AudioListController controller,
+  ) {
     if (audios.isEmpty) {
-      return const Center(
-        child: Text('暂无音频', style: TextStyle(fontSize: 16, color: Colors.grey)),
+      return Center(
+        child: Text(
+          '暂无音频',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
+        ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // 两列
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 2.3, // 宽高比
+      ),
       itemCount: audios.length,
       itemBuilder: (context, index) {
         final audio = audios[index];
-        final controller = Get.find<AudioListController>();
 
         return Obx(() {
           final isCurrentPlaying =
@@ -130,7 +143,7 @@ class AudioListPage extends StatelessWidget {
     );
   }
 
-  /// 构建音频卡片
+  /// 构建音频卡片（GridView样式）
   Widget _buildAudioCard({
     required AudioListController controller,
     required AudioItem audio,
@@ -139,102 +152,69 @@ class AudioListPage extends StatelessWidget {
     required bool isSelected,
     required BuildContext context,
   }) {
-    const primaryColor = Colors.purple;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      decoration: BoxDecoration(
-        color: isCurrentPlaying
-            ? primaryColor.withValues(alpha: 0.1)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isCurrentPlaying ? primaryColor : Colors.grey.shade200,
-          width: isCurrentPlaying ? 2 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              // 播放按钮图标
-              InkWell(
-                onTap: () => controller.toggleAudio(audio),
-                borderRadius: BorderRadius.circular(24),
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: isCurrentPlaying
-                        ? primaryColor
-                        : primaryColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: isCurrentPlaying ? Colors.white : primaryColor,
-                    size: 28,
-                  ),
-                ),
+    return GestureDetector(
+      onTap: () => controller.toggleAudio(audio),
+      child: GlassContainer(
+        borderRadius: 16,
+        borderWidth: isSelected ? 2 : 0.5,
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // 播放按钮（左边）
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isCurrentPlaying
+                    ? Colors.white.withValues(alpha: 0.3)
+                    : Colors.white.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 16),
-              // 音频名称
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      audio.name,
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: isCurrentPlaying
-                            ? primaryColor
-                            : Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _extractCharacterInfo(audio.key),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
+              child: Icon(
+                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 24,
               ),
-              // 在选择模式下显示"选择"按钮
-              if (controller.isSelectMode.value)
-                ElevatedButton(
-                  onPressed: () => controller.selectVoice(audio, context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+            ),
+            const SizedBox(width: 12),
+            // 名称和信息（右边）
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 音频名称
+                  Text(
+                    audio.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: const Text('选择'),
-                ),
-              // 在非选择模式下显示选中状态图标
-              if (!controller.isSelectMode.value && isSelected)
-                const Icon(Icons.check_box, color: primaryColor, size: 24),
-            ],
-          ),
+                  const SizedBox(height: 4),
+                  // 角色信息
+                  Text(
+                    _extractCharacterInfo(audio.key),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            // 选中标识
+            if (isSelected)
+              const Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: Icon(Icons.check_circle, color: Colors.white, size: 18),
+              ),
+          ],
         ),
       ),
     );

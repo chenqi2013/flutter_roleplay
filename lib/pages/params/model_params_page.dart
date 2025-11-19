@@ -441,14 +441,19 @@ class ModelParamsPage extends StatelessWidget {
           Obx(
             () => GestureDetector(
               onTap: () async {
-                // 点击音色名称打开音色选择页面
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AudioListPage(),
+                // 以 modal bottom sheet 方式弹出音色选择页面（半屏）
+                await showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: AudioListPage(
+                      ttsLanguage: controller.ttsLanguage.value,
+                    ),
                   ),
                 );
-                // 返回后刷新数据
+                // 关闭后刷新数据
                 controller.loadModelsAndSettings();
               },
               child: Container(
