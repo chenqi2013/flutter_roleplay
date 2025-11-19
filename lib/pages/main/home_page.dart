@@ -32,6 +32,7 @@ class HomePage extends StatelessWidget {
               Expanded(
                 child: TabBarView(
                   controller: controller.tabController,
+                  physics: const ClampingScrollPhysics(),
                   children: [
                     // Tab1: 角色聊天页面
                     const RolePlayChat(),
@@ -115,35 +116,80 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
-              // TabBar
+              // 自定义 TabBar（玻璃态效果）
               Expanded(
-                child: TabBar(
-                  controller: controller.tabController,
-                  indicatorColor: Colors.transparent, // 去掉指示器线
-                  dividerColor: Colors.transparent, // 去掉分隔线
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white.withValues(alpha: 0.5),
-                  labelStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.normal,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildGlassTab(
+                          label: roleName.value.isNotEmpty
+                              ? roleName.value
+                              : '聊天',
+                          index: 0,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: _buildGlassTab(label: '角色', index: 1)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _buildGlassTab(label: '模型', index: 2)),
+                    ],
                   ),
-                  tabs: [
-                    Tab(
-                      text: roleName.value.isNotEmpty ? roleName.value : '聊天',
-                    ),
-                    const Tab(text: '角色'),
-                    const Tab(text: '模型'),
-                  ],
                 ),
               ),
             ],
           );
         }),
       ),
+    );
+  }
+
+  /// 构建玻璃态 Tab
+  Widget _buildGlassTab({required String label, required int index}) {
+    final isSelected = controller.currentIndex.value == index;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        controller.tabController.animateTo(index);
+      },
+      child: isSelected
+          ? GlassContainer(
+              borderRadius: 70,
+              borderWidth: 2,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Center(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            )
+          : Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Center(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
     );
   }
 }
