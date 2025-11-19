@@ -16,55 +16,53 @@ class ModelParamsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  );
-                }
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 当前聊天模型
-                      _buildModelInfo(
-                        title: '选择聊天模型',
-                        modelType: RoleplayManageModelType.chat,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // 当前语音模型
-                      _buildModelInfo(
-                        title: '选择语音模型',
-                        modelType: RoleplayManageModelType.tts,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // TTS语言选择
-                      _buildTTSLanguageSelector(),
-                      const SizedBox(height: 16),
-
-                      // 风格滑块
-                      _buildStyleSlider(),
-                      const SizedBox(height: 16),
-
-                      // 语音角色选择
-                      _buildVoiceRoleSelector(context),
-                    ],
-                  ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          _buildHeader(context),
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
                 );
-              }),
-            ),
-            _buildSaveButton(context),
-          ],
-        ),
+              }
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 当前聊天模型
+                    _buildModelInfo(
+                      title: '选择聊天模型',
+                      modelType: RoleplayManageModelType.chat,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 当前语音模型
+                    _buildModelInfo(
+                      title: '选择语音模型',
+                      modelType: RoleplayManageModelType.tts,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // TTS语言选择
+                    _buildTTSLanguageSelector(),
+                    const SizedBox(height: 16),
+
+                    // 风格滑块
+                    _buildStyleSlider(),
+                    const SizedBox(height: 16),
+
+                    // 语音角色选择
+                    _buildVoiceRoleSelector(context),
+                  ],
+                ),
+              );
+            }),
+          ),
+          _buildSaveButton(context),
+        ],
       ),
     );
   }
@@ -72,7 +70,7 @@ class ModelParamsPage extends StatelessWidget {
   /// 构建头部
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
