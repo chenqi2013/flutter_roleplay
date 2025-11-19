@@ -692,42 +692,37 @@ class _LanguageOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Container(
-        height: 44,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isSelected
-                ? [
-                    const Color(0xFF6A8DFF).withValues(alpha: 0.3),
-                    const Color(0xFF9B7BFF).withValues(alpha: 0.3),
-                  ]
-                : [
-                    Colors.white.withValues(alpha: 0.05),
-                    Colors.black.withValues(alpha: 0.05),
-                  ],
-          ),
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFF6A8DFF).withValues(alpha: 0.6)
-                : Colors.white.withValues(alpha: 0.15),
-            width: isSelected ? 1.2 : 0.8,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.white70,
-              fontSize: 14,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+      child: isSelected
+          ? GlassContainer(
+              borderRadius: 70,
+              borderWidth: 2,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Center(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            )
+          : Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Center(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

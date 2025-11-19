@@ -223,45 +223,54 @@ class ModelParamsPage extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Obx(
-              () => Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: controller.ttsLanguages.map((lang) {
-                    final isSelected = controller.ttsLanguage.value == lang;
-                    return Expanded(
+              () => Row(
+                children: controller.ttsLanguages.map((lang) {
+                  final isSelected = controller.ttsLanguage.value == lang;
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
                         onTap: () => controller.selectTTSLanguage(lang),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? Colors.white
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              lang,
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Colors.black
-                                    : Colors.white.withValues(alpha: 0.5),
-                                fontSize: 14,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
+                        child: isSelected
+                            ? GlassContainer(
+                                borderRadius: 70,
+                                borderWidth: 2,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    lang,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    lang,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
                       ),
-                    );
-                  }).toList(),
-                ),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
           ),
