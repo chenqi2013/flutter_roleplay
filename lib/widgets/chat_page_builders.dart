@@ -473,13 +473,21 @@ class ChatPageBuilders {
     required Function(int) onPageChanged,
     required Function(int) buildPageContent,
   }) {
-    return PageView.builder(
-      controller: pageController,
-      itemCount: usedRoles.length,
-      itemBuilder: (context, index) {
-        return buildPageContent(index);
-      },
-      onPageChanged: onPageChanged,
+    return ScrollConfiguration(
+      behavior: const ScrollBehavior().copyWith(
+        scrollbars: false,
+        overscroll: false,
+        physics: const ClampingScrollPhysics(),
+      ),
+      child: PageView.builder(
+        controller: pageController,
+        physics: const ClampingScrollPhysics(),
+        itemCount: usedRoles.length,
+        itemBuilder: (context, index) {
+          return buildPageContent(index);
+        },
+        onPageChanged: onPageChanged,
+      ),
     );
   }
 
@@ -711,18 +719,26 @@ class ChatPageBuilders {
         onScrollNotification(notification);
         return false;
       },
-      child: ListView.builder(
-        controller: scrollController,
-        reverse: true,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        itemCount: messages.length + 1,
-        cacheExtent: 1000,
-        addAutomaticKeepAlives: true,
-        addRepaintBoundaries: true,
-        addSemanticIndexes: false,
-        itemBuilder: (context, index) {
-          return RepaintBoundary(child: itemBuilder(context, index));
-        },
+      child: ScrollConfiguration(
+        behavior: const ScrollBehavior().copyWith(
+          scrollbars: false,
+          overscroll: false,
+          physics: const ClampingScrollPhysics(),
+        ),
+        child: ListView.builder(
+          controller: scrollController,
+          physics: const ClampingScrollPhysics(),
+          reverse: true,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          itemCount: messages.length + 1,
+          cacheExtent: 1000,
+          addAutomaticKeepAlives: true,
+          addRepaintBoundaries: true,
+          addSemanticIndexes: false,
+          itemBuilder: (context, index) {
+            return RepaintBoundary(child: itemBuilder(context, index));
+          },
+        ),
       ),
     );
   }
@@ -803,7 +819,8 @@ class ChatPageBuilders {
       elevation: 0,
       leadingWidth: 64, // 设置 leading 区域宽度
       leading: Center(
-        child: InkWell(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: onBackPressed,
           child: GlassContainer(
             borderRadius: 20,

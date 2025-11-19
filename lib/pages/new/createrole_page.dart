@@ -194,7 +194,8 @@ class _CreateRolePageState extends State<CreateRolePage> {
                               ),
                               const SizedBox(height: 12),
                               Obx(
-                                () => InkWell(
+                                () => GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
                                   onTap: () async {
                                     // 以 modal bottom sheet 方式弹出音色选择页面
                                     final result =
@@ -226,7 +227,6 @@ class _CreateRolePageState extends State<CreateRolePage> {
                                       );
                                     }
                                   },
-                                  borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 16,
@@ -413,7 +413,8 @@ class _CreateRolePageState extends State<CreateRolePage> {
           child: Row(
             children: [
               // 左侧关闭按钮
-              InkWell(
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () => Navigator.of(context).pop(),
                 child: GlassContainer(
                   borderRadius: 20,

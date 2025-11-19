@@ -93,7 +93,8 @@ class HomePage extends StatelessWidget {
               // 左侧关闭按钮
               Padding(
                 padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-                child: InkWell(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () {
                     // 关闭页面，与 chat_page_builders 的 onBackPressed 保持一致
                     notifyUpdateRolePlaySessionRequired();

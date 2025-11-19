@@ -617,9 +617,9 @@ class _ChatBubbleState extends State<ChatBubble> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          InkWell(
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: _toggleAudio,
-            borderRadius: BorderRadius.circular(12),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(

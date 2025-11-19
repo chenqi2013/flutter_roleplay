@@ -160,7 +160,8 @@ class _GlassInput extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         // 发送按钮
-        InkWell(
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: isLoading ? null : sendMessage,
           child: SizedBox(
             width: 48,
