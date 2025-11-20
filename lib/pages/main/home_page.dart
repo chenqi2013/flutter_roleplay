@@ -32,7 +32,6 @@ class HomePage extends StatelessWidget {
               Expanded(
                 child: TabBarView(
                   controller: controller.tabController,
-                  physics: const ClampingScrollPhysics(),
                   children: [
                     // Tab1: 角色聊天页面
                     const RolePlayChat(),

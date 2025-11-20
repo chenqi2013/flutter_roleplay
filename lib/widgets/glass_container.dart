@@ -36,7 +36,7 @@ class GlassContainer extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(width), // 边框宽度 0.5px
+        padding: EdgeInsets.all(0), //width 边框宽度 0.5px
         child: ClipRRect(
           borderRadius: BorderRadius.circular(innerRadius),
           child: BackdropFilter(

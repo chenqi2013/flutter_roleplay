@@ -108,7 +108,7 @@ class _GlassInput extends StatelessWidget {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(0.5), // 边框宽度 0.5px
+              padding: const EdgeInsets.all(0), // 边框宽度 0.5px
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(27.5),
                 child: BackdropFilter(

@@ -28,44 +28,37 @@ class ModelParamsPage extends StatelessWidget {
                   child: CircularProgressIndicator(color: Colors.white),
                 );
               }
-              return ScrollConfiguration(
-                behavior: ScrollConfiguration.of(context).copyWith(
-                  scrollbars: false,
-                  overscroll: false,
-                  physics: const ClampingScrollPhysics(),
-                ),
-                child: SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 当前聊天模型
-                      _buildModelInfo(
-                        title: '选择聊天模型',
-                        modelType: RoleplayManageModelType.chat,
-                      ),
-                      const SizedBox(height: 16),
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 当前聊天模型
+                    _buildModelInfo(
+                      title: '选择聊天模型',
+                      modelType: RoleplayManageModelType.chat,
+                    ),
+                    const SizedBox(height: 16),
 
-                      // 当前语音模型
-                      _buildModelInfo(
-                        title: '选择语音模型',
-                        modelType: RoleplayManageModelType.tts,
-                      ),
-                      const SizedBox(height: 16),
+                    // 当前语音模型
+                    _buildModelInfo(
+                      title: '选择语音模型',
+                      modelType: RoleplayManageModelType.tts,
+                    ),
+                    const SizedBox(height: 16),
 
-                      // TTS语言选择
-                      _buildTTSLanguageSelector(),
-                      const SizedBox(height: 16),
+                    // TTS语言选择
+                    _buildTTSLanguageSelector(),
+                    const SizedBox(height: 16),
 
-                      // 风格滑块
-                      _buildStyleSlider(),
-                      const SizedBox(height: 16),
+                    // 风格滑块
+                    _buildStyleSlider(),
+                    const SizedBox(height: 16),
 
-                      // 语音角色选择
-                      _buildVoiceRoleSelector(context),
-                    ],
-                  ),
+                    // 语音角色选择
+                    _buildVoiceRoleSelector(context),
+                  ],
                 ),
               );
             }),

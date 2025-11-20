@@ -85,46 +85,33 @@ class RolesListPage extends StatelessWidget {
                   // 显示无搜索结果
                   return _buildNoSearchResults();
                 }
-                return ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context).copyWith(
-                    scrollbars: false,
-                    overscroll: false,
-                    physics: const ClampingScrollPhysics(),
-                  ),
-                  child: CustomScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    slivers: [
-                      // GridView 角色列表
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                        sliver: SliverGrid(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2, // 2列
-                                crossAxisSpacing: 12, // 列间距
-                                mainAxisSpacing: 12, // 行间距
-                                childAspectRatio: 0.7, // 调整宽高比，让卡片更高
-                              ),
-                          delegate: SliverChildBuilderDelegate((
-                            context,
-                            index,
-                          ) {
-                            final role = displayRoles[index];
-                            return _RoleGridCard(
-                              role: role,
-                              onTap: () => controller.selectRole(role, context),
-                              onDelete: () =>
-                                  controller.deleteCustomRole(role, context),
-                            );
-                          }, childCount: displayRoles.length),
-                        ),
+                return CustomScrollView(
+                  slivers: [
+                    // GridView 角色列表
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, // 2列
+                              crossAxisSpacing: 12, // 列间距
+                              mainAxisSpacing: 12, // 行间距
+                              childAspectRatio: 0.7, // 调整宽高比，让卡片更高
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final role = displayRoles[index];
+                          return _RoleGridCard(
+                            role: role,
+                            onTap: () => controller.selectRole(role, context),
+                            onDelete: () =>
+                                controller.deleteCustomRole(role, context),
+                          );
+                        }, childCount: displayRoles.length),
                       ),
-                      // 底部创建角色按钮
-                      SliverToBoxAdapter(
-                        child: _buildCreateRoleButton(context),
-                      ),
-                    ],
-                  ),
+                    ),
+                    // 底部创建角色按钮
+                    SliverToBoxAdapter(child: _buildCreateRoleButton(context)),
+                  ],
                 );
               }),
             ),
