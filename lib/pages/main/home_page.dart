@@ -167,7 +167,7 @@ class HomePage extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -180,9 +180,9 @@ class HomePage extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 14,
-                    fontWeight: FontWeight.normal,
+                    fontWeight: FontWeight.w700,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

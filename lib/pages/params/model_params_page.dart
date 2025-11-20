@@ -29,7 +29,6 @@ class ModelParamsPage extends StatelessWidget {
                 );
               }
               return SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,8 +90,9 @@ class ModelParamsPage extends StatelessWidget {
               Text(
                 '在此处调整',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.45),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(width: 8),
@@ -102,17 +102,13 @@ class ModelParamsPage extends StatelessWidget {
                 height: 24,
               ),
               const SizedBox(width: 4),
-              const Text(
-                '模型参数',
+              Text(
+                '模型参数。',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.45),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
                 ),
-              ),
-              const Text(
-                '。',
-                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ],
           ),
@@ -141,8 +137,9 @@ class ModelParamsPage extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 14,
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
@@ -163,7 +160,7 @@ class ModelParamsPage extends StatelessWidget {
                         _getModelDisplayName(modelPathRx.value),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -209,8 +206,9 @@ class ModelParamsPage extends StatelessWidget {
           Text(
             'TTS语言',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 14,
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(width: 16),
@@ -237,8 +235,8 @@ class ModelParamsPage extends StatelessWidget {
                                     lang,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
@@ -252,10 +250,10 @@ class ModelParamsPage extends StatelessWidget {
                                     lang,
                                     style: TextStyle(
                                       color: Colors.white.withValues(
-                                        alpha: 0.5,
+                                        alpha: 0.6,
                                       ),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.normal,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
@@ -288,8 +286,9 @@ class ModelParamsPage extends StatelessWidget {
               Text(
                 '解码参数',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               Obx(
@@ -472,8 +471,9 @@ class ModelParamsPage extends StatelessWidget {
               Text(
                 '选择音色',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 8),
@@ -497,7 +497,7 @@ class ModelParamsPage extends StatelessWidget {
                           controller.voiceRole.value,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 15,
+                            fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
                         ).marginOnly(left: 6),
