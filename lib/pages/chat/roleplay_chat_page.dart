@@ -40,14 +40,10 @@ class _RolePlayChatState extends State<RolePlayChat>
   final ChatStateManager _stateManager = ChatStateManager();
   StreamSubscription<String>? _streamSub;
   final TextEditingController _textController = TextEditingController();
-  final PageController _pageController = PageController();
 
   // 缓存相关
   bool _isControllerInitialized = false;
   bool _isInitializing = false;
-
-  // 防止重复角色切换的标志
-  bool _isPageSwitching = false;
 
   // 防止组件销毁后继续执行操作
   bool _isDisposed = false;
@@ -79,69 +75,11 @@ class _RolePlayChatState extends State<RolePlayChat>
     // 初始化滚动管理
     initScrollListener();
 
-    // // 监听角色信息变化，当角色信息更新时自动清空聊天记录
-    // ever(roleDescription, (String newDesc) {
-    //   if (_messages.isNotEmpty && !_isDisposed && mounted) {
-    //     setState(() {
-    //       _messages.clear();
-    //     });
-    //     scrollToBottom();
-    //   }
-    // });
-
-    // // 监听角色切换，同步PageView位置并加载聊天历史
-    // ever(roleName, (String newRoleName) {
-    //   if (newRoleName.isNotEmpty && !_isInitializingRole && !_isDisposed) {
-    //     debugPrint('角色切换到: $newRoleName，加载聊天历史');
-    //     // 加载新角色的聊天历史
-    //     _loadChatHistory();
-
-    //     // 只有当不是由PageView滑动触发的切换时，才同步PageView位置
-    //     if (usedRoles.isNotEmpty && !_isPageSwitching) {
-    //       final index = usedRoles.indexWhere(
-    //         (role) => role['name'] == newRoleName,
-    //       );
-    //       if (index != -1 && _pageController.hasClients) {
-    //         // 检查当前页面是否已经是目标页面，避免不必要的动画
-    //         final currentPage = _pageController.page?.round() ?? 0;
-    //         if (currentPage != index) {
-    //           debugPrint('同步PageView到角色: $newRoleName (页面 $index)');
-    //           _pageController.animateToPage(
-    //             index,
-    //             duration: const Duration(milliseconds: 300),
-    //             curve: Curves.easeInOut,
-    //           );
-    //         }
-    //       }
-    //     }
-    //   }
-    // });
-
-    // 监听 usedRoles 列表变化，如果有新角色添加，跳转到对应页面
-    ever(usedRoles, (List<Map<String, dynamic>> newUsedRoles) {
-      debugPrint('ever监听到usedRoles列表变化: ${newUsedRoles.length} 个角色');
-      if (newUsedRoles.isNotEmpty && _pageController.hasClients) {
-        // 延迟执行，确保UI已更新
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final currentRoleIndex = newUsedRoles.indexWhere(
-            (role) => role['name'] == roleName.value,
-          );
-          debugPrint('当前角色 ${roleName.value} 在列表中的索引: $currentRoleIndex');
-          if (currentRoleIndex != -1) {
-            final currentPage = _pageController.page?.round() ?? 0;
-            debugPrint(
-              'PageController 当前页面: $currentPage, 目标页面: $currentRoleIndex',
-            );
-            if (currentPage != currentRoleIndex) {
-              debugPrint('跳转到页面: $currentRoleIndex');
-              _pageController.animateToPage(
-                currentRoleIndex,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            }
-          }
-        });
+    // 监听角色切换，自动加载新角色的聊天历史
+    ever(roleName, (String newRoleName) {
+      if (newRoleName.isNotEmpty && !_isDisposed && mounted) {
+        debugPrint('角色切换到: $newRoleName，加载聊天历史');
+        _loadChatHistory();
       }
     });
 
@@ -269,27 +207,6 @@ class _RolePlayChatState extends State<RolePlayChat>
 
         // 清理图片缓存，确保背景图片能正确更新
         ChatPageBuilders.clearMemoryCache();
-
-        // 将角色添加到usedRoles列表中
-        final roleMap = matchedRole.toMap();
-        // final existingIndex = usedRoles.indexWhere(
-        //   (usedRole) => usedRole['name'] == targetRoleName,
-        // );
-
-        // if (existingIndex == -1) {
-        // 如果是通过goRolePlay设置的特定角色，清空现有列表并只添加当前角色
-        if (widget.roleName != null && widget.roleName!.isNotEmpty) {
-          usedRoles.clear();
-          usedRoles.add(Map<String, dynamic>.from(roleMap));
-          debugPrint('特定角色模式：清空列表并添加角色 ${matchedRole.name}');
-        } else {
-          usedRoles.add(Map<String, dynamic>.from(roleMap));
-          debugPrint('角色已添加到usedRoles列表');
-        }
-        // } else {
-        //   usedRoles[existingIndex] = Map<String, dynamic>.from(roleMap);
-        //   debugPrint('角色信息已更新在usedRoles列表中');
-        // }
 
         debugPrint('特定角色设置完成: ${roleName.value}');
       } else {
@@ -423,7 +340,6 @@ class _RolePlayChatState extends State<RolePlayChat>
     // WidgetsBinding.instance.removeObserver(this);
 
     _textController.dispose();
-    _pageController.dispose();
     disposeScrollListener();
     // _controller?.modelService.stop();
     _controller?.modelService.ttsService?.releaseTTSModel();
@@ -574,81 +490,80 @@ class _RolePlayChatState extends State<RolePlayChat>
         );
   }
 
-  // 页面切换处理
-  void _onPageChanged(int index) async {
-    if (index < 0 || index >= usedRoles.length) {
-      debugPrint('页面索引超出范围: $index');
-      return;
-    }
+  Widget _buildChatListView() {
+    return buildScrollNotificationListener(
+      child: Obx(() {
+        // 确保响应式地获取当前角色的消息
+        final currentRoleName = roleName.value;
+        final messages = _stateManager.getMessages(currentRoleName);
 
-    // 防止重复触发
-    if (_isPageSwitching) {
-      debugPrint('页面切换已在进行中，跳过页面变化事件: $index');
-      return;
-    }
+        // debugPrint('_buildChatListView: 当前角色: $currentRoleName, 消息数量: ${messages.length}');
 
-    final role = usedRoles[index];
-    final targetRoleName = role['name'] as String;
-
-    // 检查是否真的需要切换角色
-    if (targetRoleName == roleName.value) {
-      debugPrint('PageView切换到相同角色，跳过: $targetRoleName');
-      return;
-    }
-
-    debugPrint('PageView切换角色: ${roleName.value} -> $targetRoleName');
-
-    // 设置切换标志
-    _isPageSwitching = true;
-
-    // 如果AI正在回复，需要确认
-    if (_controller != null && _controller!.isGenerating.value) {
-      final confirmed = await ChatDialogs.showRoleSwitchDialog(
-        context,
-        targetRoleName,
-      );
-
-      if (confirmed == true) {
-        _streamSub?.cancel();
-        _streamSub = null;
-        _controller!.stop();
-        // 延迟切换角色，避免界面更新冲突
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          CommonUtil.switchToRole(role);
-          // 重置切换标志
-          Future.delayed(const Duration(milliseconds: 500), () {
-            _isPageSwitching = false;
-          });
-        });
-      } else {
-        // 用户取消，回到原来的页面
-        _isPageSwitching = false; // 重置标志
-        final currentRoleIndex = usedRoles.indexWhere(
-          (r) => r['name'] == roleName.value,
+        return ChatPageBuilders.buildChatListView(
+          scrollController: scrollController,
+          messages: messages,
+          roleDescription: roleDescription.value,
+          onScrollNotification: (notification) {
+            // 处理滚动通知已在 mixin 中处理
+            return Container();
+          },
+          itemBuilder: (context, index) {
+            return ChatPageBuilders.buildListItem(
+              context: context,
+              index: index,
+              messages: messages,
+              roleDescription: roleDescription.value,
+              onRegeneratePressed: (message) =>
+                  _handleRegeneratePressed(message),
+              onBranchChanged: (message, branchIndex) =>
+                  _handleBranchChanged(message, branchIndex),
+            );
+          },
         );
-        if (currentRoleIndex != -1) {
-          _pageController.animateToPage(
-            currentRoleIndex,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        }
-      }
-    } else {
-      // AI没有在回复，直接切换
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        CommonUtil.switchToRole(role);
-        // 重置切换标志
-        Future.delayed(const Duration(milliseconds: 500), () {
-          _isPageSwitching = false;
-        });
-      });
-    }
+      }),
+    );
   }
 
-  Widget _buildPageContent(int index) {
+  Widget _buildInputBar() {
+    return Obx(
+      () => GlobalInputBar(
+        bottomBarHeight: 0,
+        height: ChatPageBuilders.inputBarHeight,
+        inline: true,
+        onSend: _handleSend,
+        controller: _textController,
+        isLoading: _controller?.isGenerating.value ?? false,
+        roleName: roleName.value,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // 必须调用以保持状态
+    return _buildMainContent();
+  }
+
+  /// 构建主要内容，直接显示当前角色的聊天页面
+  Widget _buildMainContent() {
+    return Obx(() {
+      // 响应式获取当前角色名称
+      final currentRoleName = roleName.value;
+
+      if (currentRoleName.isEmpty) {
+        debugPrint('roleName为空');
+        return SizedBox.shrink();
+      }
+
+      debugPrint('构建聊天页面: $currentRoleName');
+      return _buildSingleChatPage();
+    });
+  }
+
+  /// 构建单一聊天页面
+  Widget _buildSingleChatPage() {
     return ChatPageBuilders.buildPageContent(
-      index: index,
+      index: 0, // 不再使用索引
       usedRoles: usedRoles,
       context: context,
       onBackPressed: () {
@@ -718,125 +633,6 @@ class _RolePlayChatState extends State<RolePlayChat>
       inputBar: _buildInputBar(),
       showBackground: false, // 不显示背景，由HomePage统一管理
     );
-  }
-
-  Widget _buildChatScaffold() {
-    return Obx(
-      () => ChatPageBuilders.buildChatScaffold(
-        context: context,
-        roleName: roleName.value,
-        onNavigateToRolesList: () async {
-          if (await _checkAndStopAiReply()) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RolesListPage()),
-            );
-          }
-        },
-        chatListView: _buildChatListView(),
-        inputBar: _buildInputBar(),
-        showDebugButtons: kDebugMode,
-        onDebugSend: () => _handleSend('测试消息：你好'),
-        onDebugCheckDatabase: () async {
-          final currentRoleName = roleName.value;
-          final count = await _stateManager.getMessageCount(currentRoleName);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'message_count_debug'.trParams({
-                    'roleName': currentRoleName,
-                    'count': count.toString(),
-                  }),
-                ),
-                duration: const Duration(seconds: 1),
-              ),
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildChatListView() {
-    return buildScrollNotificationListener(
-      child: Obx(() {
-        // 确保响应式地获取当前角色的消息
-        final currentRoleName = roleName.value;
-        final messages = _stateManager.getMessages(currentRoleName);
-
-        // debugPrint('_buildChatListView: 当前角色: $currentRoleName, 消息数量: ${messages.length}');
-
-        return ChatPageBuilders.buildChatListView(
-          scrollController: scrollController,
-          messages: messages,
-          roleDescription: roleDescription.value,
-          onScrollNotification: (notification) {
-            // 处理滚动通知已在 mixin 中处理
-            return Container();
-          },
-          itemBuilder: (context, index) {
-            return ChatPageBuilders.buildListItem(
-              context: context,
-              index: index,
-              messages: messages,
-              roleDescription: roleDescription.value,
-              onRegeneratePressed: (message) =>
-                  _handleRegeneratePressed(message),
-              onBranchChanged: (message, branchIndex) =>
-                  _handleBranchChanged(message, branchIndex),
-            );
-          },
-        );
-      }),
-    );
-  }
-
-  Widget _buildInputBar() {
-    return Obx(
-      () => GlobalInputBar(
-        bottomBarHeight: 0,
-        height: ChatPageBuilders.inputBarHeight,
-        inline: true,
-        onSend: _handleSend,
-        controller: _textController,
-        isLoading: _controller?.isGenerating.value ?? false,
-        roleName: roleName.value,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context); // 必须调用以保持状态
-    return _buildMainContent();
-  }
-
-  /// 构建主要内容，使用精确的响应式更新
-  Widget _buildMainContent() {
-    return Obx(() {
-      // 只在 usedRoles 变化时重建页面结构
-      final roles = usedRoles;
-
-      if (roles.isEmpty) {
-        debugPrint('roles.isEmpty=true');
-        // return ChatPageBuilders.buildSingleChatPage(
-        //   chatScaffold: _buildChatScaffold(),
-        //   showBackground: false, // 不显示背景，由HomePage统一管理
-        // );
-        return SizedBox.shrink();
-      } else {
-        // // 检查当前角色位置并同步 PageController
-        // _syncPageController(roles);
-        debugPrint('roles.isEmpty=false');
-        return ChatPageBuilders.buildSwipeableChatPages(
-          pageController: _pageController,
-          usedRoles: roles,
-          onPageChanged: _onPageChanged,
-          buildPageContent: _buildPageContent,
-        );
-      }
-    });
   }
 
   // ===== 分支管理处理函数 =====
