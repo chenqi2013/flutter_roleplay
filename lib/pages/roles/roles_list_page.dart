@@ -369,8 +369,8 @@ class _RoleGridCard extends StatelessWidget {
                       Text(
                         role.description,
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 13,
+                          color: Colors.white,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400,
                           height: 1.3,
                         ),
