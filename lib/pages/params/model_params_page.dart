@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/widgets/params_container.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/params/model_params_controller.dart';
@@ -127,7 +128,7 @@ class ModelParamsPage extends StatelessWidget {
         ? chatmodelPath
         : ttsmodelPath;
 
-    return GlassContainer(
+    return ParamsContainer(
       borderRadius: 16,
       borderWidth: 0,
       padding: const EdgeInsets.all(12),
@@ -197,7 +198,7 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建TTS语言选择器
   Widget _buildTTSLanguageSelector() {
-    return GlassContainer(
+    return ParamsContainer(
       borderRadius: 16,
       borderWidth: 0,
       padding: const EdgeInsets.all(16),
@@ -224,7 +225,7 @@ class ModelParamsPage extends StatelessWidget {
                         behavior: HitTestBehavior.opaque,
                         onTap: () => controller.selectTTSLanguage(lang),
                         child: isSelected
-                            ? GlassContainer(
+                            ? ParamsContainer(
                                 borderRadius: 70,
                                 borderWidth: 2,
                                 padding: const EdgeInsets.symmetric(
@@ -272,7 +273,7 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建解码参数区域
   Widget _buildStyleSlider() {
-    return GlassContainer(
+    return ParamsContainer(
       borderRadius: 16,
       borderWidth: 0,
       padding: const EdgeInsets.all(16),
@@ -461,7 +462,7 @@ class ModelParamsPage extends StatelessWidget {
           // 关闭后刷新数据
           controller.loadModelsAndSettings();
         },
-        child: GlassContainer(
+        child: ParamsContainer(
           borderRadius: 16,
           borderWidth: 0,
           padding: const EdgeInsets.all(12),
