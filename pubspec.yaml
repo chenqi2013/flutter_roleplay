@@ -57,6 +57,7 @@ flutter:
     - assets/model/chat/
     - assets/config/chat/
     - assets/config/tts/
+    - assets/config/roleplay.json
     - assets/svg/
     # - assets/filter.txt
 

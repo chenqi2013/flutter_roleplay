@@ -163,6 +163,12 @@ class ChatPageBuilders {
 
     debugPrint('ChatPageBuilders: 创建新的图片组件: $imagePath');
 
+    // 判断是否为 assets 图片路径
+    if (imagePath.startsWith('packages/flutter_roleplay/assets/') ||
+        imagePath.startsWith('assets/')) {
+      return _buildAssetsImageWidget(imagePath, fit, key, cacheKey);
+    }
+
     // 判断是否为本地文件路径
     if (imagePath.startsWith('/') || imagePath.startsWith('file://')) {
       return _buildLocalImageWidget(imagePath, fit, key, cacheKey);
@@ -176,6 +182,27 @@ class ChatPageBuilders {
     // 其他情况使用默认图片
     debugPrint('ChatPageBuilders: 未知图片路径格式，使用默认图片: $imagePath');
     return _buildDefaultImageWidget(fit, key, cacheKey);
+  }
+
+  /// 构建 assets 图片组件
+  static Widget _buildAssetsImageWidget(
+    String imagePath,
+    BoxFit fit,
+    Key? key,
+    String cacheKey,
+  ) {
+    debugPrint('ChatPageBuilders: 加载 assets 图片: $imagePath');
+    final widget = Image.asset(
+      imagePath,
+      fit: fit,
+      key: key ?? ValueKey(imagePath),
+      errorBuilder: (context, error, stackTrace) {
+        debugPrint('ChatPageBuilders: assets 图片加载失败: $error');
+        return _buildDefaultImageWidget(fit, key, cacheKey);
+      },
+    );
+    _imageCache[cacheKey] = widget;
+    return widget;
   }
 
   /// 构建本地图片组件

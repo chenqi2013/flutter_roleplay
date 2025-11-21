@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
+import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
@@ -90,27 +92,87 @@ class CommonUtil {
       }
 
       debugPrint('网络和本地都没有找到角色数据');
+
+      // 4. 如果网络和数据库都没有，尝试从 assets 文件加载
+      debugPrint('尝试从 assets 文件加载角色...');
+      final assetRoles = await _loadRolesFromAssets();
+      if (assetRoles.isNotEmpty) {
+        debugPrint('从 assets 文件获取到 ${assetRoles.length} 个角色，使用第一个作为默认角色');
+        // 保存到本地存储
+        await dbHelper.saveRoles(assetRoles);
+        debugPrint('角色已保存到本地存储');
+        // 使用第一个角色作为默认角色
+        final defaultRole = assetRoles.first;
+        switchToRole(defaultRole.toMap());
+        return;
+      }
+
+      debugPrint('所有方式都失败，无法加载角色数据');
     } catch (e) {
       debugPrint('初始化默认角色失败: $e');
-      // 如果所有方式都失败了，可以设置一个兜底的默认角色
-      _setFallbackRole();
+      // 如果所有方式都失败了，尝试从 assets 文件加载
+      try {
+        debugPrint('异常处理：尝试从 assets 文件加载角色...');
+        final assetRoles = await _loadRolesFromAssets();
+        if (assetRoles.isNotEmpty) {
+          debugPrint('从 assets 文件获取到 ${assetRoles.length} 个角色，使用第一个作为默认角色');
+          final dbHelper = DatabaseHelper();
+          // 保存到本地存储
+          await dbHelper.saveRoles(assetRoles);
+          debugPrint('角色已保存到本地存储');
+          // 使用第一个角色作为默认角色
+          final defaultRole = assetRoles.first;
+          switchToRole(defaultRole.toMap());
+          return;
+        }
+      } catch (assetError) {
+        debugPrint('从 assets 文件加载角色也失败: $assetError');
+      }
+      debugPrint('所有方式都失败，无法初始化默认角色');
     }
   }
 
-  // 设置兜底的默认角色
-  static void _setFallbackRole() {
-    debugPrint('使用兜底默认角色');
-    final fallbackRole = {
-      'name': '梁王',
-      'description':
-          '一名手握重权的王爷。你为人正直，爱民如子，拥有很高的社会地位。你深知权力所带来的责任，也渴望能治理好自己的封地，让百姓安居乐业。你正在寻找能帮助你实现抱负的贤才。',
-      'image':
-          'https://download.rwkvos.com/rwkvmusic/downloads/1.0/liangwang.webp',
-      'language': 'zh-CN', // 默认中文
-      'isCustom': false,
-    };
+  /// 从 assets 文件加载角色列表
+  static Future<List<RoleModel>> _loadRolesFromAssets() async {
+    try {
+      debugPrint('正在从 assets 文件加载角色列表...');
 
-    switchToRole(fallbackRole);
+      final jsonString = await rootBundle.loadString(
+        'packages/flutter_roleplay/assets/config/roleplay.json',
+      );
+
+      final List<dynamic> jsonList = json.decode(jsonString);
+      final List<RoleModel> assetRoles = [];
+
+      for (final jsonItem in jsonList) {
+        final roleJson = jsonItem as Map<String, dynamic>;
+
+        // 将图片路径改为本地 assets 路径
+        // 图片路径格式：assets/images/{name}.webp
+        final String roleName = roleJson['name'] as String;
+        final String localImagePath =
+            'packages/flutter_roleplay/assets/images/$roleName.webp';
+
+        final role = RoleModel(
+          id: roleJson['id'] as int,
+          name: roleName,
+          description: roleJson['description'] as String,
+          image: localImagePath,
+          language: roleJson['language'] as String? ?? 'zh-CN',
+          isCustom: false,
+          voice: roleJson['voice'] as String?,
+          voiceTxt: roleJson['voice_txt'] as String?,
+        );
+
+        assetRoles.add(role);
+      }
+
+      debugPrint('成功从 assets 文件加载 ${assetRoles.length} 个角色');
+      return assetRoles;
+    } catch (e) {
+      debugPrint('从 assets 文件加载角色失败: $e');
+      return [];
+    }
   }
 
   // 防止重复切换的标志

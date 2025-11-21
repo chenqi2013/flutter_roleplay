@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -97,8 +99,9 @@ class RolesListController extends GetxController {
 
         debugPrint('成功从本地缓存加载 ${cachedRoles.length} 个角色');
       } else {
-        error.value = 'network_failed_cache'.tr;
-        debugPrint('本地缓存为空，无法加载角色');
+        // 数据库为空，尝试从本地 assets 文件加载
+        debugPrint('本地缓存为空，尝试从 assets 文件加载角色...');
+        await _loadFromAssets();
       }
 
       isLoading.value = false;
@@ -108,6 +111,59 @@ class RolesListController extends GetxController {
       error.value = '${'load_failed'.tr}: ${e.toString()}';
       isLoading.value = false;
       isLoadingFromCache.value = false;
+    }
+  }
+
+  /// 从 assets 文件加载角色列表（新用户第一次安装且无网络时使用）
+  Future<void> _loadFromAssets() async {
+    try {
+      debugPrint('正在从 assets 文件加载角色列表...');
+
+      String jsonString;
+      jsonString = await rootBundle.loadString(
+        'packages/flutter_roleplay/assets/config/roleplay.json',
+      );
+
+      final List<dynamic> jsonList = json.decode(jsonString);
+      final List<RoleModel> assetRoles = [];
+
+      for (final jsonItem in jsonList) {
+        final roleJson = jsonItem as Map<String, dynamic>;
+
+        // 将图片路径改为本地 assets 路径
+        // 图片路径格式：assets/images/{name}.webp
+        final String roleName = roleJson['name'] as String;
+        final String localImagePath =
+            'packages/flutter_roleplay/assets/images/$roleName.webp';
+
+        final role = RoleModel(
+          id: roleJson['id'] as int,
+          name: roleName,
+          description: roleJson['description'] as String,
+          image: localImagePath,
+          language: roleJson['language'] as String? ?? 'zh-CN',
+          isCustom: false,
+          voice: roleJson['voice'] as String?,
+          voiceTxt: roleJson['voice_txt'] as String?,
+        );
+
+        assetRoles.add(role);
+      }
+
+      if (assetRoles.isNotEmpty) {
+        roles.value = assetRoles;
+        _filterRoles(); // 初始化过滤列表
+        error.value = ''; // 清空错误信息
+
+        debugPrint('成功从 assets 文件加载 ${assetRoles.length} 个角色');
+      } else {
+        error.value = 'network_failed_cache'.tr;
+        debugPrint('assets 文件中没有角色数据');
+      }
+    } catch (e) {
+      debugPrint('从 assets 文件加载角色失败: $e');
+      error.value = 'network_failed_cache'.tr;
+      rethrow;
     }
   }
 
