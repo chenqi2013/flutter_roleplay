@@ -135,7 +135,9 @@ class _GlassInput extends StatelessWidget {
                                       })
                                     : 'send_message_to_ai'.tr),
                           hintStyle: TextStyle(
-                            color: isLoading ? Colors.white38 : Colors.white,
+                            color: isLoading || roleName.isNotEmpty
+                                ? Colors.white38
+                                : Colors.white,
                             fontSize: 16,
                           ),
                           border: InputBorder.none,
@@ -169,7 +171,7 @@ class _GlassInput extends StatelessWidget {
             child: GlassContainer(
               borderRadius: 24,
               borderWidth: 0,
-              padding: const EdgeInsets.all(13),
+              padding: const EdgeInsets.all(15),
               child: SvgPicture.asset(
                 'packages/flutter_roleplay/assets/svg/send.svg',
                 width: 17,

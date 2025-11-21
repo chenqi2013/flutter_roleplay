@@ -182,7 +182,7 @@ class _ChatBubbleState extends State<ChatBubble> {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(0.5), // 边框宽度 0.5px
+            padding: const EdgeInsets.all(0), // 边框宽度 0.5px
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(18),
@@ -257,7 +257,7 @@ class _ChatBubbleState extends State<ChatBubble> {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(0.5), // 边框宽度 0.5px
+              padding: const EdgeInsets.all(0), // 边框宽度 0.5px
               child: ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(18),
@@ -314,7 +314,7 @@ class _ChatBubbleState extends State<ChatBubble> {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(0.5), // 边框宽度 0.5px
+            padding: const EdgeInsets.all(0), // 边框宽度 0.5px
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(18),
