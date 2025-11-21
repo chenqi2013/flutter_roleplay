@@ -7,11 +7,11 @@ class AudioListPage extends StatelessWidget {
   final bool isSelectMode; // 是否为选择模式（用于创建角色时选择音色）
   final String? ttsLanguage; // TTS语言类型（中文/英文/日语）
 
-  const AudioListPage({super.key, this.isSelectMode = false, this.ttsLanguage});
+  AudioListPage({super.key, this.isSelectMode = false, this.ttsLanguage});
+  final controller = Get.put(AudioListController());
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(AudioListController());
     controller.isSelectMode.value = isSelectMode;
 
     return Container(
@@ -82,11 +82,11 @@ class AudioListPage extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            '选择音色',
+            '你希望拥有什么样的声音',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: Colors.white,
               fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

@@ -211,7 +211,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                                                   context,
                                                 ).size.height *
                                                 0.6,
-                                            child: const AudioListPage(
+                                            child: AudioListPage(
                                               isSelectMode: true,
                                             ),
                                           ),

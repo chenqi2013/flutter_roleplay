@@ -625,7 +625,7 @@ class _RolePlayChatState extends State<RolePlayChat>
         if (await _checkAndStopAiReply()) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AudioListPage()),
+            MaterialPageRoute(builder: (context) => AudioListPage()),
           );
         }
       },
