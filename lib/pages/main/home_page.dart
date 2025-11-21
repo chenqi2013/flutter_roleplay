@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/main/home_controller.dart';
@@ -19,6 +20,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent, // 设置 Scaffold 背景为透明
       body: Stack(
         children: [
           // 动态背景层
@@ -62,11 +64,21 @@ class HomePage extends StatelessWidget {
           return Positioned.fill(child: Container(color: Colors.grey.shade300));
         }
         // 使用ChatPageBuilders的图片加载器，支持网络图片缓存
+        // 添加模糊蒙版效果
         return Positioned.fill(
-          child: ChatPageBuilders.buildImageWidget(
-            imageUrl,
-            fit: BoxFit.cover,
-            key: ValueKey('bg_chat_$imageUrl'),
+          child: Stack(
+            children: [
+              // 背景图片层 - 确保完全填充（不被模糊）
+              Positioned.fill(
+                child: ChatPageBuilders.buildImageWidget(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  key: ValueKey('bg_chat_$imageUrl'),
+                ),
+              ),
+              // 顶部模糊蒙版层 - 独立的模糊层，不影响主背景
+              _buildBlurOverlay(imageUrl),
+            ],
           ),
         );
       }
@@ -79,6 +91,65 @@ class HomePage extends StatelessWidget {
         ),
       );
     });
+  }
+
+  /// 构建顶部渐进式模糊蒙版
+  /// 固定高度120，渐进式模糊效果
+  Widget _buildBlurOverlay(String imageUrl) {
+    return IgnorePointer(
+      child: Positioned(
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 120,
+        child: ClipRect(
+          child: Stack(
+            children: [
+              // 创建一个独立的背景图片层，只显示顶部120高度的部分
+              // 使用 ClipRect 裁剪，只显示顶部区域
+              Positioned.fill(
+                child: ClipRect(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      height: 120,
+                      child: ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                        child: ChatPageBuilders.buildImageWidget(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          key: ValueKey('bg_blur_$imageUrl'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // 添加颜色渐变遮罩以增强视觉效果
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    // 使用渐变遮罩实现渐进式效果
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.4), // 顶部40%透明度
+                        Colors.black.withValues(alpha: 0.3), // 中间30%
+                        Colors.black.withValues(alpha: 0.15), // 中间15%
+                        Colors.black.withValues(alpha: 0.05), // 底部5%
+                        Colors.transparent, // 完全透明
+                      ],
+                      stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // 构建TabBar - 完全透明，只显示文字
