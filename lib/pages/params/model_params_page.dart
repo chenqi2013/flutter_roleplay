@@ -143,7 +143,6 @@ class ModelParamsPage extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
           Obx(
             () => GestureDetector(
               onTap: () {
@@ -152,7 +151,7 @@ class ModelParamsPage extends StatelessWidget {
               },
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

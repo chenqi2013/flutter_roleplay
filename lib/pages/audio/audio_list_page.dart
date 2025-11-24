@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_controller.dart';
+import 'package:flutter_roleplay/widgets/params_container.dart';
 import 'package:get/get.dart';
 
 class AudioListPage extends StatelessWidget {
@@ -122,7 +123,7 @@ class AudioListPage extends StatelessWidget {
         crossAxisCount: 2, // 两列
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 2.3, // 宽高比
+        childAspectRatio: 2.4, // 宽高比
       ),
       itemCount: audios.length,
       itemBuilder: (context, index) {
@@ -169,17 +170,10 @@ class AudioListPage extends StatelessWidget {
           controller.toggleAudio(audio);
         }
       },
-      child: Container(
+      child: ParamsContainer(
+        borderRadius: 20,
+        borderWidth: 0,
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          image: const DecorationImage(
-            image: AssetImage(
-              'packages/flutter_roleplay/assets/svg/audio_item_bg.png',
-            ),
-            fit: BoxFit.cover,
-          ),
-        ),
         child: Row(
           children: [
             // 播放按钮（左边）- 独立处理点击事件
@@ -188,22 +182,13 @@ class AudioListPage extends StatelessWidget {
                 // 播放按钮：始终播放音频
                 controller.toggleAudio(audio);
               },
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: isCurrentPlaying
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : Colors.white.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
+              child: Icon(
+                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 24,
               ),
             ),
+
             const SizedBox(width: 12),
             // 名称和信息（右边）
             Expanded(
