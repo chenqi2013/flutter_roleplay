@@ -4,6 +4,7 @@ import 'package:flutter_roleplay/constant/theme.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_page.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
+import 'package:flutter_roleplay/widgets/params_container.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'createrole_controller.dart';
@@ -55,7 +56,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // 角色图片选择
-                        GlassContainer(
+                        ParamsContainer(
                           borderRadius: 16,
                           borderWidth: 0.5,
                           padding: const EdgeInsets.all(16),
@@ -76,7 +77,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        GlassContainer(
+                        ParamsContainer(
                           borderRadius: 16,
                           borderWidth: 0.5,
                           padding: const EdgeInsets.all(16),
@@ -107,12 +108,11 @@ class _CreateRolePageState extends State<CreateRolePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        GlassContainer(
+                        ParamsContainer(
                           borderRadius: 16,
                           borderWidth: 0.5,
                           padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
                               Text(
                                 'role_language_label'.tr,
@@ -122,46 +122,40 @@ class _CreateRolePageState extends State<CreateRolePage> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'role_language_hint'.tr,
-                                style: const TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Obx(
-                                () => Row(
-                                  children: [
-                                    Expanded(
-                                      child: _LanguageOption(
-                                        label: 'language_chinese'.tr,
-                                        value: 'zh-CN',
-                                        isSelected:
-                                            controller.selectedLanguage.value ==
-                                            'zh-CN',
-                                        onTap: () => controller.selectLanguage(
-                                          'zh-CN',
-                                          context,
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Obx(
+                                  () => Row(
+                                    children: [
+                                      Expanded(
+                                        child: _LanguageOption(
+                                          label: 'language_chinese'.tr,
+                                          value: 'zh-CN',
+                                          isSelected:
+                                              controller
+                                                  .selectedLanguage
+                                                  .value ==
+                                              'zh-CN',
+                                          onTap: () => controller
+                                              .selectLanguage('zh-CN', context),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: _LanguageOption(
-                                        label: 'language_english'.tr,
-                                        value: 'en',
-                                        isSelected:
-                                            controller.selectedLanguage.value ==
-                                            'en',
-                                        onTap: () => controller.selectLanguage(
-                                          'en',
-                                          context,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _LanguageOption(
+                                          label: 'language_english'.tr,
+                                          value: 'en',
+                                          isSelected:
+                                              controller
+                                                  .selectedLanguage
+                                                  .value ==
+                                              'en',
+                                          onTap: () => controller
+                                              .selectLanguage('en', context),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -169,7 +163,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                         ),
                         const SizedBox(height: 16),
                         // 音色选择
-                        GlassContainer(
+                        ParamsContainer(
                           borderRadius: 16,
                           borderWidth: 0.5,
                           padding: const EdgeInsets.all(16),
@@ -303,7 +297,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        GlassContainer(
+                        ParamsContainer(
                           borderRadius: 16,
                           borderWidth: 0.5,
                           padding: const EdgeInsets.all(16),
