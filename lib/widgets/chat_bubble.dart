@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
@@ -163,47 +162,37 @@ class _ChatBubbleState extends State<ChatBubble> {
         ),
         child: Container(
           margin: const EdgeInsets.only(left: 50),
-          decoration: const BoxDecoration(
-            // Angular Gradient (角度渐变边框)
-            gradient: SweepGradient(
-              colors: [
-                Color(0x1AFFFFFF), // 10% 白色
-                Color(0x99FFFFFF), // 60% 白色
-                Color(0x1AFFFFFF), // 10% 白色
-                Color(0x99FFFFFF), // 60% 白色
-              ],
-              stops: [0.0, 0.25, 0.5, 1.0],
-            ),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(18),
-              topRight: Radius.circular(18),
-              bottomLeft: Radius.circular(18),
-              bottomRight: Radius.circular(18),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(0), // 边框宽度 0.5px
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(18),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              // Angular Gradient 边框
+              gradient: const SweepGradient(
+                colors: [
+                  Color(0x1AFFFFFF), // 10% 白色
+                  Color(0x99FFFFFF), // 60% 白色
+                  Color(0x1AFFFFFF), // 10% 白色
+                  Color(0x99FFFFFF), // 60% 白色
+                ],
+                stops: [0.0, 0.25, 0.5, 1.0],
               ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 63.1, sigmaY: 63.1),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(0), // 边框宽度 0.5px
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(23.5),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 10,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    // borderRadius: const BorderRadius.only(
-                    //   topLeft: Radius.circular(17.5),
-                    //   topRight: Radius.circular(17.5),
-                    //   bottomLeft: Radius.circular(17.5),
-                    //   bottomRight: Radius.circular(3.5),
+                  decoration: const BoxDecoration(
+                    color: Color(0xCC000000), // #000000 80% 更暗的背景
+                    // image: DecorationImage(
+                    //   image: AssetImage(
+                    //     'packages/flutter_roleplay/assets/svg/param_container_bg.png',
+                    //   ),
+                    //   fit: BoxFit.cover,
+                    //   opacity: 0.1, // 噪声效果 10%
                     // ),
                   ),
                   child: Text(
@@ -238,42 +227,38 @@ class _ChatBubbleState extends State<ChatBubble> {
           ),
           child: Container(
             margin: const EdgeInsets.only(right: 40),
-            decoration: const BoxDecoration(
-              // Angular Gradient (角度渐变边框)
-              gradient: SweepGradient(
-                colors: [
-                  Color(0x1AFFFFFF), // 10% 白色
-                  Color(0x99FFFFFF), // 60% 白色
-                  Color(0x1AFFFFFF), // 10% 白色
-                  Color(0x99FFFFFF), // 60% 白色
-                ],
-                stops: [0.0, 0.25, 0.5, 1.0],
-              ),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(18),
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(0), // 边框宽度 0.5px
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(18),
-                  topRight: Radius.circular(18),
-                  bottomLeft: Radius.circular(18),
-                  bottomRight: Radius.circular(18),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                // Angular Gradient 边框
+                gradient: const SweepGradient(
+                  colors: [
+                    Color(0x1AFFFFFF), // 10% 白色
+                    Color(0x99FFFFFF), // 60% 白色
+                    Color(0x1AFFFFFF), // 10% 白色
+                    Color(0x99FFFFFF), // 60% 白色
+                  ],
+                  stops: [0.0, 0.25, 0.5, 1.0],
                 ),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 63.1, sigmaY: 63.1),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(0), // 边框宽度 0.5px
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(23.5),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
+                    decoration: const BoxDecoration(
+                      color: Color(0xCC000000), // #000000 80% 更暗的背景
+                      // image: DecorationImage(
+                      //   image: AssetImage(
+                      //     'packages/flutter_roleplay/assets/svg/param_container_bg.png',
+                      //   ),
+                      //   fit: BoxFit.cover,
+                      //   opacity: 0.1, // 噪声效果 10%
+                      // ),
                     ),
                     child: _buildThinkingContent(),
                   ),
@@ -295,42 +280,38 @@ class _ChatBubbleState extends State<ChatBubble> {
         ),
         child: Container(
           margin: const EdgeInsets.only(right: 40),
-          decoration: const BoxDecoration(
-            // Angular Gradient (角度渐变边框)
-            gradient: SweepGradient(
-              colors: [
-                Color(0x1AFFFFFF), // 10% 白色
-                Color(0x99FFFFFF), // 60% 白色
-                Color(0x1AFFFFFF), // 10% 白色
-                Color(0x99FFFFFF), // 60% 白色
-              ],
-              stops: [0.0, 0.25, 0.5, 1.0],
-            ),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(18),
-              topRight: Radius.circular(18),
-              bottomLeft: Radius.circular(18),
-              bottomRight: Radius.circular(18),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(0), // 边框宽度 0.5px
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(18),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              // Angular Gradient 边框
+              gradient: const SweepGradient(
+                colors: [
+                  Color(0x1AFFFFFF), // 10% 白色
+                  Color(0x99FFFFFF), // 60% 白色
+                  Color(0x1AFFFFFF), // 10% 白色
+                  Color(0x99FFFFFF), // 60% 白色
+                ],
+                stops: [0.0, 0.25, 0.5, 1.0],
               ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 63.1, sigmaY: 63.1),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(0), // 边框宽度 0.5px
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(23.5),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.35),
+                  decoration: const BoxDecoration(
+                    color: Color(0xCC000000), // #000000 80% 更暗的背景
+                    // image: DecorationImage(
+                    //   image: AssetImage(
+                    //     'packages/flutter_roleplay/assets/svg/param_container_bg.png',
+                    //   ),
+                    //   fit: BoxFit.cover,
+                    //   opacity: 0.1, // 噪声效果 10%
+                    // ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
