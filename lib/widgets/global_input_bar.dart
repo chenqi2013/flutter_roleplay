@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -96,7 +95,7 @@ class _GlassInput extends StatelessWidget {
             height: height,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
-              // Angular Gradient (角度渐变边框)
+              // Angular Gradient 边框
               gradient: const SweepGradient(
                 colors: [
                   Color(0x1AFFFFFF), // 10% 白色
@@ -111,48 +110,51 @@ class _GlassInput extends StatelessWidget {
               padding: const EdgeInsets.all(0), // 边框宽度 0.5px
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(27.5),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 63.1, sigmaY: 63.1),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(27.5),
-                    ),
-                    child: Center(
-                      child: TextField(
-                        enabled: !isLoading, // 加载时禁用输入
-                        style: TextStyle(
-                          color: isLoading ? Colors.white38 : Colors.white,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: const BoxDecoration(
+                    color: Color(0xCC000000), // #000000 80% 更暗的背景
+                    // image: DecorationImage(
+                    //   image: AssetImage(
+                    //     'packages/flutter_roleplay/assets/svg/param_container_bg.png',
+                    //   ),
+                    //   fit: BoxFit.cover,
+                    //   opacity: 0.1, // 噪声效果 10%
+                    // ),
+                  ),
+                  child: Center(
+                    child: TextField(
+                      enabled: !isLoading, // 加载时禁用输入
+                      style: TextStyle(
+                        color: isLoading ? Colors.white38 : Colors.white,
+                        fontSize: 16,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: isLoading
+                            ? 'ai_replying'.tr
+                            : (roleName.isNotEmpty
+                                  ? 'send_message_to'.trParams({
+                                      'name': roleName,
+                                    })
+                                  : 'send_message_to_ai'.tr),
+                        hintStyle: TextStyle(
+                          color: isLoading || roleName.isNotEmpty
+                              ? Colors.white38
+                              : Colors.white,
                           fontSize: 16,
                         ),
-                        decoration: InputDecoration(
-                          hintText: isLoading
-                              ? 'ai_replying'.tr
-                              : (roleName.isNotEmpty
-                                    ? 'send_message_to'.trParams({
-                                        'name': roleName,
-                                      })
-                                    : 'send_message_to_ai'.tr),
-                          hintStyle: TextStyle(
-                            color: isLoading || roleName.isNotEmpty
-                                ? Colors.white38
-                                : Colors.white,
-                            fontSize: 16,
-                          ),
-                          border: InputBorder.none,
-                          filled: true,
-                          fillColor: Colors.transparent, // 背景透明
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        controller: controller,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: isLoading
-                            ? null
-                            : (value) {
-                                sendMessage();
-                              },
+                        border: InputBorder.none,
+                        filled: true,
+                        fillColor: Colors.transparent, // 背景透明
+                        contentPadding: EdgeInsets.zero,
                       ),
+                      controller: controller,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: isLoading
+                          ? null
+                          : (value) {
+                              sendMessage();
+                            },
                     ),
                   ),
                 ),

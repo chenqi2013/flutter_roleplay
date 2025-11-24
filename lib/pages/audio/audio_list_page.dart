@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_controller.dart';
-import 'package:flutter_roleplay/widgets/glass_container.dart';
 import 'package:get/get.dart';
 
 class AudioListPage extends StatelessWidget {
@@ -18,11 +17,17 @@ class AudioListPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.black,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        image: const DecorationImage(
+          image: AssetImage(
+            'packages/flutter_roleplay/assets/svg/audio_list_bg.png',
+          ),
+          fit: BoxFit.cover,
+        ),
       ),
       child: Column(
         children: [
-          // 顶部拖动条
-          _buildDragHandle(),
+          // // 顶部拖动条
+          // _buildDragHandle(),
           // 标题
           _buildHeader(),
           // 内容
@@ -164,10 +169,17 @@ class AudioListPage extends StatelessWidget {
           controller.toggleAudio(audio);
         }
       },
-      child: GlassContainer(
-        borderRadius: 16,
-        borderWidth: isSelected ? 2 : 0.5,
+      child: Container(
         padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          image: const DecorationImage(
+            image: AssetImage(
+              'packages/flutter_roleplay/assets/svg/audio_item_bg.png',
+            ),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: Row(
           children: [
             // 播放按钮（左边）- 独立处理点击事件

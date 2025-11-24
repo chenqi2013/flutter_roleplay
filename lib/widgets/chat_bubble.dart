@@ -173,7 +173,7 @@ class _ChatBubbleState extends State<ChatBubble> {
                   Color(0x1AFFFFFF), // 10% 白色
                   Color(0x99FFFFFF), // 60% 白色
                 ],
-                stops: [0.0, 0.25, 0.5, 1.0],
+                // stops: [0.0, 0.25, 0.5, 1.0],
               ),
             ),
             child: Padding(
@@ -238,7 +238,7 @@ class _ChatBubbleState extends State<ChatBubble> {
                     Color(0x1AFFFFFF), // 10% 白色
                     Color(0x99FFFFFF), // 60% 白色
                   ],
-                  stops: [0.0, 0.25, 0.5, 1.0],
+                  // stops: [0.0, 0.25, 0.5, 1.0],
                 ),
               ),
               child: Padding(
@@ -291,7 +291,7 @@ class _ChatBubbleState extends State<ChatBubble> {
                   Color(0x1AFFFFFF), // 10% 白色
                   Color(0x99FFFFFF), // 60% 白色
                 ],
-                stops: [0.0, 0.25, 0.5, 1.0],
+                // stops: [0.0, 0.25, 0.5, 1.0],
               ),
             ),
             child: Padding(
