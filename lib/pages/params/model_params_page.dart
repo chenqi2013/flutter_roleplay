@@ -225,7 +225,7 @@ class ModelParamsPage extends StatelessWidget {
                         behavior: HitTestBehavior.opaque,
                         onTap: () => controller.selectTTSLanguage(lang),
                         child: isSelected
-                            ? ParamsContainer(
+                            ? GlassContainer(
                                 borderRadius: 70,
                                 borderWidth: 2,
                                 padding: const EdgeInsets.symmetric(
