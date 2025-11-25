@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/widgets/test_container.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
@@ -72,6 +73,14 @@ class RolesListPage extends StatelessWidget {
 
       return Column(
         children: [
+          // //测试
+          // TestContainer(
+          //   blur: 100,
+          //   color: Colors.black.withValues(alpha: 0.35),
+          //   hasGradient: true,
+          //   borderRadius: 90,
+          //   borderWidth: 0.5,
+          // ),
           // 顶部欢迎文本
           _buildWelcomeHeader(),
           // 角色列表 - GridView + 底部按钮

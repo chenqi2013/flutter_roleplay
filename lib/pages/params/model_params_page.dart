@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/widgets/params_container.dart';
+import 'package:flutter_roleplay/widgets/test_container.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/params/model_params_controller.dart';
@@ -128,8 +129,11 @@ class ModelParamsPage extends StatelessWidget {
         ? chatmodelPath
         : ttsmodelPath;
 
-    return ParamsContainer(
-      borderRadius: 16,
+    return TestContainer(
+      blur: 63.1,
+      color: Colors.white.withValues(alpha: 0.25),
+      hasGradient: false,
+      borderRadius: 20,
       borderWidth: 0,
       padding: const EdgeInsets.all(12),
       child: Column(
