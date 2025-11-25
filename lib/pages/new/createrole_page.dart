@@ -5,6 +5,7 @@ import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_page.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
 import 'package:flutter_roleplay/widgets/params_container.dart';
+import 'package:flutter_roleplay/widgets/test_container.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'createrole_controller.dart';
@@ -56,10 +57,13 @@ class _CreateRolePageState extends State<CreateRolePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // 角色图片选择
-                        ParamsContainer(
-                          borderRadius: 16,
-                          borderWidth: 0.5,
-                          padding: const EdgeInsets.all(16),
+                        TestContainer(
+                          blur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -77,10 +81,13 @@ class _CreateRolePageState extends State<CreateRolePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ParamsContainer(
-                          borderRadius: 16,
-                          borderWidth: 0.5,
-                          padding: const EdgeInsets.all(16),
+                        TestContainer(
+                          blur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -108,10 +115,13 @@ class _CreateRolePageState extends State<CreateRolePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ParamsContainer(
-                          borderRadius: 16,
-                          borderWidth: 0.5,
-                          padding: const EdgeInsets.all(16),
+                        TestContainer(
+                          blur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
                           child: Row(
                             children: [
                               Text(
@@ -163,10 +173,13 @@ class _CreateRolePageState extends State<CreateRolePage> {
                         ),
                         const SizedBox(height: 16),
                         // 音色选择
-                        ParamsContainer(
-                          borderRadius: 16,
-                          borderWidth: 0.5,
-                          padding: const EdgeInsets.all(16),
+                        TestContainer(
+                          blur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -297,10 +310,13 @@ class _CreateRolePageState extends State<CreateRolePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ParamsContainer(
-                          borderRadius: 16,
-                          borderWidth: 0.5,
-                          padding: const EdgeInsets.all(16),
+                        TestContainer(
+                          blur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -356,9 +372,13 @@ class _CreateRolePageState extends State<CreateRolePage> {
                               child: SizedBox(
                                 width: 126,
                                 height: 48,
-                                child: GlassContainer(
+                                child: TestContainer(
+                                  blur: 63.1,
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  hasGradient: true,
                                   borderRadius: 70,
                                   borderWidth: 0.5,
+                                  padding: const EdgeInsets.all(12),
                                   child: Center(
                                     child: controller.isCreating.value
                                         ? const SizedBox(
@@ -410,17 +430,16 @@ class _CreateRolePageState extends State<CreateRolePage> {
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => Navigator.of(context).pop(),
-                child: GlassContainer(
-                  borderRadius: 20,
-                  borderWidth: 0,
-                  padding: const EdgeInsets.all(14),
+                child: TestContainer(
+                  blur: 63.1,
+                  color: Colors.black.withValues(alpha: 0.35),
+                  hasGradient: true,
+                  borderRadius: 70,
+                  borderWidth: 0.5,
+                  padding: const EdgeInsets.all(12),
                   child: SvgPicture.asset(
                     'packages/flutter_roleplay/assets/svg/close.svg',
                     height: 12,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
                   ),
                 ),
               ),
@@ -689,10 +708,13 @@ class _LanguageOption extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: isSelected
-          ? GlassContainer(
+          ? TestContainer(
+              blur: 63.1,
+              color: Colors.black.withValues(alpha: 0.35),
+              hasGradient: true,
               borderRadius: 70,
-              borderWidth: 2,
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              borderWidth: 0.5,
+              padding: const EdgeInsets.all(12),
               child: Center(
                 child: Text(
                   label,

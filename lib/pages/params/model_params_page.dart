@@ -201,10 +201,13 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建TTS语言选择器
   Widget _buildTTSLanguageSelector() {
-    return ParamsContainer(
-      borderRadius: 16,
+    return TestContainer(
+      blur: 63.1,
+      color: Colors.white.withValues(alpha: 0.25),
+      hasGradient: false,
+      borderRadius: 20,
       borderWidth: 0,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Row(
         children: [
           Text(
@@ -277,10 +280,13 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建解码参数区域
   Widget _buildStyleSlider() {
-    return ParamsContainer(
-      borderRadius: 16,
+    return TestContainer(
+      blur: 63.1,
+      color: Colors.white.withValues(alpha: 0.25),
+      hasGradient: false,
+      borderRadius: 20,
       borderWidth: 0,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -466,8 +472,11 @@ class ModelParamsPage extends StatelessWidget {
           // 关闭后刷新数据
           controller.loadModelsAndSettings();
         },
-        child: ParamsContainer(
-          borderRadius: 16,
+        child: TestContainer(
+          blur: 63.1,
+          color: Colors.white.withValues(alpha: 0.25),
+          hasGradient: false,
+          borderRadius: 20,
           borderWidth: 0,
           padding: const EdgeInsets.all(12),
           child: Column(
