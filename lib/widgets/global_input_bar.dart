@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/widgets/test_container.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'glass_container.dart';
@@ -91,77 +92,49 @@ class _GlassInput extends StatelessWidget {
       children: [
         // 输入框
         Expanded(
-          child: Container(
-            height: height,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              // Angular Gradient 边框
-              gradient: const SweepGradient(
-                colors: [
-                  Color(0x1AFFFFFF), // 10% 白色
-                  Color(0x99FFFFFF), // 60% 白色
-                  Color(0x1AFFFFFF), // 10% 白色
-                  Color(0x99FFFFFF), // 60% 白色
-                ],
-                stops: [0.0, 0.25, 0.5, 1.0],
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(0), // 边框宽度 0.5px
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(27.5),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: const BoxDecoration(
-                    color: Color(0xCC000000), // #000000 80% 更暗的背景
-                    // image: DecorationImage(
-                    //   image: AssetImage(
-                    //     'packages/flutter_roleplay/assets/svg/param_container_bg.png',
-                    //   ),
-                    //   fit: BoxFit.cover,
-                    //   opacity: 0.1, // 噪声效果 10%
-                    // ),
-                  ),
-                  child: Center(
-                    child: TextField(
-                      enabled: !isLoading, // 加载时禁用输入
-                      style: TextStyle(
-                        color: isLoading ? Colors.white38 : Colors.white,
-                        fontSize: 16,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: isLoading
-                            ? 'ai_replying'.tr
-                            : (roleName.isNotEmpty
-                                  ? 'send_message_to'.trParams({
-                                      'name': roleName,
-                                    })
-                                  : 'send_message_to_ai'.tr),
-                        hintStyle: TextStyle(
-                          color: isLoading || roleName.isNotEmpty
-                              ? Colors.white38
-                              : Colors.white,
-                          fontSize: 16,
-                        ),
-                        border: InputBorder.none,
-                        filled: true,
-                        fillColor: Colors.transparent, // 背景透明
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      controller: controller,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: isLoading
-                          ? null
-                          : (value) {
-                              sendMessage();
-                            },
-                    ),
-                  ),
+          child: TestContainer(
+            blur: 100,
+            color: Colors.black.withValues(alpha: 0.35),
+            hasGradient: true,
+            borderRadius: 90,
+            borderWidth: 0.5,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
+            child: Center(
+              child: TextField(
+                enabled: !isLoading, // 加载时禁用输入
+                style: TextStyle(
+                  color: isLoading ? Colors.white38 : Colors.white,
+                  fontSize: 16,
                 ),
+                decoration: InputDecoration(
+                  hintText: isLoading
+                      ? 'ai_replying'.tr
+                      : (roleName.isNotEmpty
+                            ? 'send_message_to'.trParams({'name': roleName})
+                            : 'send_message_to_ai'.tr),
+                  hintStyle: TextStyle(
+                    color: isLoading || roleName.isNotEmpty
+                        ? Colors.white38
+                        : Colors.white,
+                    fontSize: 16,
+                  ),
+                  border: InputBorder.none,
+                  filled: true,
+                  fillColor: Colors.transparent, // 背景透明
+                  contentPadding: EdgeInsets.zero,
+                ),
+                controller: controller,
+                textInputAction: TextInputAction.send,
+                onSubmitted: isLoading
+                    ? null
+                    : (value) {
+                        sendMessage();
+                      },
               ),
             ),
           ),
         ),
+
         const SizedBox(width: 12),
         // 发送按钮
         GestureDetector(
@@ -170,18 +143,16 @@ class _GlassInput extends StatelessWidget {
           child: SizedBox(
             width: 48,
             height: 48,
-            child: GlassContainer(
+            child: TestContainer(
+              blur: 63.1,
+              color: Colors.black.withValues(alpha: 0.35),
+              hasGradient: true,
               borderRadius: 24,
-              borderWidth: 0,
-              padding: const EdgeInsets.all(15),
+              borderWidth: 0.5,
+              padding: const EdgeInsets.all(12),
               child: SvgPicture.asset(
                 'packages/flutter_roleplay/assets/svg/send.svg',
-                width: 17,
                 height: 17,
-                colorFilter: ColorFilter.mode(
-                  isLoading ? Colors.white38 : Colors.white,
-                  BlendMode.srcIn,
-                ),
               ),
             ),
           ),
