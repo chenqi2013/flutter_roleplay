@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_roleplay/widgets/test_container.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/main/home_controller.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
@@ -171,17 +172,16 @@ class HomePage extends StatelessWidget {
                     notifyUpdateRolePlaySessionRequired();
                     Navigator.of(currentContext!).pop();
                   },
-                  child: GlassContainer(
-                    borderRadius: 20,
-                    borderWidth: 0,
-                    padding: const EdgeInsets.all(14),
+                  child: TestContainer(
+                    blur: 63.1,
+                    color: Colors.black.withValues(alpha: 0.35),
+                    hasGradient: true,
+                    borderRadius: 70,
+                    borderWidth: 0.5,
+                    padding: const EdgeInsets.all(12),
                     child: SvgPicture.asset(
                       'packages/flutter_roleplay/assets/svg/close.svg',
                       height: 12,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.white,
-                        BlendMode.srcIn,
-                      ),
                     ),
                   ),
                 ),
@@ -228,10 +228,13 @@ class HomePage extends StatelessWidget {
         controller.tabController.animateTo(index);
       },
       child: isSelected
-          ? GlassContainer(
+          ? TestContainer(
+              blur: 63.1,
+              color: Colors.black.withValues(alpha: 0.35),
+              hasGradient: true,
               borderRadius: 70,
-              borderWidth: 2,
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              borderWidth: 0.5,
+              padding: const EdgeInsets.all(12),
               child: Center(
                 child: Text(
                   label,

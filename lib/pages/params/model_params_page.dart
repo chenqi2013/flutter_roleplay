@@ -228,12 +228,13 @@ class ModelParamsPage extends StatelessWidget {
                         behavior: HitTestBehavior.opaque,
                         onTap: () => controller.selectTTSLanguage(lang),
                         child: isSelected
-                            ? GlassContainer(
+                            ? TestContainer(
+                                blur: 63.1,
+                                color: Colors.black.withValues(alpha: 0.35),
+                                hasGradient: true,
                                 borderRadius: 70,
-                                borderWidth: 2,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
+                                borderWidth: 0.5,
+                                padding: const EdgeInsets.all(12),
                                 child: Center(
                                   child: Text(
                                     lang,
@@ -535,10 +536,13 @@ class ModelParamsPage extends StatelessWidget {
             child: SizedBox(
               width: 126,
               height: 48,
-              child: GlassContainer(
+              child: TestContainer(
+                blur: 63.1,
+                color: Colors.black.withValues(alpha: 0.35),
+                hasGradient: true,
                 borderRadius: 70,
                 borderWidth: 0.5,
-                // padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.all(12),
                 child: Center(
                   child: controller.isSaving.value
                       ? const SizedBox(

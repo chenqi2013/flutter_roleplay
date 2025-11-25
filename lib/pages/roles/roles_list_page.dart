@@ -198,9 +198,13 @@ class RolesListPage extends StatelessWidget {
           child: SizedBox(
             width: 126,
             height: 48,
-            child: GlassContainer(
+            child: TestContainer(
+              blur: 63.1,
+              color: Colors.black.withValues(alpha: 0.35),
+              hasGradient: true,
               borderRadius: 70,
               borderWidth: 0.5,
+              padding: const EdgeInsets.all(12),
               child: const Center(
                 child: Text(
                   '创建我的角色',
