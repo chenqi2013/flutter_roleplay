@@ -97,12 +97,12 @@ class HomePage extends StatelessWidget {
   /// 构建顶部渐进式模糊蒙版
   /// 固定高度120，渐进式模糊效果
   Widget _buildBlurOverlay(String imageUrl) {
-    return IgnorePointer(
-      child: Positioned(
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 120,
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 120,
+      child: IgnorePointer(
         child: ClipRect(
           child: Stack(
             children: [
