@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/widgets/params_container.dart';
-import 'package:flutter_roleplay/widgets/test_container.dart';
+import 'package:flutter_roleplay/widgets/new_glass_container.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/params/model_params_controller.dart';
@@ -129,7 +129,7 @@ class ModelParamsPage extends StatelessWidget {
         ? chatmodelPath
         : ttsmodelPath;
 
-    return TestContainer(
+    return NewGlassContainer(
       blur: 63.1,
       color: Colors.white.withValues(alpha: 0.25),
       hasGradient: false,
@@ -201,7 +201,7 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建TTS语言选择器
   Widget _buildTTSLanguageSelector() {
-    return TestContainer(
+    return NewGlassContainer(
       blur: 63.1,
       color: Colors.white.withValues(alpha: 0.25),
       hasGradient: false,
@@ -231,7 +231,7 @@ class ModelParamsPage extends StatelessWidget {
                         behavior: HitTestBehavior.opaque,
                         onTap: () => controller.selectTTSLanguage(lang),
                         child: isSelected
-                            ? TestContainer(
+                            ? NewGlassContainer(
                                 blur: 63.1,
                                 color: Colors.black.withValues(alpha: 0.35),
                                 hasGradient: true,
@@ -280,7 +280,7 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建解码参数区域
   Widget _buildStyleSlider() {
-    return TestContainer(
+    return NewGlassContainer(
       blur: 63.1,
       color: Colors.white.withValues(alpha: 0.25),
       hasGradient: false,
@@ -472,7 +472,7 @@ class ModelParamsPage extends StatelessWidget {
           // 关闭后刷新数据
           controller.loadModelsAndSettings();
         },
-        child: TestContainer(
+        child: NewGlassContainer(
           blur: 63.1,
           color: Colors.white.withValues(alpha: 0.25),
           hasGradient: false,
@@ -545,7 +545,7 @@ class ModelParamsPage extends StatelessWidget {
             child: SizedBox(
               width: 126,
               height: 48,
-              child: TestContainer(
+              child: NewGlassContainer(
                 blur: 63.1,
                 color: Colors.black.withValues(alpha: 0.35),
                 hasGradient: true,

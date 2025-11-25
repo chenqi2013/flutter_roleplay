@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_controller.dart';
 import 'package:flutter_roleplay/widgets/params_container.dart';
-import 'package:flutter_roleplay/widgets/test_container.dart';
+import 'package:flutter_roleplay/widgets/new_glass_container.dart';
 import 'package:get/get.dart';
 
 class AudioListPage extends StatelessWidget {
@@ -15,7 +15,7 @@ class AudioListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     controller.isSelectMode.value = isSelectMode;
 
-    return TestContainer(
+    return NewGlassContainer(
       blur: 63.1,
       color: Colors.white.withValues(alpha: 0.3),
       hasGradient: true,
@@ -167,7 +167,7 @@ class AudioListPage extends StatelessWidget {
           controller.toggleAudio(audio);
         }
       },
-      child: TestContainer(
+      child: NewGlassContainer(
         blur: 63.1,
         color: Colors.white.withValues(alpha: 0.25),
         hasGradient: false,

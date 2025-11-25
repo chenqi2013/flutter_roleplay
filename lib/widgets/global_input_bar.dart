@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/widgets/test_container.dart';
+import 'package:flutter_roleplay/widgets/new_glass_container.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'glass_container.dart';
@@ -92,7 +92,7 @@ class _GlassInput extends StatelessWidget {
       children: [
         // 输入框
         Expanded(
-          child: TestContainer(
+          child: NewGlassContainer(
             blur: 100,
             color: Colors.black.withValues(alpha: 0.35),
             hasGradient: true,
@@ -143,7 +143,7 @@ class _GlassInput extends StatelessWidget {
           child: SizedBox(
             width: 48,
             height: 48,
-            child: TestContainer(
+            child: NewGlassContainer(
               blur: 63.1,
               color: Colors.black.withValues(alpha: 0.35),
               hasGradient: true,

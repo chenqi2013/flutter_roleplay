@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
-import 'package:flutter_roleplay/widgets/test_container.dart';
+import 'package:flutter_roleplay/widgets/new_glass_container.dart';
 import 'package:flutter_svg/svg.dart';
 import 'dart:ui';
 import 'dart:io';
@@ -834,7 +834,7 @@ class ChatPageBuilders {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onBackPressed,
-          child: TestContainer(
+          child: NewGlassContainer(
             blur: 63.1,
             color: Colors.black.withValues(alpha: 0.35),
             hasGradient: true,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/widgets/test_container.dart';
+import 'package:flutter_roleplay/widgets/new_glass_container.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
@@ -198,7 +198,7 @@ class RolesListPage extends StatelessWidget {
           child: SizedBox(
             width: 126,
             height: 48,
-            child: TestContainer(
+            child: NewGlassContainer(
               blur: 63.1,
               color: Colors.black.withValues(alpha: 0.35),
               hasGradient: true,

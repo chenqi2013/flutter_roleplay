@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
-import 'package:flutter_roleplay/widgets/test_container.dart';
+import 'package:flutter_roleplay/widgets/new_glass_container.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
@@ -163,7 +163,7 @@ class _ChatBubbleState extends State<ChatBubble> {
         ),
         child: Container(
           margin: const EdgeInsets.only(left: 50),
-          child: TestContainer(
+          child: NewGlassContainer(
             blur: 63.1,
             color: Colors.black.withValues(alpha: 0.35),
             hasGradient: true,
@@ -199,7 +199,7 @@ class _ChatBubbleState extends State<ChatBubble> {
           ),
           child: Container(
             margin: const EdgeInsets.only(right: 40),
-            child: TestContainer(
+            child: NewGlassContainer(
               blur: 63.1,
               color: Colors.black.withValues(alpha: 0.35),
               hasGradient: true,
@@ -223,7 +223,7 @@ class _ChatBubbleState extends State<ChatBubble> {
         ),
         child: Container(
           margin: const EdgeInsets.only(right: 40),
-          child: TestContainer(
+          child: NewGlassContainer(
             blur: 63.1,
             color: Colors.black.withValues(alpha: 0.35),
             hasGradient: true,

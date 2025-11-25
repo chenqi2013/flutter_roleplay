@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-class TestContainer extends StatelessWidget {
+class NewGlassContainer extends StatelessWidget {
   final Widget? child;
   final EdgeInsetsGeometry? padding;
   final double borderRadius;
@@ -11,7 +11,7 @@ class TestContainer extends StatelessWidget {
   final Color color;
   final bool hasGradient;
 
-  const TestContainer({
+  const NewGlassContainer({
     super.key,
     this.child,
     this.padding,

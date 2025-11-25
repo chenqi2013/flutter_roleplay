@@ -5,7 +5,7 @@ import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_page.dart';
 import 'package:flutter_roleplay/widgets/glass_container.dart';
 import 'package:flutter_roleplay/widgets/params_container.dart';
-import 'package:flutter_roleplay/widgets/test_container.dart';
+import 'package:flutter_roleplay/widgets/new_glass_container.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'createrole_controller.dart';
@@ -57,7 +57,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // 角色图片选择
-                        TestContainer(
+                        NewGlassContainer(
                           blur: 63.1,
                           color: Colors.white.withValues(alpha: 0.25),
                           hasGradient: false,
@@ -81,7 +81,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        TestContainer(
+                        NewGlassContainer(
                           blur: 63.1,
                           color: Colors.white.withValues(alpha: 0.25),
                           hasGradient: false,
@@ -115,7 +115,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        TestContainer(
+                        NewGlassContainer(
                           blur: 63.1,
                           color: Colors.white.withValues(alpha: 0.25),
                           hasGradient: false,
@@ -173,7 +173,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                         ),
                         const SizedBox(height: 16),
                         // 音色选择
-                        TestContainer(
+                        NewGlassContainer(
                           blur: 63.1,
                           color: Colors.white.withValues(alpha: 0.25),
                           hasGradient: false,
@@ -310,7 +310,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        TestContainer(
+                        NewGlassContainer(
                           blur: 63.1,
                           color: Colors.white.withValues(alpha: 0.25),
                           hasGradient: false,
@@ -372,7 +372,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                               child: SizedBox(
                                 width: 126,
                                 height: 48,
-                                child: TestContainer(
+                                child: NewGlassContainer(
                                   blur: 63.1,
                                   color: Colors.black.withValues(alpha: 0.35),
                                   hasGradient: true,
@@ -430,7 +430,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => Navigator.of(context).pop(),
-                child: TestContainer(
+                child: NewGlassContainer(
                   blur: 63.1,
                   color: Colors.black.withValues(alpha: 0.35),
                   hasGradient: true,
@@ -708,7 +708,7 @@ class _LanguageOption extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: isSelected
-          ? TestContainer(
+          ? NewGlassContainer(
               blur: 63.1,
               color: Colors.black.withValues(alpha: 0.35),
               hasGradient: true,

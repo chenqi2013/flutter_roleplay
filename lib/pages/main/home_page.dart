@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/widgets/test_container.dart';
+import 'package:flutter_roleplay/widgets/new_glass_container.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/main/home_controller.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
@@ -172,7 +172,7 @@ class HomePage extends StatelessWidget {
                     notifyUpdateRolePlaySessionRequired();
                     Navigator.of(currentContext!).pop();
                   },
-                  child: TestContainer(
+                  child: NewGlassContainer(
                     blur: 63.1,
                     color: Colors.black.withValues(alpha: 0.35),
                     hasGradient: true,
@@ -228,7 +228,7 @@ class HomePage extends StatelessWidget {
         controller.tabController.animateTo(index);
       },
       child: isSelected
-          ? TestContainer(
+          ? NewGlassContainer(
               blur: 63.1,
               color: Colors.black.withValues(alpha: 0.35),
               hasGradient: true,
