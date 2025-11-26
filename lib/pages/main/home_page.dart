@@ -1,15 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/widgets/new_glass_container.dart';
+import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
+import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/main/home_controller.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_page.dart';
 import 'package:flutter_roleplay/pages/params/model_params_page.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
-import 'package:flutter_roleplay/widgets/glass_container.dart';
 import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
-import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -20,36 +19,60 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent, // 设置 Scaffold 背景为透明
-      body: Stack(
-        children: [
-          // 动态背景层
-          _buildDynamicBackground(),
-          // 前景内容
-          Column(
+    return Obx(() {
+      // 根据当前 Tab 选择背景
+      final currentTab = controller.currentIndex.value;
+      final Widget backgroundWidget;
+
+      if (currentTab == 0) {
+        // 聊天页面使用角色背景
+        final imageUrl = roleImage.value;
+        backgroundWidget = imageUrl.isEmpty
+            ? Container(color: Colors.grey.shade300)
+            : ChatPageBuilders.buildImageWidget(imageUrl, fit: BoxFit.cover);
+      } else {
+        // 角色/模型页面使用 rolebg.png
+        backgroundWidget = Image.asset(
+          'packages/flutter_roleplay/assets/svg/rolebg.png',
+          fit: BoxFit.cover,
+        );
+      }
+
+      return PreBlurredBackgroundScope(
+        backgroundImage: backgroundWidget,
+        blurSigma: 63.1,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
             children: [
-              // 顶部TabBar
-              _buildTabBar(),
-              // 内容区域
-              Expanded(
-                child: TabBarView(
-                  controller: controller.tabController,
-                  children: [
-                    // Tab1: 角色聊天页面
-                    const RolePlayChat(),
-                    // Tab2: 角色列表页面
-                    RolesListPage(),
-                    // Tab3: 模型参数页面
-                    ModelParamsPage(),
-                  ],
-                ),
+              // 动态背景层
+              _buildDynamicBackground(),
+              // 前景内容
+              Column(
+                children: [
+                  // 顶部TabBar
+                  _buildTabBar(context),
+                  // 内容区域
+                  Expanded(
+                    child: TabBarView(
+                      controller: controller.tabController,
+                      children: [
+                        // Tab1: 角色聊天页面
+                        const RolePlayChat(),
+                        // Tab2: 角色列表页面
+                        RolesListPage(),
+                        // Tab3: 模型参数页面
+                        ModelParamsPage(),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 
   // 构建动态背景
@@ -154,7 +177,7 @@ class HomePage extends StatelessWidget {
   }
 
   // 构建TabBar - 完全透明，只显示文字
-  Widget _buildTabBar() {
+  Widget _buildTabBar(BuildContext context) {
     return Container(
       color: Colors.transparent, // 完全透明
       child: SafeArea(
@@ -170,10 +193,10 @@ class HomePage extends StatelessWidget {
                   onTap: () {
                     // 关闭页面，与 chat_page_builders 的 onBackPressed 保持一致
                     notifyUpdateRolePlaySessionRequired();
-                    Navigator.of(currentContext!).pop();
+                    Navigator.of(context).pop();
                   },
-                  child: NewGlassContainer(
-                    blur: 63.1,
+                  child: ClippedGlassContainer(
+                    fallbackBlur: 63.1,
                     color: Colors.black.withValues(alpha: 0.35),
                     hasGradient: true,
                     borderRadius: 70,
@@ -228,8 +251,8 @@ class HomePage extends StatelessWidget {
         controller.tabController.animateTo(index);
       },
       child: isSelected
-          ? NewGlassContainer(
-              blur: 63.1,
+          ? ClippedGlassContainer(
+              fallbackBlur: 63.1,
               color: Colors.black.withValues(alpha: 0.35),
               hasGradient: true,
               borderRadius: 70,

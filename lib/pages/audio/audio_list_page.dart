@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_controller.dart';
-import 'package:flutter_roleplay/widgets/params_container.dart';
-import 'package:flutter_roleplay/widgets/new_glass_container.dart';
+import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
+import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:get/get.dart';
 
 class AudioListPage extends StatelessWidget {
@@ -15,34 +15,44 @@ class AudioListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     controller.isSelectMode.value = isSelectMode;
 
-    return NewGlassContainer(
-      blur: 63.1,
-      color: Colors.white.withValues(alpha: 0.3),
-      hasGradient: true,
-      borderRadius: 20,
-      borderWidth: 0.5,
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        children: [
-          // // 顶部拖动条
-          // _buildDragHandle(),
-          // 标题
-          _buildHeader(),
-          // 内容
-          Expanded(
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                );
-              }
+    // 音频列表页面使用 rolebg.png 作为背景
+    final backgroundWidget = Image.asset(
+      'packages/flutter_roleplay/assets/svg/rolebg.png',
+      fit: BoxFit.cover,
+    );
 
-              // 根据TTS语言类型选择对应的音频列表
-              final audios = _getAudiosByLanguage(controller);
-              return _buildAudioGrid(audios, controller);
-            }),
-          ),
-        ],
+    return PreBlurredBackgroundScope(
+      backgroundImage: backgroundWidget,
+      blurSigma: 63.1,
+      child: ClippedGlassContainer(
+        fallbackBlur: 63.1,
+        color: Colors.white.withValues(alpha: 0.3),
+        hasGradient: true,
+        borderRadius: 20,
+        borderWidth: 0.5,
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            // // 顶部拖动条
+            // _buildDragHandle(),
+            // 标题
+            _buildHeader(),
+            // 内容
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
+
+                // 根据TTS语言类型选择对应的音频列表
+                final audios = _getAudiosByLanguage(controller);
+                return _buildAudioGrid(audios, controller);
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -167,8 +177,8 @@ class AudioListPage extends StatelessWidget {
           controller.toggleAudio(audio);
         }
       },
-      child: NewGlassContainer(
-        blur: 63.1,
+      child: ClippedGlassContainer(
+        fallbackBlur: 63.1,
         color: Colors.white.withValues(alpha: 0.25),
         hasGradient: false,
         borderRadius: 20,

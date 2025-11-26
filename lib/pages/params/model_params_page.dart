@@ -1,11 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/widgets/params_container.dart';
-import 'package:flutter_roleplay/widgets/new_glass_container.dart';
+import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
+import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/params/model_params_controller.dart';
-import 'package:flutter_roleplay/widgets/glass_container.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_page.dart';
@@ -17,55 +15,65 @@ class ModelParamsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          _buildHeader(context),
-          Expanded(
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
+    // 模型参数页面使用 rolebg.png 作为背景
+    final backgroundWidget = Image.asset(
+      'packages/flutter_roleplay/assets/svg/rolebg.png',
+      fit: BoxFit.cover,
+    );
+
+    return PreBlurredBackgroundScope(
+      backgroundImage: backgroundWidget,
+      blurSigma: 63.1,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 当前聊天模型
+                      _buildModelInfo(
+                        title: '选择聊天模型',
+                        modelType: RoleplayManageModelType.chat,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 当前语音模型
+                      _buildModelInfo(
+                        title: '选择语音模型',
+                        modelType: RoleplayManageModelType.tts,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // TTS语言选择
+                      _buildTTSLanguageSelector(),
+                      const SizedBox(height: 16),
+
+                      // 风格滑块
+                      _buildStyleSlider(),
+                      const SizedBox(height: 16),
+
+                      // 语音角色选择
+                      _buildVoiceRoleSelector(context),
+                    ],
+                  ),
                 );
-              }
-              return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 当前聊天模型
-                    _buildModelInfo(
-                      title: '选择聊天模型',
-                      modelType: RoleplayManageModelType.chat,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 当前语音模型
-                    _buildModelInfo(
-                      title: '选择语音模型',
-                      modelType: RoleplayManageModelType.tts,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // TTS语言选择
-                    _buildTTSLanguageSelector(),
-                    const SizedBox(height: 16),
-
-                    // 风格滑块
-                    _buildStyleSlider(),
-                    const SizedBox(height: 16),
-
-                    // 语音角色选择
-                    _buildVoiceRoleSelector(context),
-                  ],
-                ),
-              );
-            }),
-          ),
-          _buildSaveButton(context),
-        ],
+              }),
+            ),
+            _buildSaveButton(context),
+          ],
+        ),
       ),
     );
   }
@@ -129,9 +137,9 @@ class ModelParamsPage extends StatelessWidget {
         ? chatmodelPath
         : ttsmodelPath;
 
-    return NewGlassContainer(
-      blur: 63.1,
-      color: Colors.white.withValues(alpha: 0.25),
+    return ClippedGlassContainer(
+      fallbackBlur: 63.1,
+      color: Colors.white.withValues(alpha: 0.45),
       hasGradient: false,
       borderRadius: 20,
       borderWidth: 0,
@@ -201,9 +209,9 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建TTS语言选择器
   Widget _buildTTSLanguageSelector() {
-    return NewGlassContainer(
-      blur: 63.1,
-      color: Colors.white.withValues(alpha: 0.25),
+    return ClippedGlassContainer(
+      fallbackBlur: 63.1,
+      color: Colors.white.withValues(alpha: 0.45),
       hasGradient: false,
       borderRadius: 20,
       borderWidth: 0,
@@ -231,8 +239,8 @@ class ModelParamsPage extends StatelessWidget {
                         behavior: HitTestBehavior.opaque,
                         onTap: () => controller.selectTTSLanguage(lang),
                         child: isSelected
-                            ? NewGlassContainer(
-                                blur: 63.1,
+                            ? ClippedGlassContainer(
+                                fallbackBlur: 63.1,
                                 color: Colors.black.withValues(alpha: 0.35),
                                 hasGradient: true,
                                 borderRadius: 70,
@@ -280,9 +288,9 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建解码参数区域
   Widget _buildStyleSlider() {
-    return NewGlassContainer(
-      blur: 63.1,
-      color: Colors.white.withValues(alpha: 0.25),
+    return ClippedGlassContainer(
+      fallbackBlur: 63.1,
+      color: Colors.white.withValues(alpha: 0.45),
       hasGradient: false,
       borderRadius: 20,
       borderWidth: 0,
@@ -472,8 +480,8 @@ class ModelParamsPage extends StatelessWidget {
           // 关闭后刷新数据
           controller.loadModelsAndSettings();
         },
-        child: NewGlassContainer(
-          blur: 63.1,
+        child: ClippedGlassContainer(
+          fallbackBlur: 63.1,
           color: Colors.white.withValues(alpha: 0.25),
           hasGradient: false,
           borderRadius: 20,
@@ -545,8 +553,8 @@ class ModelParamsPage extends StatelessWidget {
             child: SizedBox(
               width: 126,
               height: 48,
-              child: NewGlassContainer(
-                blur: 63.1,
+              child: ClippedGlassContainer(
+                fallbackBlur: 63.1,
                 color: Colors.black.withValues(alpha: 0.35),
                 hasGradient: true,
                 borderRadius: 70,

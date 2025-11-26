@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/widgets/new_glass_container.dart';
+import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
+import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/new/createrole_page.dart';
-import 'package:flutter_roleplay/widgets/glass_container.dart';
 import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
 
 class RolesListPage extends StatelessWidget {
@@ -13,13 +13,19 @@ class RolesListPage extends StatelessWidget {
   final controller = Get.find<RolesListController>();
   @override
   Widget build(BuildContext context) {
-    // // 每次进入页面时刷新角色列表，确保显示最新的角色数据
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   controller.loadRoles();
-    // });
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: _buildBody(context),
+    // 角色列表页面使用 rolebg.png 作为背景
+    final backgroundWidget = Image.asset(
+      'packages/flutter_roleplay/assets/svg/rolebg.png',
+      fit: BoxFit.cover,
+    );
+
+    return PreBlurredBackgroundScope(
+      backgroundImage: backgroundWidget,
+      blurSigma: 63.1,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: _buildBody(context),
+      ),
     );
   }
 
@@ -198,8 +204,8 @@ class RolesListPage extends StatelessWidget {
           child: SizedBox(
             width: 126,
             height: 48,
-            child: NewGlassContainer(
-              blur: 63.1,
+            child: ClippedGlassContainer(
+              fallbackBlur: 63.1,
               color: Colors.black.withValues(alpha: 0.35),
               hasGradient: true,
               borderRadius: 70,

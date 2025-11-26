@@ -103,8 +103,9 @@ class _ClippedGlassContainerState extends State<ClippedGlassContainer> {
       child: Padding(
         padding: EdgeInsets.all(widget.borderWidth),
         child: ClipRRect(
-          borderRadius:
-              BorderRadius.circular(widget.borderRadius - widget.borderWidth),
+          borderRadius: BorderRadius.circular(
+            widget.borderRadius - widget.borderWidth,
+          ),
           child: blurData != null && _positionCalculated
               ? _buildClippedBlurEffect(blurData)
               : _buildFallbackBlurEffect(),
@@ -147,14 +148,13 @@ class _ClippedGlassContainerState extends State<ClippedGlassContainer> {
         ),
 
         // 半透明背景色
-        Positioned.fill(
-          child: Container(color: widget.color),
-        ),
+        Positioned.fill(child: Container(color: widget.color)),
 
         // 子内容
         Container(
           padding: widget.padding ?? const EdgeInsets.all(20),
-          child: widget.child ??
+          child:
+              widget.child ??
               const Text(
                 "test",
                 style: TextStyle(fontSize: 32, color: Colors.white),
@@ -174,7 +174,8 @@ class _ClippedGlassContainerState extends State<ClippedGlassContainer> {
       child: Container(
         padding: widget.padding ?? const EdgeInsets.all(20),
         decoration: BoxDecoration(color: widget.color),
-        child: widget.child ??
+        child:
+            widget.child ??
             const Text(
               "test",
               style: TextStyle(fontSize: 32, color: Colors.white),
