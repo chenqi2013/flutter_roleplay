@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
-import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
-import 'package:flutter_roleplay/widgets/glass_container.dart';
-import 'package:flutter_roleplay/widgets/new_glass_container.dart';
-import 'package:flutter_svg/svg.dart';
-import 'dart:ui';
+import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'dart:io';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -18,8 +14,6 @@ import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/widgets/character_intro.dart';
 import 'package:flutter_roleplay/widgets/chat_bubble.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
-import 'package:flutter_roleplay/dialog/chat_dialogs.dart';
-import 'package:flutter_roleplay/services/model_callback_service.dart';
 
 /// 聊天页面构建器
 class ChatPageBuilders {
@@ -475,21 +469,16 @@ class ChatPageBuilders {
       debugPrint('buildSingleChatPage: 当前图片URL = $imageUrl');
       debugPrint('buildSingleChatPage: 当前角色名 = ${roleName.value}');
 
-      return Stack(
-        key: ValueKey(
-          'single_chat_${roleName.value}_$imageUrl',
-        ), // 使用角色名和图片URL作为key
-        fit: StackFit.expand,
-        children: [
-          // 动态背景图片
-          Positioned.fill(
-            child: imageUrl.isEmpty
-                ? Container(color: Colors.grey.shade300)
-                : _buildImageWidget(imageUrl),
-          ),
-          // 前景内容
-          chatScaffold,
-        ],
+      final backgroundWidget = imageUrl.isEmpty
+          ? Container(color: Colors.grey.shade300)
+          : _buildImageWidget(imageUrl);
+
+      // 使用预模糊背景作用域包裹整个页面
+      return PreBlurredBackgroundScope(
+        key: ValueKey('single_chat_${roleName.value}_$imageUrl'),
+        backgroundImage: backgroundWidget,
+        blurSigma: 63.1,
+        child: chatScaffold,
       );
     });
   }
@@ -530,72 +519,38 @@ class ChatPageBuilders {
   }) {
     final role = usedRoles[index];
 
+    final foreground = _buildResponsiveForeground(
+      role: role,
+      index: index,
+      context: context,
+      onBackPressed: onBackPressed,
+      onClearHistory: onClearHistory,
+      onNavigateToRolesList: onNavigateToRolesList,
+      onNavigateToCreateRole: onNavigateToCreateRole,
+      onNavigateToChangeModel: onNavigateToChangeModel,
+      onNavigateToRoleParams: onNavigateToRoleParams,
+      onNavigateToAudioList: onNavigateToAudioList,
+      chatListView: chatListView,
+      inputBar: inputBar,
+    );
+
     if (!showBackground) {
       // 不显示背景，直接返回前景内容
-      return _buildResponsiveForeground(
-        role: role,
-        index: index,
-        context: context,
-        onBackPressed: onBackPressed,
-        onClearHistory: onClearHistory,
-        onNavigateToRolesList: onNavigateToRolesList,
-        onNavigateToCreateRole: onNavigateToCreateRole,
-        onNavigateToChangeModel: onNavigateToChangeModel,
-        onNavigateToRoleParams: onNavigateToRoleParams,
-        onNavigateToAudioList: onNavigateToAudioList,
-        chatListView: chatListView,
-        inputBar: inputBar,
-      );
+      return foreground;
     }
 
-    return Stack(
-      key: ValueKey('page_content_${role['name']}_$index'),
-      fit: StackFit.expand,
-      children: [
-        // 背景图片 - 分离出来，只在角色图片真正变化时更新
-        _buildResponsiveBackground(role, index, usedRoles),
-        // 前景内容 - 只在标题需要响应式更新时使用 Obx
-        _buildResponsiveForeground(
-          role: role,
-          index: index,
-          context: context,
-          onBackPressed: onBackPressed,
-          onClearHistory: onClearHistory,
-          onNavigateToRolesList: onNavigateToRolesList,
-          onNavigateToCreateRole: onNavigateToCreateRole,
-          onNavigateToChangeModel: onNavigateToChangeModel,
-          onNavigateToRoleParams: onNavigateToRoleParams,
-          onNavigateToAudioList: onNavigateToAudioList,
-          chatListView: chatListView,
-          inputBar: inputBar,
-        ),
-      ],
-    );
-  }
-
-  /// 构建响应式背景图片
-  static Widget _buildResponsiveBackground(
-    Map<String, dynamic> role,
-    int index,
-    List<Map<String, dynamic>> usedRoles,
-  ) {
+    // 使用预模糊背景作用域包裹整个页面
     return Obx(() {
-      // // 找到当前活跃角色的索引
-      // final currentRoleIndex = usedRoles.indexWhere(
-      //   (r) => r['name'] == roleName.value,
-      // );
+      final backgroundWidget = _buildImageWidget(
+        roleImage.value,
+        key: ValueKey('bg_${index}_${roleImage.value}'),
+      );
 
-      // // 只有当前活跃的角色页面才使用响应式图片，其他页面使用静态图片
-      // final bool isCurrentActivePage = index == currentRoleIndex;
-      // final String backgroundImage = isCurrentActivePage
-      //     ? roleImage.value
-      //     : role['image'] as String;
-
-      return Positioned.fill(
-        child: _buildImageWidget(
-          roleImage.value,
-          key: ValueKey('bg_${index}_${roleImage.value}'),
-        ),
+      return PreBlurredBackgroundScope(
+        key: ValueKey('page_content_${role['name']}_$index'),
+        backgroundImage: backgroundWidget,
+        blurSigma: 63.1,
+        child: foreground,
       );
     });
   }
@@ -628,38 +583,6 @@ class ChatPageBuilders {
           ],
         ),
       ),
-    );
-  }
-
-  /// 构建响应式 AppBar - 只在角色名称变化时更新
-  static PreferredSizeWidget _buildResponsiveAppBar({
-    required Map<String, dynamic> role,
-    required BuildContext context,
-    required Function() onBackPressed,
-    required Function() onClearHistory,
-    required Function() onNavigateToRolesList,
-    required Function() onNavigateToCreateRole,
-    required Function(RoleplayManageModelType roleplayManageModelType)
-    onNavigateToChangeModel,
-    required Function() onNavigateToRoleParams,
-    required Function() onNavigateToAudioList,
-  }) {
-    // 只在当前角色且名称变化时才重新构建 AppBar
-    final bool isCurrentRole = role['name'] == roleName.value;
-    final String displayName = isCurrentRole
-        ? roleName.value
-        : role['name'] as String;
-
-    return _buildAppBar(
-      context: context,
-      title: displayName,
-      onBackPressed: onBackPressed,
-      onClearHistory: onClearHistory,
-      onNavigateToRolesList: onNavigateToRolesList,
-      onNavigateToCreateRole: onNavigateToCreateRole,
-      onNavigateToChangeModel: onNavigateToChangeModel,
-      onNavigateToRoleParams: onNavigateToRoleParams,
-      onNavigateToAudioList: onNavigateToAudioList,
     );
   }
 
@@ -811,262 +734,6 @@ class ChatPageBuilders {
 
     // 不应该到达这里，返回空容器
     return const SizedBox.shrink();
-  }
-
-  /// 构建应用栏
-  static PreferredSizeWidget _buildAppBar({
-    required BuildContext context,
-    required String title,
-    required Function() onBackPressed,
-    required Function() onClearHistory,
-    required Function() onNavigateToRolesList,
-    required Function() onNavigateToCreateRole,
-    required Function(RoleplayManageModelType roleplayManageModelType)
-    onNavigateToChangeModel,
-    required Function() onNavigateToRoleParams,
-    required Function() onNavigateToAudioList,
-  }) {
-    return AppBar(
-      backgroundColor: Colors.black.withValues(alpha: 0.2),
-      elevation: 0,
-      leadingWidth: 64, // 设置 leading 区域宽度
-      leading: Center(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onBackPressed,
-          child: NewGlassContainer(
-            blur: 63.1,
-            color: Colors.black.withValues(alpha: 0.35),
-            hasGradient: true,
-            borderRadius: 70,
-            borderWidth: 0.5,
-            padding: const EdgeInsets.all(12),
-            child: SvgPicture.asset(
-              'packages/flutter_roleplay/assets/svg/close.svg',
-              height: 12,
-            ),
-          ),
-        ),
-      ),
-      title: Text(
-        roleName.value,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      centerTitle: true,
-      actions: [
-        _buildTTSToggleButton(context),
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert, color: Colors.white, size: 28),
-          surfaceTintColor: Colors.transparent,
-          color: Colors.white,
-          elevation: 8,
-          shadowColor: Colors.black.withValues(alpha: 0.1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          offset: const Offset(-20, 50),
-          itemBuilder: (BuildContext context) => [
-            _buildSimplePopupMenuItem(
-              value: 'clear_history',
-              icon: Icons.delete_forever,
-              text: 'clear_history'.tr,
-            ),
-            _buildSimplePopupMenuItem(
-              value: 'role_list',
-              icon: Icons.list,
-              text: 'role_list'.tr,
-            ),
-            _buildSimplePopupMenuItem(
-              value: 'create_role',
-              icon: Icons.add,
-              text: 'create_role'.tr,
-            ),
-            _buildSimplePopupMenuItem(
-              value: 'change_model',
-              icon: Icons.settings,
-              text: 'change_model'.tr,
-            ),
-            _buildSimplePopupMenuItem(
-              value: 'change_tts_model',
-              icon: Icons.settings,
-              text: 'change_tts_model'.tr,
-            ),
-            _buildSimplePopupMenuItem(
-              value: 'change_voice',
-              icon: Icons.record_voice_over,
-              text: '切换音色',
-            ),
-            _buildSimplePopupMenuItem(
-              value: 'role_params',
-              icon: Icons.tune,
-              text: 'role_params'.tr,
-            ),
-          ],
-          onSelected: (String value) async {
-            switch (value) {
-              case 'clear_history':
-                final confirmed = await ChatDialogs.showDeleteHistoryDialog(
-                  context,
-                );
-                if (confirmed == true) {
-                  onClearHistory();
-                }
-                break;
-              case 'role_list':
-                onNavigateToRolesList();
-                break;
-              case 'create_role':
-                onNavigateToCreateRole();
-                break;
-              case 'change_model':
-                onNavigateToChangeModel(RoleplayManageModelType.chat);
-                break;
-              case 'change_tts_model':
-                onNavigateToChangeModel(RoleplayManageModelType.tts);
-                break;
-              case 'change_voice':
-                onNavigateToAudioList();
-                break;
-              case 'role_params':
-                onNavigateToRoleParams();
-                break;
-            }
-          },
-        ),
-      ],
-    );
-  }
-
-  /// 构建 TTS 开关按钮
-  static Widget _buildTTSToggleButton(BuildContext context) {
-    // 获取 TTS 服务
-    final ttsService = Get.find<RWKVTTSService>();
-    // debugPrint(
-    //   '_buildTTSToggleButton - 获取到的TTS实例hashCode: ${ttsService.hashCode}',
-    // );
-
-    return Obx(() {
-      final isEnabled = ttsService.isTTSEnabled.value;
-
-      return IconButton(
-        icon: Icon(
-          isEnabled ? Icons.volume_up : Icons.volume_off,
-          color: Colors.white,
-          size: 23,
-        ),
-        tooltip: isEnabled ? '关闭语音' : '开启语音',
-        onPressed: () async {
-          await ttsService.toggleTTS();
-
-          // 显示提示
-          if (context.mounted) {
-            if (ttsService.isTTSEnabled.value && ttsService.modelInfo == null) {
-              // TTS 已开启但没有模型，提示用户下载模型
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('语音已开启，但尚未配置TTS模型'),
-                  duration: const Duration(seconds: 4),
-                  behavior: SnackBarBehavior.floating,
-                  margin: const EdgeInsets.only(
-                    bottom: 80,
-                    left: 20,
-                    right: 20,
-                  ),
-                  action: SnackBarAction(
-                    label: '去配置',
-                    textColor: Colors.white,
-                    onPressed: () {
-                      // 打开 TTS 模型下载页面
-                      notifyModelDownloadRequired(RoleplayManageModelType.tts);
-                    },
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            } else {
-              final message = ttsService.isTTSEnabled.value ? '语音已开启' : '语音已关闭';
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                  duration: const Duration(seconds: 1),
-                  behavior: SnackBarBehavior.floating,
-                  margin: const EdgeInsets.only(
-                    bottom: 80,
-                    left: 20,
-                    right: 20,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            }
-          }
-        },
-      );
-    });
-  }
-
-  /// 构建现代优雅的弹出菜单项
-  static PopupMenuItem<String> _buildSimplePopupMenuItem({
-    required String value,
-    required IconData icon,
-    required String text,
-  }) {
-    return PopupMenuItem<String>(
-      value: value,
-      padding: EdgeInsets.zero,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  width: 0.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Icon(icon, color: Colors.grey.shade600, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      text,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey.shade800,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   /// 检查是否需要显示展开图标

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/widgets/new_glass_container.dart';
+import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'glass_container.dart';
 
 // 全局贴底输入框组件：自动避让键盘 + 底部导航
 class GlobalInputBar extends StatelessWidget {
@@ -92,8 +91,8 @@ class _GlassInput extends StatelessWidget {
       children: [
         // 输入框
         Expanded(
-          child: NewGlassContainer(
-            blur: 100,
+          child: ClippedGlassContainer(
+            fallbackBlur: 100,
             color: Colors.black.withValues(alpha: 0.35),
             hasGradient: true,
             borderRadius: 90,
@@ -143,8 +142,8 @@ class _GlassInput extends StatelessWidget {
           child: SizedBox(
             width: 48,
             height: 48,
-            child: NewGlassContainer(
-              blur: 63.1,
+            child: ClippedGlassContainer(
+              fallbackBlur: 63.1,
               color: Colors.black.withValues(alpha: 0.35),
               hasGradient: true,
               borderRadius: 24,
