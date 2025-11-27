@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
@@ -25,6 +27,7 @@ class RoleplayManage {
     Function(RoleplayManageModelType type)? onModelDownloadRequired,
     Function(ModelInfo?)? changeModelCallback,
     VoidCallback? onUpdateRolePlaySessionRequired,
+    Function(SendPort?, ReceivePort?)? onSendPortAndReceivePortChange,
   }) {
     currentContext = context;
 
@@ -36,6 +39,9 @@ class RoleplayManage {
 
     // 设置全局角色会话更新回调
     setGlobalUpdateRolePlaySessionCallback(onUpdateRolePlaySessionRequired);
+
+    // 设置全局sendport和receiveport改变回调
+    setGlobalSendPortAndReceivePortCallback(onSendPortAndReceivePortChange);
 
     initializeControllers();
     // 初始化语言服务
@@ -114,6 +120,14 @@ class RoleplayManage {
     debugPrint('外部应用通知：模型下载完成');
     // 调用全局函数通知模型下载完成
     notifyModelDownloadComplete(info);
+  }
+
+  static void onSendPortAndReceivePortChange(
+    SendPort? sendPort,
+    ReceivePort? receivePort,
+  ) {
+    debugPrint('外部应用通知：sendport和receiveport改变');
+    notifySendPortAndReceivePortChange(sendPort, receivePort);
   }
 
   /// state文件切换

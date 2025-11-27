@@ -29,7 +29,7 @@ class RWKVChatService extends GetxController {
   SendPort? _sendPort;
 
   /// Receive message from RWKV isolate
-  late final _receivePort = ReceivePort();
+  ReceivePort _receivePort = ReceivePort();
 
   final RxDouble prefillSpeed = 0.0.obs;
   final RxDouble decodeSpeed = 0.0.obs;
@@ -277,6 +277,15 @@ class RWKVChatService extends GetxController {
       controller?.modelInfo = modelInfo;
       debugPrint('stateFileChangeCallback: ${info?.toString()}');
       clearStates();
+    });
+
+    setGlobalSendPortAndReceivePortCallback((
+      SendPort? sendPort,
+      ReceivePort? receivePort,
+    ) {
+      _sendPort = sendPort;
+      _receivePort = receivePort!;
+      debugPrint('sendport和receiveport改变通知，重新加载模型');
     });
 
     // 检查是否需要下载模型

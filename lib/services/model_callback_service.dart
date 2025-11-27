@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
@@ -21,6 +23,9 @@ Function(ModelInfo?)? _globalModelDownloadCompleteCallback;
 /// 全局state文件切换回调
 Function(ModelInfo?)? _globalStateFileChangeCallback;
 
+/// sendport和receiveport的回调
+Function(SendPort?, ReceivePort?)? _globalSendPortAndReceivePortCallback;
+
 /// 设置全局模型下载回调
 void setGlobalModelDownloadCallback(ModelDownloadCallback? callback) {
   _globalModelDownloadCallback = callback;
@@ -43,6 +48,13 @@ void setGlobalModelDownloadCompleteCallback(Function(ModelInfo?)? callback) {
 /// state文件切换
 void setGlobalStateFileChangeCallback(Function(ModelInfo?)? callback) {
   _globalStateFileChangeCallback = callback;
+}
+
+/// sendport和receiveport的回调
+void setGlobalSendPortAndReceivePortCallback(
+  Function(SendPort?, ReceivePort?)? callback,
+) {
+  _globalSendPortAndReceivePortCallback = callback;
 }
 
 /// 通知需要下载模型
@@ -100,5 +112,18 @@ void notifyStateFileChange(ModelInfo info) {
     _globalStateFileChangeCallback!(info);
   } else {
     debugPrint('未设置state文件改变回调');
+  }
+}
+
+/// 通知外部应用sendport和receiveport改变，插件应该重新加载模型
+void notifySendPortAndReceivePortChange(
+  SendPort? sendPort,
+  ReceivePort? receivePort,
+) {
+  if (_globalSendPortAndReceivePortCallback != null) {
+    debugPrint('收到sendport和receiveport改变通知，重新加载模型');
+    _globalSendPortAndReceivePortCallback!(sendPort, receivePort);
+  } else {
+    debugPrint('未设置sendport和receiveport改变回调');
   }
 }
