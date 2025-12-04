@@ -10,6 +10,7 @@ import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
 import 'package:flutter_roleplay/services/language_service.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
+import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
 import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'package:flutter_roleplay/translations/app_translations.dart';
 import 'package:flutter_roleplay/pages/params/role_params_controller.dart';
@@ -22,6 +23,8 @@ LanguageService? languageService;
 enum RoleplayManageModelType { chat, tts }
 
 class RoleplayManage {
+  static bool isRolePlayMessage = false;
+  static bool isTTSOperationMessage = false;
   static Widget createRolePlayChatPage(
     BuildContext context, {
     Function(RoleplayManageModelType type)? onModelDownloadRequired,
@@ -52,7 +55,7 @@ class RoleplayManage {
 
     // 直接返回RolePlayChat页面，不创建新的MaterialApp
     // 让宿主应用的导航栈管理所有页面
-
+    RoleplayManage.isRolePlayMessage = true;
     return RolePlayChat();
   }
 
@@ -117,13 +120,50 @@ class RoleplayManage {
   /// 通知插件模型下载完成，插件将重新加载模型
   /// 外部应用在模型下载完成后调用此方法
   static void onModelDownloadComplete(
-    ModelInfo info,
+    ModelInfo? info,
     SendPort? sendPort,
     ReceivePort? receivePort,
   ) {
     debugPrint('外部应用通知：模型下载完成');
+    RWKVChatService chatService;
+    RWKVTTSService ttsService;
+    if (info?.modelType == RoleplayManageModelType.chat) {
+      if (Get.isRegistered<RWKVChatService>()) {
+        debugPrint('RWKVChatService已注册');
+        chatService = Get.find<RWKVChatService>();
+        chatService.setSendPortAndReceivePort(sendPort, receivePort);
+      } else {
+        debugPrint('RWKVChatService未注册，创建新的实例');
+        chatService = Get.put(RWKVChatService());
+        chatService.setSendPortAndReceivePort(sendPort, receivePort);
+      }
+    } else if (info?.modelType == RoleplayManageModelType.tts) {
+      if (Get.isRegistered<RWKVTTSService>()) {
+        debugPrint('RWKVTTSService已注册');
+        ttsService = Get.find<RWKVTTSService>();
+        ttsService.setSendPortAndReceivePort(sendPort, receivePort);
+      } else {
+        debugPrint('RWKVTTSService未注册，创建新的实例');
+        ttsService = Get.put(RWKVTTSService());
+        ttsService.setSendPortAndReceivePort(sendPort, receivePort);
+      }
+    }
+
     // 调用全局函数通知模型下载完成
     notifyModelDownloadComplete(info);
+  }
+
+  static void operationMessage(dynamic message) {
+    debugPrint(
+      'isTTSOperationMessage: ${RoleplayManage.isTTSOperationMessage}',
+    );
+    if (!RoleplayManage.isTTSOperationMessage) {
+      RWKVChatService chatService = Get.find<RWKVChatService>();
+      chatService.operationChatMessage(message);
+    } else {
+      RWKVTTSService ttsService = Get.find<RWKVTTSService>();
+      ttsService.operationTTSMessage(message);
+    }
   }
 
   static void onSendPortAndReceivePortChange(
@@ -196,6 +236,7 @@ class RoleplayManage {
     // 直接返回RolePlayChat页面，不创建新的MaterialApp
     // 让宿主应用的导航栈管理所有页面
     debugPrint('goRolePlay: $roleName');
+    RoleplayManage.isRolePlayMessage = true;
     return RolePlayChat(roleName: roleName);
   }
 
