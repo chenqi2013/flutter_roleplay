@@ -32,7 +32,7 @@ class RWKVTTSService extends GetxController {
   final RxBool isGenerating = false.obs;
 
   late Completer<void> _initRuntimeCompleter = Completer<void>();
-  Timer? _getTokensTimer;
+  // Timer? _getTokensTimer;
 
   bool isSparkTTSModelLoaded = false;
 
@@ -366,10 +366,10 @@ class RWKVTTSService extends GetxController {
     //   await Future.delayed(const Duration(milliseconds: 50));
     // }
 
-    if (_getTokensTimer != null) {
-      _getTokensTimer!.cancel();
-      _getTokensTimer = null;
-    }
+    // if (_getTokensTimer != null) {
+    //   _getTokensTimer!.cancel();
+    //   _getTokensTimer = null;
+    // }
 
     // _getTokensTimer = Timer.periodic(const Duration(milliseconds: 225), (
     //   timer,
@@ -434,14 +434,13 @@ class RWKVTTSService extends GetxController {
     isSparkTTSModelLoaded = false;
     sendPort = null;
     _initRuntimeCompleter = Completer<void>();
-    _getTokensTimer?.cancel();
-    _getTokensTimer = null;
+    // _getTokensTimer?.cancel();
+    // _getTokensTimer = null;
     _queryTimer?.cancel();
     _queryTimer = null;
     _asTimer?.cancel();
     _asTimer = null;
     audioStream = null;
-    debugPrint('releaseTTSModel success');
   }
 
   void stopPlayer() {

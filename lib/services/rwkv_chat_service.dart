@@ -680,6 +680,15 @@ class RWKVChatService extends GetxController {
     }
   }
 
+  Future<void> releaseModel() async {
+    await stop();
+    if (modelID >= 0) {
+      send(to_rwkv.ReleaseModel(modelID: modelID));
+      isModelLoaded = false;
+      debugPrint('to_rwkv.Release chat Model()，，释放模型');
+    }
+  }
+
   /// 生成聊天回复流
   Stream<String> streamLocalChatCompletions({String? content}) {
     content ??= 'introduce_yourself'.tr;
