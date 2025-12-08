@@ -149,6 +149,7 @@ class RWKVChatService extends GetxController {
         }
         modelID = message.toRWKV!.modelID!;
         isModelLoaded = false;
+        _setupModelParameters();
       }
     } else if (message is LoadSteps) {
       debugPrint("chenqi chat receive LoadSteps: ${message.modelID}");
@@ -662,6 +663,7 @@ class RWKVChatService extends GetxController {
 
   /// 发送消息到 RWKV
   void send(to_rwkv.ToRWKV toRwkv) {
+    debugPrint('chenqi chat send: $toRwkv, modelID: $modelID');
     final sendPort = this.sendPort;
     if (sendPort == null) {
       debugPrint("sendPort is null");
