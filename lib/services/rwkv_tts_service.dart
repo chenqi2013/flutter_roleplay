@@ -254,8 +254,8 @@ class RWKVTTSService extends GetxController {
         );
         if (modelID >= 0) {
           send(to_rwkv.ReleaseTTSModels(modelID: modelID));
-          debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
           send(to_rwkv.ReleaseModel(modelID: modelID));
+          debugPrint('chenqi to_rwkv.ReleaseTTSModels()，，释放TTS模型');
         }
         modelID = message.toRWKV!.modelID!;
         isSparkTTSModelLoaded = false;

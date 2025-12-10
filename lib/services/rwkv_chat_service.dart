@@ -144,8 +144,8 @@ class RWKVChatService extends GetxController {
           'chenqi chat receive ReInitSteps: ${message.toRWKV?.modelID}',
         );
         if (modelID >= 0) {
-          debugPrint('to_rwkv.Release chat Models()，，释放chat模型');
           send(to_rwkv.ReleaseModel(modelID: modelID));
+          debugPrint('chenqi to_rwkv.Release 释放chat模型');
         }
         modelID = message.toRWKV!.modelID!;
         isModelLoaded = false;
