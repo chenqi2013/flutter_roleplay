@@ -261,7 +261,7 @@ class RWKVTTSService extends GetxController {
         } else if (message is Speed) {
           // 处理速度信息
         } else if (message is LoadSteps) {
-          debugPrint("receive LoadSteps: ${message.modelID}");
+          debugPrint("tts receive LoadSteps: ${message.modelID}");
           modelID = message.modelID;
         } else if (message is TTSStreamingBuffer) {
           debugPrint("receive TTSStreamingBuffer: $message");
@@ -316,19 +316,21 @@ class RWKVTTSService extends GetxController {
 
     if (_sendPort != null) {
       try {
-        if (modelID != null) {
-          send(to_rwkv.ReleaseTTSModels());
-          debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
-          send(to_rwkv.ReleaseModel(modelID: modelID));
-          debugPrint('to_rwkv.ReleaseModel(modelID:$modelID)，，释放模型');
-          debugPrint('_sendPort != null releaseTTSModels modelID: $modelID');
-        }
-
-        // await reInitRuntime(
-        //   backend: backend,
-        //   modelPath: modelPath,
-        //   tokenizerPath: tokenizerPath,
-        // );
+        // if (modelID != null) {
+        //   send(to_rwkv.ReleaseTTSModels());
+        //   debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
+        //   send(to_rwkv.ReleaseModel(modelID: modelID));
+        //   debugPrint('to_rwkv.ReleaseModel(modelID:$modelID)，，释放模型');
+        //   debugPrint('_sendPort != null releaseTTSModels modelID: $modelID');
+        // }
+        send(to_rwkv.ReleaseTTSModels());
+        send(
+          to_rwkv.ReInitRuntime(
+            modelPath: modelPath,
+            backend: backend,
+            tokenizerPath: tokenizerPath,
+          ),
+        );
       } catch (e) {
         debugPrint("initRuntime failed: $e");
         // if (!kDebugMode)
@@ -336,17 +338,16 @@ class RWKVTTSService extends GetxController {
         // Alert.error("Failed to load model: $e");
         return;
       }
-      _sendPort = null;
+    } else {
+      final options = StartOptions(
+        modelPath: modelPath,
+        tokenizerPath: tokenizerPath,
+        backend: backend,
+        sendPort: _receivePort.sendPort,
+        rootIsolateToken: rootIsolateToken!,
+      );
+      await rwkvMobile.runIsolate(options);
     }
-    final options = StartOptions(
-      modelPath: modelPath,
-      tokenizerPath: tokenizerPath,
-      backend: backend,
-      sendPort: _receivePort.sendPort,
-      rootIsolateToken: rootIsolateToken!,
-    );
-    await rwkvMobile.runIsolate(options);
-
     while (_sendPort == null) {
       debugPrint("waiting for sendPort...");
       await Future.delayed(const Duration(milliseconds: 50));
@@ -398,6 +399,7 @@ class RWKVTTSService extends GetxController {
     send(to_rwkv.LoadTTSTextNormalizer(ttsTextNormalizerNumberPath));
 
     isSparkTTSModelLoaded = true;
+    isTTSEnabled.value = true;
     debugPrint('loadSparkTTS success');
   }
 

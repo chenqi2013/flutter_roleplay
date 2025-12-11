@@ -54,6 +54,7 @@ class RWKVChatService extends GetxController {
   var history = <String>[];
   bool isHiddenState = false;
   final RWKVMobile rwkvMobile = RWKVMobile();
+  int? modelID;
   @override
   void onInit() async {
     super.onInit();
@@ -135,6 +136,9 @@ class RWKVChatService extends GetxController {
       if (message is SendPort) {
         _sendPort = message;
         debugPrint("receive SendPort: $message");
+      } else if (message is LoadSteps) {
+        debugPrint("chat receive LoadSteps: ${message.modelID}");
+        modelID = message.modelID;
       } else {
         if (message is ResponseBufferContent) {
           String result = message.responseBufferContent;
@@ -407,26 +411,26 @@ class RWKVChatService extends GetxController {
     final rootIsolateToken = RootIsolateToken.instance;
 
     if (_sendPort != null) {
-      // send(
-      //   to_rwkv.ReInitRuntime(
-      //     modelPath: modelPath,
-      //     backend: backend,
-      //     tokenizerPath: tokenizerPath,
-      //   ),
-      // );
-      send(to_rwkv.ReleaseModel());
-      _sendPort = null;
-      debugPrint('to_rwkv.ReleaseModel()，，释放模型');
+      send(
+        to_rwkv.ReInitRuntime(
+          modelPath: chatmodelPath.value,
+          backend: backend,
+          tokenizerPath: tokenizerPath,
+        ),
+      );
+      // send(to_rwkv.ReleaseModel());
+      // _sendPort = null;
+      // debugPrint('to_rwkv.ReleaseModel()，，释放模型');
+    } else {
+      final options = StartOptions(
+        modelPath: chatmodelPath.value,
+        tokenizerPath: tokenizerPath,
+        backend: backend,
+        sendPort: _receivePort.sendPort,
+        rootIsolateToken: rootIsolateToken!,
+      );
+      await rwkvMobile.runIsolate(options);
     }
-
-    final options = StartOptions(
-      modelPath: chatmodelPath.value,
-      tokenizerPath: tokenizerPath,
-      backend: backend,
-      sendPort: _receivePort.sendPort,
-      rootIsolateToken: rootIsolateToken!,
-    );
-    await rwkvMobile.runIsolate(options);
 
     while (_sendPort == null) {
       debugPrint("waiting for sendPort...");
