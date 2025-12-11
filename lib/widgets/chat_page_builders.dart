@@ -662,18 +662,24 @@ class ChatPageBuilders {
         onScrollNotification(notification);
         return false;
       },
-      child: ListView.builder(
-        controller: scrollController,
-        reverse: true,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        itemCount: messages.length + 1,
-        cacheExtent: 1000,
-        addAutomaticKeepAlives: true,
-        addRepaintBoundaries: true,
-        addSemanticIndexes: false,
-        itemBuilder: (context, index) {
-          return RepaintBoundary(child: itemBuilder(context, index));
-        },
+      // 禁用过度滚动效果，防止拉到顶部/底部时 BackdropFilter 高亮
+      child: Builder(
+        builder: (context) => ScrollConfiguration(
+          behavior: _NoOverscrollBehavior(),
+          child: ListView.builder(
+            controller: scrollController,
+            reverse: true,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            itemCount: messages.length + 1,
+            cacheExtent: 1000,
+            addAutomaticKeepAlives: true,
+            addRepaintBoundaries: true,
+            addSemanticIndexes: false,
+            itemBuilder: (context, index) {
+              return RepaintBoundary(child: itemBuilder(context, index));
+            },
+          ),
+        ),
       ),
     );
   }
@@ -755,5 +761,25 @@ class ChatPageBuilders {
 
     // 检查文本是否被截断（didExceedMaxLines 表示文本超过了maxLines）
     return textPainter.didExceedMaxLines;
+  }
+}
+
+/// 自定义 ScrollBehavior，禁用过度滚动效果
+/// 防止 ListView 拉到顶部/底部时 BackdropFilter 出现高亮问题
+class _NoOverscrollBehavior extends ScrollBehavior {
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    // 不添加任何过度滚动指示器
+    return child;
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    // 使用 ClampingScrollPhysics 禁用弹性过度滚动
+    return const ClampingScrollPhysics();
   }
 }
