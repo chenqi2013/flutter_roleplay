@@ -43,7 +43,7 @@ class ClippedGlassContainerStatic extends StatelessWidget {
 
   Widget blur(Widget child) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12.0),
+      borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
         child: child,
