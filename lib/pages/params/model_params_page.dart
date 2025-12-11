@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
+import 'package:flutter_roleplay/widgets/clipped_glass_container_static.dart';
 import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -137,7 +138,7 @@ class ModelParamsPage extends StatelessWidget {
         ? chatmodelPath
         : ttsmodelPath;
 
-    return ClippedGlassContainer(
+    return ClippedGlassContainerStatic(
       fallbackBlur: 63.1,
       color: Colors.white.withValues(alpha: 0.45),
       hasGradient: false,
@@ -209,7 +210,7 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建TTS语言选择器
   Widget _buildTTSLanguageSelector() {
-    return ClippedGlassContainer(
+    return ClippedGlassContainerStatic(
       fallbackBlur: 63.1,
       color: Colors.white.withValues(alpha: 0.45),
       hasGradient: false,
@@ -239,7 +240,7 @@ class ModelParamsPage extends StatelessWidget {
                         behavior: HitTestBehavior.opaque,
                         onTap: () => controller.selectTTSLanguage(lang),
                         child: isSelected
-                            ? ClippedGlassContainer(
+                            ? ClippedGlassContainerStatic(
                                 fallbackBlur: 63.1,
                                 color: Colors.black.withValues(alpha: 0.35),
                                 hasGradient: true,
@@ -288,7 +289,7 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 构建解码参数区域
   Widget _buildStyleSlider() {
-    return ClippedGlassContainer(
+    return ClippedGlassContainerStatic(
       fallbackBlur: 63.1,
       color: Colors.white.withValues(alpha: 0.45),
       hasGradient: false,
@@ -480,7 +481,7 @@ class ModelParamsPage extends StatelessWidget {
           // 关闭后刷新数据
           controller.loadModelsAndSettings();
         },
-        child: ClippedGlassContainer(
+        child: ClippedGlassContainerStatic(
           fallbackBlur: 63.1,
           color: Colors.white.withValues(alpha: 0.25),
           hasGradient: false,
@@ -553,7 +554,7 @@ class ModelParamsPage extends StatelessWidget {
             child: SizedBox(
               width: 126,
               height: 48,
-              child: ClippedGlassContainer(
+              child: ClippedGlassContainerStatic(
                 fallbackBlur: 63.1,
                 color: Colors.black.withValues(alpha: 0.35),
                 hasGradient: true,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_controller.dart';
 import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
+import 'package:flutter_roleplay/widgets/clipped_glass_container_static.dart';
 import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:get/get.dart';
 
@@ -24,7 +25,7 @@ class AudioListPage extends StatelessWidget {
     return PreBlurredBackgroundScope(
       backgroundImage: backgroundWidget,
       blurSigma: 63.1,
-      child: ClippedGlassContainer(
+      child: ClippedGlassContainerStatic(
         fallbackBlur: 63.1,
         color: Colors.white.withValues(alpha: 0.3),
         hasGradient: true,
@@ -177,7 +178,7 @@ class AudioListPage extends StatelessWidget {
           controller.toggleAudio(audio);
         }
       },
-      child: ClippedGlassContainer(
+      child: ClippedGlassContainerStatic(
         fallbackBlur: 63.1,
         color: Colors.white.withValues(alpha: 0.25),
         hasGradient: false,

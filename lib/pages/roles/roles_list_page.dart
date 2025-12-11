@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
+import 'package:flutter_roleplay/widgets/clipped_glass_container_static.dart';
 import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
@@ -204,7 +205,7 @@ class RolesListPage extends StatelessWidget {
           child: SizedBox(
             width: 126,
             height: 48,
-            child: ClippedGlassContainer(
+            child: ClippedGlassContainerStatic(
               fallbackBlur: 63.1,
               color: Colors.black.withValues(alpha: 0.35),
               hasGradient: true,
