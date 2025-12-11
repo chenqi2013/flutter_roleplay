@@ -14,19 +14,9 @@ class RolesListPage extends StatelessWidget {
   final controller = Get.find<RolesListController>();
   @override
   Widget build(BuildContext context) {
-    // 角色列表页面使用 rolebg.png 作为背景
-    final backgroundWidget = Image.asset(
-      'packages/flutter_roleplay/assets/svg/rolebg.png',
-      fit: BoxFit.cover,
-    );
-
-    return PreBlurredBackgroundScope(
-      backgroundImage: backgroundWidget,
-      blurSigma: 63.1,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: _buildBody(context),
-      ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: _buildBody(context),
     );
   }
 

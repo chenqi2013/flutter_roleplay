@@ -16,65 +16,55 @@ class ModelParamsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 模型参数页面使用 rolebg.png 作为背景
-    final backgroundWidget = Image.asset(
-      'packages/flutter_roleplay/assets/svg/rolebg.png',
-      fit: BoxFit.cover,
-    );
-
-    return PreBlurredBackgroundScope(
-      backgroundImage: backgroundWidget,
-      blurSigma: 63.1,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  );
-                }
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 当前聊天模型
-                      _buildModelInfo(
-                        title: '选择聊天模型',
-                        modelType: RoleplayManageModelType.chat,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // 当前语音模型
-                      _buildModelInfo(
-                        title: '选择语音模型',
-                        modelType: RoleplayManageModelType.tts,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // TTS语言选择
-                      _buildTTSLanguageSelector(),
-                      const SizedBox(height: 16),
-
-                      // 风格滑块
-                      _buildStyleSlider(),
-                      const SizedBox(height: 16),
-
-                      // 语音角色选择
-                      _buildVoiceRoleSelector(context),
-                    ],
-                  ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          _buildHeader(context),
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
                 );
-              }),
-            ),
-            _buildSaveButton(context),
-          ],
-        ),
+              }
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 当前聊天模型
+                    _buildModelInfo(
+                      title: '选择聊天模型',
+                      modelType: RoleplayManageModelType.chat,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 当前语音模型
+                    _buildModelInfo(
+                      title: '选择语音模型',
+                      modelType: RoleplayManageModelType.tts,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // TTS语言选择
+                    _buildTTSLanguageSelector(),
+                    const SizedBox(height: 16),
+
+                    // 风格滑块
+                    _buildStyleSlider(),
+                    const SizedBox(height: 16),
+
+                    // 语音角色选择
+                    _buildVoiceRoleSelector(context),
+                  ],
+                ),
+              );
+            }),
+          ),
+          _buildSaveButton(context),
+        ],
       ),
     );
   }

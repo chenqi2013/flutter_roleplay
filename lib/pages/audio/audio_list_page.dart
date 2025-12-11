@@ -16,44 +16,34 @@ class AudioListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     controller.isSelectMode.value = isSelectMode;
 
-    // 音频列表页面使用 rolebg.png 作为背景
-    final backgroundWidget = Image.asset(
-      'packages/flutter_roleplay/assets/svg/rolebg.png',
-      fit: BoxFit.cover,
-    );
+    return ClippedGlassContainerStatic(
+      fallbackBlur: 63.1,
+      color: Colors.white.withValues(alpha: 0.3),
+      hasGradient: true,
+      borderRadius: 20,
+      borderWidth: 0.5,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          // // 顶部拖动条
+          // _buildDragHandle(),
+          // 标题
+          _buildHeader(),
+          // 内容
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
+              }
 
-    return PreBlurredBackgroundScope(
-      backgroundImage: backgroundWidget,
-      blurSigma: 63.1,
-      child: ClippedGlassContainerStatic(
-        fallbackBlur: 63.1,
-        color: Colors.white.withValues(alpha: 0.3),
-        hasGradient: true,
-        borderRadius: 20,
-        borderWidth: 0.5,
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            // // 顶部拖动条
-            // _buildDragHandle(),
-            // 标题
-            _buildHeader(),
-            // 内容
-            Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  );
-                }
-
-                // 根据TTS语言类型选择对应的音频列表
-                final audios = _getAudiosByLanguage(controller);
-                return _buildAudioGrid(audios, controller);
-              }),
-            ),
-          ],
-        ),
+              // 根据TTS语言类型选择对应的音频列表
+              final audios = _getAudiosByLanguage(controller);
+              return _buildAudioGrid(audios, controller);
+            }),
+          ),
+        ],
       ),
     );
   }

@@ -1,8 +1,5 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
 import 'package:flutter_roleplay/widgets/clipped_glass_container_static.dart';
-import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/main/home_controller.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
@@ -20,157 +17,121 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      // 根据当前 Tab 选择背景
-      final currentTab = controller.currentIndex.value;
-      final Widget backgroundWidget;
+    // TabBarView 不放在 Obx 中，避免 tab 切换时重建
+    final tabBarView = TabBarView(
+      controller: controller.tabController,
+      // 禁用过度滚动效果，提升滑动流畅度
+      physics: const ClampingScrollPhysics(),
+      children: [
+        // Tab1: 角色聊天页面
+        const RolePlayChat(),
+        // Tab2: 角色列表页面
+        RolesListPage(),
+        // Tab3: 模型参数页面
+        ModelParamsPage(),
+      ],
+    );
 
-      if (currentTab == 0) {
-        // 聊天页面使用角色背景
-        final imageUrl = roleImage.value;
-        backgroundWidget = imageUrl.isEmpty
-            ? Container(color: Colors.grey.shade300)
-            : ChatPageBuilders.buildImageWidget(imageUrl, fit: BoxFit.cover);
-      } else {
-        // 角色/模型页面使用 rolebg.png
-        backgroundWidget = Image.asset(
-          'packages/flutter_roleplay/assets/svg/rolebg.png',
-          fit: BoxFit.cover,
-        );
-      }
-
-      return PreBlurredBackgroundScope(
-        backgroundImage: backgroundWidget,
-        blurSigma: 63.1,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Stack(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // 动态背景层 - 只有背景响应 tab 变化
+          _buildDynamicBackground(),
+          // 前景内容 - TabBarView 独立于 Obx
+          Column(
             children: [
-              // 动态背景层
-              _buildDynamicBackground(),
-              // 前景内容
-              Column(
-                children: [
-                  // 顶部TabBar
-                  _buildTabBar(context),
-                  // 内容区域
-                  Expanded(
-                    child: TabBarView(
-                      controller: controller.tabController,
-                      children: [
-                        // Tab1: 角色聊天页面
-                        const RolePlayChat(),
-                        // Tab2: 角色列表页面
-                        RolesListPage(),
-                        // Tab3: 模型参数页面
-                        ModelParamsPage(),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              // 顶部TabBar
+              _buildTabBar(context),
+              // 内容区域 - 不被 Obx 包裹
+              Expanded(child: tabBarView),
             ],
           ),
-        ),
-      );
-    });
+        ],
+      ),
+    );
   }
 
   // 构建动态背景
   Widget _buildDynamicBackground() {
+    // 先用 Obx 获取 imageUrl，避免在 AnimatedBuilder 内部嵌套 Obx
     return Obx(() {
-      final currentTab = controller.currentIndex.value;
+      final imageUrl = roleImage.value;
 
-      // Tab 0（聊天）：使用角色背景图片
-      if (currentTab == 0) {
-        final imageUrl = roleImage.value;
-        if (imageUrl.isEmpty) {
-          // 如果没有角色图片，显示默认背景
-          return Positioned.fill(child: Container(color: Colors.grey.shade300));
-        }
-        // 使用ChatPageBuilders的图片加载器，支持网络图片缓存
-        // 添加模糊蒙版效果
-        return Positioned.fill(
-          child: Stack(
-            children: [
-              // 背景图片层 - 确保完全填充（不被模糊）
-              Positioned.fill(
-                child: ChatPageBuilders.buildImageWidget(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  key: ValueKey('bg_chat_$imageUrl'),
-                ),
-              ),
-              // 顶部模糊蒙版层 - 独立的模糊层，不影响主背景
-              _buildBlurOverlay(imageUrl),
-            ],
-          ),
-        );
-      }
-
-      // Tab 1 和 2（角色、模型）：使用 rolebg.png
       return Positioned.fill(
-        child: Image.asset(
-          'packages/flutter_roleplay/assets/svg/rolebg.png',
-          fit: BoxFit.cover,
+        child: RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: controller.tabController.animation!,
+            builder: (context, child) {
+              // animation.value: 0.0 = tab0, 1.0 = tab1, 2.0 = tab2
+              final animationValue = controller.tabController.animation!.value;
+              // 聊天背景只在 tab 0 时完全显示，滑动到其他 tab 时淡出
+              final chatBgOpacity = (1.0 - animationValue).clamp(0.0, 1.0);
+
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  // 角色/模型背景（底层，始终显示）
+                  Image.asset(
+                    'packages/flutter_roleplay/assets/svg/rolebg.png',
+                    fit: BoxFit.cover,
+                  ),
+                  // 聊天背景（顶层，根据滑动进度淡入淡出）
+                  if (chatBgOpacity > 0)
+                    Opacity(
+                      opacity: chatBgOpacity,
+                      child: _buildChatBackground(imageUrl),
+                    ),
+                ],
+              );
+            },
+          ),
         ),
       );
     });
   }
 
-  /// 构建顶部渐进式模糊蒙版
-  /// 固定高度120，渐进式模糊效果
-  Widget _buildBlurOverlay(String imageUrl) {
+  // 构建聊天页背景（简化版，移除耗性能的 ImageFiltered）
+  Widget _buildChatBackground(String imageUrl) {
+    if (imageUrl.isEmpty) {
+      return Container(color: Colors.grey.shade300);
+    }
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 背景图片层
+        ChatPageBuilders.buildImageWidget(
+          imageUrl,
+          fit: BoxFit.cover,
+          key: ValueKey('bg_chat_$imageUrl'),
+        ),
+        // 顶部渐变蒙版（简化版，不使用 ImageFiltered）
+        _buildSimpleOverlay(),
+      ],
+    );
+  }
+
+  /// 构建顶部简化渐变蒙版（不使用 ImageFiltered，提升性能）
+  Widget _buildSimpleOverlay() {
     return Positioned(
       top: 0,
       left: 0,
       right: 0,
       height: 120,
       child: IgnorePointer(
-        child: ClipRect(
-          child: Stack(
-            children: [
-              // 创建一个独立的背景图片层，只显示顶部120高度的部分
-              // 使用 ClipRect 裁剪，只显示顶部区域
-              Positioned.fill(
-                child: ClipRect(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: SizedBox(
-                      height: 120,
-                      child: ImageFiltered(
-                        imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                        child: ChatPageBuilders.buildImageWidget(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          key: ValueKey('bg_blur_$imageUrl'),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // 添加颜色渐变遮罩以增强视觉效果
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    // 使用渐变遮罩实现渐进式效果
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.4), // 顶部40%透明度
-                        Colors.black.withValues(alpha: 0.3), // 中间30%
-                        Colors.black.withValues(alpha: 0.15), // 中间15%
-                        Colors.black.withValues(alpha: 0.05), // 底部5%
-                        Colors.transparent, // 完全透明
-                      ],
-                      stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: 0.5),
+                Colors.black.withValues(alpha: 0.3),
+                Colors.black.withValues(alpha: 0.1),
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.3, 0.7, 1.0],
+            ),
           ),
         ),
       ),
