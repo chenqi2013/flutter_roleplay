@@ -35,358 +35,380 @@ class _CreateRolePageState extends State<CreateRolePage> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         resizeToAvoidBottomInset: true,
-        body: Column(
+        body: Stack(
           children: [
-            // 自定义顶部栏
-            _buildTopBar(context),
-            // 主要内容
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + safe.bottom),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 角色图片选择
-                    ClippedGlassContainerStatic(
-                      fallbackBlur: 63.1,
-                      color: Colors.white.withValues(alpha: 0.25),
-                      hasGradient: false,
-                      borderRadius: 20,
-                      borderWidth: 0,
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'role_image_label'.tr,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _ImageSelector(),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ClippedGlassContainerStatic(
-                      fallbackBlur: 63.1,
-                      color: Colors.white.withValues(alpha: 0.25),
-                      hasGradient: false,
-                      borderRadius: 20,
-                      borderWidth: 0,
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'role_name_label'.tr,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: controller.nameController,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
-                            decoration: _inputDecoration('role_name_hint'.tr),
-                            textInputAction: TextInputAction.next,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ClippedGlassContainerStatic(
-                      fallbackBlur: 63.1,
-                      color: Colors.white.withValues(alpha: 0.25),
-                      hasGradient: false,
-                      borderRadius: 20,
-                      borderWidth: 0,
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Text(
-                            'role_language_label'.tr,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Obx(
-                              () => Row(
-                                children: [
-                                  Expanded(
-                                    child: _LanguageOption(
-                                      label: 'language_chinese'.tr,
-                                      value: 'zh-CN',
-                                      isSelected:
-                                          controller.selectedLanguage.value ==
-                                          'zh-CN',
-                                      onTap: () => controller.selectLanguage(
-                                        'zh-CN',
-                                        context,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _LanguageOption(
-                                      label: 'language_english'.tr,
-                                      value: 'en',
-                                      isSelected:
-                                          controller.selectedLanguage.value ==
-                                          'en',
-                                      onTap: () => controller.selectLanguage(
-                                        'en',
-                                        context,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // 音色选择
-                    ClippedGlassContainerStatic(
-                      fallbackBlur: 63.1,
-                      color: Colors.white.withValues(alpha: 0.25),
-                      hasGradient: false,
-                      borderRadius: 20,
-                      borderWidth: 0,
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '角色音色',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '选择角色专属的语音音色（可选）',
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Obx(
-                            () => GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () async {
-                                // 以 modal bottom sheet 方式弹出音色选择页面
-                                final result =
-                                    await showModalBottomSheet<
-                                      Map<String, dynamic>
-                                    >(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (context) => SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                            0.6,
-                                        child: AudioListPage(
-                                          isSelectMode: true,
-                                        ),
-                                      ),
-                                    );
-
-                                // 处理返回的音色数据
-                                if (result != null &&
-                                    result['voice'] != null &&
-                                    result['voiceTxt'] != null) {
-                                  controller.setSelectedVoice(
-                                    result['voice'] as String,
-                                    result['voiceTxt'] as String,
-                                  );
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        controller
-                                                .selectedVoiceTxt
-                                                .value
-                                                .isEmpty
-                                            ? '点击选择音色'
-                                            : controller.selectedVoiceTxt.value,
-                                        style: TextStyle(
-                                          color:
-                                              controller
-                                                  .selectedVoiceTxt
-                                                  .value
-                                                  .isEmpty
-                                              ? Colors.white54
-                                              : Colors.white,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                    if (controller
-                                        .selectedVoiceTxt
-                                        .value
-                                        .isNotEmpty)
-                                      GestureDetector(
-                                        onTap: () {
-                                          controller.clearSelectedVoice();
-                                        },
-                                        child: const Padding(
-                                          padding: EdgeInsets.only(left: 8),
-                                          child: Icon(
-                                            Icons.close,
-                                            color: Colors.white54,
-                                            size: 18,
-                                          ),
-                                        ),
-                                      ),
-                                    if (controller
-                                        .selectedVoiceTxt
-                                        .value
-                                        .isEmpty)
-                                      const Icon(
-                                        Icons.chevron_right,
-                                        color: Colors.white54,
-                                        size: 20,
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ClippedGlassContainerStatic(
-                      fallbackBlur: 63.1,
-                      color: Colors.white.withValues(alpha: 0.25),
-                      hasGradient: false,
-                      borderRadius: 20,
-                      borderWidth: 0,
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+            // 背景图片
+            Positioned.fill(
+              child: Image.asset(
+                'packages/flutter_roleplay/assets/svg/rolebg.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+            // 主内容
+            Column(
+              children: [
+                // 自定义顶部栏
+                _buildTopBar(context),
+                // 主要内容
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + safe.bottom),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 角色图片选择
+                        ClippedGlassContainerStatic(
+                          fallbackBlur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'role_description_label'.tr,
+                                'role_image_label'.tr,
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const Spacer(),
-                              Obx(
-                                () => Text(
-                                  '${controller.descLength.value}/${CreateRoleController.descMaxLength}',
-                                  style: const TextStyle(
-                                    color: Colors.white54,
-                                    fontSize: 12,
+                              const SizedBox(height: 8),
+                              _ImageSelector(),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ClippedGlassContainerStatic(
+                          fallbackBlur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'role_name_label'.tr,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: controller.nameController,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                                decoration: _inputDecoration(
+                                  'role_name_hint'.tr,
+                                ),
+                                textInputAction: TextInputAction.next,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ClippedGlassContainerStatic(
+                          fallbackBlur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Text(
+                                'role_language_label'.tr,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Obx(
+                                  () => Row(
+                                    children: [
+                                      Expanded(
+                                        child: _LanguageOption(
+                                          label: 'language_chinese'.tr,
+                                          value: 'zh-CN',
+                                          isSelected:
+                                              controller
+                                                  .selectedLanguage
+                                                  .value ==
+                                              'zh-CN',
+                                          onTap: () => controller
+                                              .selectLanguage('zh-CN', context),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _LanguageOption(
+                                          label: 'language_english'.tr,
+                                          value: 'en',
+                                          isSelected:
+                                              controller
+                                                  .selectedLanguage
+                                                  .value ==
+                                              'en',
+                                          onTap: () => controller
+                                              .selectLanguage('en', context),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: controller.descController,
-                            maxLines: 10,
-                            minLines: 6,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              height: 1.4,
-                            ),
-                            decoration: _inputDecoration(
-                              'role_description_hint'.tr,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // 创建角色按钮
-                    const SizedBox(height: 32),
-                    Center(
-                      child: Obx(
-                        () => GestureDetector(
-                          onTap:
-                              controller.canSubmit.value &&
-                                  !controller.isCreating.value
-                              ? () => controller.onConfirm(context)
-                              : null,
-                          child: SizedBox(
-                            width: 126,
-                            height: 48,
-                            child: ClippedGlassContainerStatic(
-                              fallbackBlur: 63.1,
-                              color: Colors.black.withValues(alpha: 0.35),
-                              hasGradient: true,
-                              borderRadius: 70,
-                              borderWidth: 0.5,
-                              padding: const EdgeInsets.all(12),
-                              child: Center(
-                                child: controller.isCreating.value
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Text(
-                                        'create_role_button'.tr,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                        ),
+                        ),
+                        const SizedBox(height: 16),
+                        // 音色选择
+                        ClippedGlassContainerStatic(
+                          fallbackBlur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '角色音色',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '选择角色专属的语音音色（可选）',
+                                style: const TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Obx(
+                                () => GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () async {
+                                    // 以 modal bottom sheet 方式弹出音色选择页面
+                                    final result =
+                                        await showModalBottomSheet<
+                                          Map<String, dynamic>
+                                        >(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (context) => SizedBox(
+                                            height:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.height *
+                                                0.6,
+                                            child: AudioListPage(
+                                              isSelectMode: true,
+                                            ),
+                                          ),
+                                        );
+
+                                    // 处理返回的音色数据
+                                    if (result != null &&
+                                        result['voice'] != null &&
+                                        result['voiceTxt'] != null) {
+                                      controller.setSelectedVoice(
+                                        result['voice'] as String,
+                                        result['voiceTxt'] as String,
+                                      );
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.05,
                                       ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            controller
+                                                    .selectedVoiceTxt
+                                                    .value
+                                                    .isEmpty
+                                                ? '点击选择音色'
+                                                : controller
+                                                      .selectedVoiceTxt
+                                                      .value,
+                                            style: TextStyle(
+                                              color:
+                                                  controller
+                                                      .selectedVoiceTxt
+                                                      .value
+                                                      .isEmpty
+                                                  ? Colors.white54
+                                                  : Colors.white,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                        if (controller
+                                            .selectedVoiceTxt
+                                            .value
+                                            .isNotEmpty)
+                                          GestureDetector(
+                                            onTap: () {
+                                              controller.clearSelectedVoice();
+                                            },
+                                            child: const Padding(
+                                              padding: EdgeInsets.only(left: 8),
+                                              child: Icon(
+                                                Icons.close,
+                                                color: Colors.white54,
+                                                size: 18,
+                                              ),
+                                            ),
+                                          ),
+                                        if (controller
+                                            .selectedVoiceTxt
+                                            .value
+                                            .isEmpty)
+                                          const Icon(
+                                            Icons.chevron_right,
+                                            color: Colors.white54,
+                                            size: 20,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ClippedGlassContainerStatic(
+                          fallbackBlur: 63.1,
+                          color: Colors.white.withValues(alpha: 0.25),
+                          hasGradient: false,
+                          borderRadius: 20,
+                          borderWidth: 0,
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'role_description_label'.tr,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Obx(
+                                    () => Text(
+                                      '${controller.descLength.value}/${CreateRoleController.descMaxLength}',
+                                      style: const TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: controller.descController,
+                                maxLines: 10,
+                                minLines: 6,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  height: 1.4,
+                                ),
+                                decoration: _inputDecoration(
+                                  'role_description_hint'.tr,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // 创建角色按钮
+                        const SizedBox(height: 32),
+                        Center(
+                          child: Obx(
+                            () => GestureDetector(
+                              onTap:
+                                  controller.canSubmit.value &&
+                                      !controller.isCreating.value
+                                  ? () => controller.onConfirm(context)
+                                  : null,
+                              child: SizedBox(
+                                width: 126,
+                                height: 48,
+                                child: ClippedGlassContainerStatic(
+                                  fallbackBlur: 63.1,
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  hasGradient: true,
+                                  borderRadius: 70,
+                                  borderWidth: 0.5,
+                                  padding: const EdgeInsets.all(12),
+                                  child: Center(
+                                    child: controller.isCreating.value
+                                        ? const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : Text(
+                                            'create_role_button'.tr,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
