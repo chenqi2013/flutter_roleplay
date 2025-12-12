@@ -17,6 +17,7 @@ import 'package:rwkv_mobile_flutter/types.dart';
 
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
+import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
@@ -119,8 +120,26 @@ class RWKVChatService extends GetxController {
             audioFileName: audioFileName,
             audioDuration: audioDuration,
           );
-          messages[messages.length - 1] = updatedMessage;
-          debugPrint('Updated audio info in memory');
+          final messageIndex = messages.length - 1;
+
+          debugPrint(
+            '📢 Before update - audioFileName: ${messages[messageIndex].audioFileName}',
+          );
+
+          // 使用 scheduleMicrotask 确保在主线程执行
+          scheduleMicrotask(() {
+            // 使用 assignAll 强制触发更新
+            final updatedList = List<ChatMessage>.from(messages);
+            updatedList[messageIndex] = updatedMessage;
+            messages.assignAll(updatedList);
+
+            debugPrint(
+              '📢 After update - audioFileName: ${messages[messageIndex].audioFileName}',
+            );
+            debugPrint(
+              '📢 assignAll completed in microtask, should trigger UI update',
+            );
+          });
         } else {
           debugPrint('AI message has no ID, cannot update audio info');
         }

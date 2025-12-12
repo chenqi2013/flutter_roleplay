@@ -497,7 +497,12 @@ class _RolePlayChatState extends State<RolePlayChat>
         final currentRoleName = roleName.value;
         final messages = _stateManager.getMessages(currentRoleName);
 
-        // debugPrint('_buildChatListView: 当前角色: $currentRoleName, 消息数量: ${messages.length}');
+        // 检查最后一条AI消息的音频信息
+        if (messages.isNotEmpty && !messages.last.isUser) {
+          debugPrint(
+            '🔄 Obx rebuild - Last AI audioFile: ${messages.last.audioFileName}',
+          );
+        }
 
         return ChatPageBuilders.buildChatListView(
           scrollController: scrollController,

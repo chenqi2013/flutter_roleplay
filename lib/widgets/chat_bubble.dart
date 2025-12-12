@@ -51,6 +51,31 @@ class _ChatBubbleState extends State<ChatBubble> {
     }
   }
 
+  @override
+  void didUpdateWidget(ChatBubble oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 检查音频文件是否从无到有（TTS生成完成）
+    final hadNoAudio =
+        oldWidget.message.audioFileName == null ||
+        oldWidget.message.audioFileName!.isEmpty;
+    final nowHasAudio =
+        widget.message.audioFileName != null &&
+        widget.message.audioFileName!.isNotEmpty;
+
+    debugPrint(
+      '🔵 didUpdateWidget - old: ${oldWidget.message.audioFileName}, new: ${widget.message.audioFileName}',
+    );
+
+    if (hadNoAudio && nowHasAudio) {
+      debugPrint('🎵 Audio file added, initializing player in didUpdateWidget');
+      _initAudioPlayer();
+      // 触发重建以显示音频图标
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
   void _initAudioPlayer() {
     _audioPlayer = AudioPlayer();
 

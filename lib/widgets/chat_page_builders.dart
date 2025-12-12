@@ -717,7 +717,9 @@ class ChatPageBuilders {
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: ChatBubble(
-          key: ValueKey('${msg.isUser}_${msg.content.hashCode}'),
+          key: ValueKey(
+            '${msg.isUser}_${msg.content.hashCode}_${msg.audioFileName ?? ""}',
+          ),
           message: msg,
           onRegeneratePressed: isLastAIMessage
               ? () => onRegeneratePressed?.call(msg)
