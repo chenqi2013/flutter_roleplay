@@ -55,7 +55,7 @@ class RWKVChatService extends GetxController {
   var history = <String>[];
   bool isHiddenState = false;
   final RWKVMobile rwkvMobile = RWKVMobile();
-  int? modelID;
+  int? modelID = 0;
   @override
   void onInit() async {
     super.onInit();
@@ -665,6 +665,10 @@ class RWKVChatService extends GetxController {
       send(to_rwkv.Stop());
       debugPrint('to_rwkv.Stop()，，stop Generating chat');
     }
+  }
+
+  Future<void> releaseModel() async {
+    send(to_rwkv.ReleaseModel(modelID: modelID));
   }
 
   /// 生成聊天回复流
