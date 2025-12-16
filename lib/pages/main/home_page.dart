@@ -18,18 +18,22 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TabBarView 不放在 Obx 中，避免 tab 切换时重建
-    final tabBarView = TabBarView(
-      controller: controller.tabController,
-      // 禁用过度滚动效果，提升滑动流畅度
-      physics: const ClampingScrollPhysics(),
-      children: [
-        // Tab1: 角色聊天页面
-        const RolePlayChat(),
-        // Tab2: 角色列表页面
-        RolesListPage(),
-        // Tab3: 模型参数页面
-        ModelParamsPage(),
-      ],
+    // 使用 ScrollConfiguration 完全禁用过度滚动效果，防止 BackdropFilter 高亮
+    final tabBarView = ScrollConfiguration(
+      behavior: _NoOverscrollBehavior(),
+      child: TabBarView(
+        controller: controller.tabController,
+        // 禁用过度滚动效果，提升滑动流畅度
+        physics: const ClampingScrollPhysics(),
+        children: [
+          // Tab1: 角色聊天页面
+          const RolePlayChat(),
+          // Tab2: 角色列表页面
+          RolesListPage(),
+          // Tab3: 模型参数页面
+          ModelParamsPage(),
+        ],
+      ),
     );
 
     return Scaffold(
@@ -309,5 +313,25 @@ class HomePage extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// 自定义 ScrollBehavior，完全禁用过度滚动效果
+/// 防止 TabBarView 水平滑动时 BackdropFilter 出现高亮问题
+class _NoOverscrollBehavior extends ScrollBehavior {
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    // 不添加任何过度滚动指示器
+    return child;
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    // 使用 ClampingScrollPhysics 禁用弹性过度滚动
+    return const ClampingScrollPhysics();
   }
 }
