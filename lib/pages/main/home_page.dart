@@ -144,110 +144,170 @@ class HomePage extends StatelessWidget {
       color: Colors.transparent, // 完全透明
       child: SafeArea(
         bottom: false,
-        child: Obx(() {
-          return Row(
-            children: [
-              // 左侧关闭按钮
-              Padding(
-                padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    // 关闭页面，与 chat_page_builders 的 onBackPressed 保持一致
-                    notifyUpdateRolePlaySessionRequired();
-                    Navigator.of(context).pop();
-                  },
-                  child: ClippedGlassContainerStatic(
-                    fallbackBlur: 63.1,
-                    color: Colors.black.withValues(alpha: 0.35),
-                    hasGradient: true,
-                    borderRadius: 70,
-                    borderWidth: 0.5,
-                    padding: const EdgeInsets.all(12),
-                    child: SvgPicture.asset(
-                      'packages/flutter_roleplay/assets/svg/close.svg',
-                      height: 12,
-                    ),
+        child: Row(
+          children: [
+            // 左侧关闭按钮
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  // 关闭页面，与 chat_page_builders 的 onBackPressed 保持一致
+                  notifyUpdateRolePlaySessionRequired();
+                  Navigator.of(context).pop();
+                },
+                child: ClippedGlassContainerStatic(
+                  fallbackBlur: 63.1,
+                  color: Colors.black.withValues(alpha: 0.35),
+                  hasGradient: true,
+                  borderRadius: 70,
+                  borderWidth: 0.5,
+                  padding: const EdgeInsets.all(12),
+                  child: SvgPicture.asset(
+                    'packages/flutter_roleplay/assets/svg/close.svg',
+                    height: 12,
                   ),
                 ),
               ),
-              // 自定义 TabBar（玻璃态效果）
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildGlassTab(
-                          label: roleName.value.isNotEmpty
-                              ? roleName.value
-                              : '聊天',
-                          index: 0,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(child: _buildGlassTab(label: '角色', index: 1)),
-                      const SizedBox(width: 8),
-                      Expanded(child: _buildGlassTab(label: '模型', index: 2)),
-                    ],
-                  ),
+            ),
+            // 自定义 TabBar（玻璃态效果）- 带滑动指示器
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
+                child: _buildAnimatedTabBar(),
               ),
-            ],
-          );
-        }),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  /// 构建玻璃态 Tab
-  Widget _buildGlassTab({required String label, required int index}) {
-    final isSelected = controller.currentIndex.value == index;
+  /// 构建带动画的TabBar
+  Widget _buildAnimatedTabBar() {
+    return Obx(() {
+      // 在Obx内部立即获取observable的值
+      final chatLabel = roleName.value.isNotEmpty ? roleName.value : '聊天';
 
+      return AnimatedBuilder(
+        animation: controller.tabController.animation!,
+        builder: (context, child) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final tabWidth = (constraints.maxWidth - 16) / 3; // 减去间距
+              final animationValue = controller.tabController.animation!.value;
+
+              // 计算指示器的位置
+              final indicatorLeft = animationValue * (tabWidth + 8);
+
+              return Stack(
+                children: [
+                  // 底层：所有Tab文字（未选中状态）
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTabText(label: chatLabel, index: 0),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: _buildTabText(label: '角色', index: 1)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _buildTabText(label: '模型', index: 2)),
+                    ],
+                  ),
+                  // 顶层：滑动的高亮指示器和文字
+                  Positioned(
+                    left: indicatorLeft,
+                    top: 0,
+                    bottom: 0,
+                    width: tabWidth,
+                    child: ClippedGlassContainerStatic(
+                      fallbackBlur: 63.1,
+                      color: Colors.black.withValues(alpha: 0.35),
+                      hasGradient: true,
+                      borderRadius: 70,
+                      borderWidth: 0.5,
+                      padding: EdgeInsets.zero,
+                      child: ClipRect(
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: -indicatorLeft,
+                              top: 0,
+                              bottom: 0,
+                              width: constraints.maxWidth,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildTabText(
+                                      label: chatLabel,
+                                      index: 0,
+                                      isForHighlight: true,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildTabText(
+                                      label: '角色',
+                                      index: 1,
+                                      isForHighlight: true,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildTabText(
+                                      label: '模型',
+                                      index: 2,
+                                      isForHighlight: true,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    });
+  }
+
+  /// 构建Tab文字
+  Widget _buildTabText({
+    required String label,
+    required int index,
+    bool isForHighlight = false,
+  }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
         controller.tabController.animateTo(index);
       },
-      child: isSelected
-          ? ClippedGlassContainerStatic(
-              fallbackBlur: 63.1,
-              color: Colors.black.withValues(alpha: 0.35),
-              hasGradient: true,
-              borderRadius: 70,
-              borderWidth: 0.5,
-              padding: const EdgeInsets.all(12),
-              child: Center(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            )
-          : Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Center(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isForHighlight
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.6),
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
     );
   }
 }
