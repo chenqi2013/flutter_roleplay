@@ -32,7 +32,8 @@ class ModelParamsPage extends StatelessWidget {
               return SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     // 当前聊天模型
                     _buildModelInfo(
@@ -58,12 +59,12 @@ class ModelParamsPage extends StatelessWidget {
 
                     // 语音角色选择
                     _buildVoiceRoleSelector(context),
+                    _buildSaveButton(context),
                   ],
                 ),
               );
             }),
           ),
-          _buildSaveButton(context),
         ],
       ),
     );
