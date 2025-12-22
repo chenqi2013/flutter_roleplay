@@ -56,13 +56,17 @@ class RWKVTTSService extends GetxController {
   Function(String audioFileName, int audioDuration)? onTTSComplete;
   var appDir = '';
   var cacheDir = '';
-  int? modelID = 0;
+  int modelID = 0;
   ModelInfo? modelInfo; // 保存当前的 TTS 模型信息
 
   // TTS 开关状态 (默认关闭)
   final RxBool isTTSEnabled = false.obs;
   static const String _ttsEnabledKey = 'tts_enabled';
   final RWKVMobile rwkvMobile = RWKVMobile();
+
+  var wav2vec2PathStr = '';
+  var detokenizePathStr = '';
+  var bicodecTokenzerPathStr = '';
 
   @override
   void onInit() async {
@@ -260,9 +264,12 @@ class RWKVTTSService extends GetxController {
           // String result = message.responseBufferContent;
         } else if (message is Speed) {
           // 处理速度信息
-        } else if (message is LoadSteps) {
+        } else if (message is LoadModelSteps) {
           debugPrint("tts receive LoadSteps: ${message.modelID}");
-          modelID = message.modelID;
+          if (message.modelID != null) {
+            modelID = message.modelID!;
+            initWork();
+          }
         } else if (message is TTSStreamingBuffer) {
           debugPrint("receive TTSStreamingBuffer: $message");
           _onTTSStreamingBuffer(message);
@@ -313,46 +320,51 @@ class RWKVTTSService extends GetxController {
     );
     // await _ensureQNNCopied();
     final rootIsolateToken = RootIsolateToken.instance;
-
-    if (_sendPort != null) {
-      try {
-        // if (modelID != null) {
-        //   send(to_rwkv.ReleaseTTSModels());
-        //   debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
-        //   send(to_rwkv.ReleaseModel(modelID: modelID));
-        //   debugPrint('to_rwkv.ReleaseModel(modelID:$modelID)，，释放模型');
-        //   debugPrint('_sendPort != null releaseTTSModels modelID: $modelID');
-        // }
-        send(to_rwkv.ReleaseTTSModels());
-        send(
-          to_rwkv.ReInitRuntime(
-            modelPath: modelPath,
-            backend: backend,
-            tokenizerPath: tokenizerPath,
-          ),
-        );
-      } catch (e) {
-        debugPrint("initRuntime failed: $e");
-        // if (!kDebugMode)
-        //   Sentry.captureException(e, stackTrace: StackTrace.current);
-        // Alert.error("Failed to load model: $e");
-        return;
-      }
-    } else {
-      final options = StartOptions(
-        modelPath: modelPath,
-        tokenizerPath: tokenizerPath,
-        backend: backend,
-        sendPort: _receivePort.sendPort,
-        rootIsolateToken: rootIsolateToken!,
-      );
-      await rwkvMobile.runIsolate(options);
-    }
+    final options = StartOptions(
+      // modelPath: modelPath,
+      // tokenizerPath: tokenizerPath,
+      // backend: backend,
+      sendPort: _receivePort.sendPort,
+      rootIsolateToken: rootIsolateToken!,
+    );
+    await rwkvMobile.runIsolate(options);
+    wav2vec2PathStr = wav2vec2Path;
+    detokenizePathStr = detokenizePath;
+    bicodecTokenzerPathStr = bicodecTokenzerPath;
     while (_sendPort == null) {
       debugPrint("waiting for sendPort...");
       await Future.delayed(const Duration(milliseconds: 50));
     }
+    // if (_sendPort != null) {
+    try {
+      // if (modelID != null) {
+      //   send(to_rwkv.ReleaseTTSModels());
+      //   debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
+      //   send(to_rwkv.ReleaseModel(modelID: modelID));
+      //   debugPrint('to_rwkv.ReleaseModel(modelID:$modelID)，，释放模型');
+      //   debugPrint('_sendPort != null releaseTTSModels modelID: $modelID');
+      // }
+      // send(to_rwkv.ReleaseTTSModels());
+      send(
+        to_rwkv.LoadRWKVModel(
+          modelPath: modelPath,
+          backend: backend,
+          tokenizerPath: tokenizerPath,
+        ),
+      );
+    } catch (e) {
+      debugPrint("LoadRWKVModel failed: $e");
+      // if (!kDebugMode)
+      //   Sentry.captureException(e, stackTrace: StackTrace.current);
+      // Alert.error("Failed to load model: $e");
+      return;
+    }
+    // } else {
 
+    // }
+  }
+
+  void initWork() async {
     if (_getTokensTimer != null) {
       _getTokensTimer!.cancel();
       _getTokensTimer = null;
@@ -377,9 +389,9 @@ class RWKVTTSService extends GetxController {
 
     send(
       to_rwkv.LoadSparkTTSModels(
-        wav2vec2Path: wav2vec2Path,
-        bicodecTokenizerPath: bicodecTokenzerPath,
-        bicodecDetokenizerPath: detokenizePath,
+        wav2vec2Path: wav2vec2PathStr,
+        bicodecTokenizerPath: bicodecTokenzerPathStr,
+        bicodecDetokenizerPath: detokenizePathStr,
       ),
     );
     debugPrint('to_rwkv.AddTTSModel()，，添加TTS模型');
@@ -408,14 +420,14 @@ class RWKVTTSService extends GetxController {
       return;
     }
     if (isGenerating.value == true) {
-      send(to_rwkv.Stop());
+      send(to_rwkv.Stop(modelID: modelID));
       debugPrint('to_rwkv.Stop()，，stop Generating TTS');
     }
     send(to_rwkv.ReleaseTTSModels());
     debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
-    send(to_rwkv.ReleaseModel(modelID: modelID));
+    send(to_rwkv.ReleaseRWKVModel(modelID: modelID));
     debugPrint('to_rwkv.ReleaseModel(modelID:$modelID)，，释放模型');
-    modelID = null;
+    modelID = 0;
     isSparkTTSModelLoaded = false;
     _sendPort = null;
     _initRuntimeCompleter = Completer<void>();
@@ -474,9 +486,9 @@ class RWKVTTSService extends GetxController {
 
   void _pulse() {
     // P.rwkv.send(to_rwkv.GetTTSGenerationProgress());
-    send(to_rwkv.GetPrefillAndDecodeSpeed());
-    send(to_rwkv.GetTTSStreamingBuffer());
-    send(to_rwkv.GetIsGenerating());
+    send(to_rwkv.GetPrefillAndDecodeSpeed(modelID: modelID));
+    send(to_rwkv.GetTTSStreamingBuffer(modelID: modelID));
+    send(to_rwkv.GetIsGenerating(modelID: modelID));
     // P.rwkv.send(to_rwkv.GetTTSOutputFileList());
   }
 
@@ -558,6 +570,7 @@ class RWKVTTSService extends GetxController {
         promptWavPath: promptWavPath,
         outputWavPath: outputWavPath,
         promptSpeechText: promptSpeechText,
+        modelID: modelID,
       ),
     );
     debugPrint('to_rwkv.StartTTS()，，开始TTS');

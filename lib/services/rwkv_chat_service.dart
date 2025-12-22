@@ -55,7 +55,7 @@ class RWKVChatService extends GetxController {
   var history = <String>[];
   bool isHiddenState = false;
   final RWKVMobile rwkvMobile = RWKVMobile();
-  int? modelID = 0;
+  int modelID = 0;
   @override
   void onInit() async {
     super.onInit();
@@ -155,9 +155,13 @@ class RWKVChatService extends GetxController {
       if (message is SendPort) {
         _sendPort = message;
         debugPrint("receive SendPort: $message");
-      } else if (message is LoadSteps) {
-        debugPrint("chat receive LoadSteps: ${message.modelID}");
-        modelID = message.modelID;
+      } else if (message is LoadModelSteps) {
+        int? tmpModelID = message.modelID;
+        if (tmpModelID != null && tmpModelID >= 0) {
+          modelID = tmpModelID;
+          initWork();
+        }
+        debugPrint('LoadModelSteps message==${message.modelID}');
       } else {
         if (message is ResponseBufferContent) {
           String result = message.responseBufferContent;
@@ -195,6 +199,7 @@ class RWKVChatService extends GetxController {
               to_rwkv.SaveRuntimeStateByHistory(
                 messages: history,
                 stateSavePath: stateLoadPath,
+                modelID: modelID,
               ),
             );
             debugPrint('to_rwkv.SaveRuntimeStateByHistory()，，保存角色缓存state');
@@ -429,38 +434,73 @@ class RWKVChatService extends GetxController {
 
     final rootIsolateToken = RootIsolateToken.instance;
 
-    if (_sendPort != null) {
-      send(
-        to_rwkv.ReInitRuntime(
-          modelPath: chatmodelPath.value,
-          backend: backend,
-          tokenizerPath: tokenizerPath,
-        ),
-      );
-      // send(to_rwkv.ReleaseModel());
-      // _sendPort = null;
-      // debugPrint('to_rwkv.ReleaseModel()，，释放模型');
-    } else {
-      final options = StartOptions(
-        modelPath: chatmodelPath.value,
-        tokenizerPath: tokenizerPath,
-        backend: backend,
-        sendPort: _receivePort.sendPort,
-        rootIsolateToken: rootIsolateToken!,
-      );
-      await rwkvMobile.runIsolate(options);
-    }
+    // if (_sendPort != null) {
+    // send(
+    //   to_rwkv.ReInitRuntime(
+    //     modelPath: chatmodelPath.value,
+    //     backend: backend,
+    //     tokenizerPath: tokenizerPath,
+    //   ),
+    // );
+    // // send(to_rwkv.ReleaseModel());
+    // // _sendPort = null;
+    // // debugPrint('to_rwkv.ReleaseModel()，，释放模型');
+    // } else {
+    final options = StartOptions(
+      // modelPath: chatmodelPath.value,
+      // tokenizerPath: tokenizerPath,
+      // backend: backend,
+      sendPort: _receivePort.sendPort,
+      rootIsolateToken: rootIsolateToken!,
+    );
+    await rwkvMobile.runIsolate(options);
+    // }
 
     while (_sendPort == null) {
       debugPrint("waiting for sendPort...");
       await Future.delayed(const Duration(milliseconds: 50));
     }
+    try {
+      // send(to_rwkv.ReleaseRWKVModel(modelID: modelID));
+      await loadRWKVModel(
+        backend: backend,
+        modelPath: chatmodelPath.value,
+        tokenizerPath: tokenizerPath,
+      );
+    } catch (e) {
+      debugPrint('loadRWKVModel failed: $e');
+    }
+  }
 
+  Future<void> loadRWKVModel({
+    required String modelPath,
+    required Backend backend,
+    required String tokenizerPath,
+  }) async {
+    prefillSpeed.value = 0;
+    decodeSpeed.value = 0;
+    _initRuntimeCompleter = Completer<void>();
+    send(
+      to_rwkv.LoadRWKVModel(
+        modelPath: modelPath,
+        backend: backend,
+        tokenizerPath: tokenizerPath,
+      ),
+    );
+    return _initRuntimeCompleter.future;
+  }
+
+  void initWork() async {
     ///加载角色缓存state
     String stateLoadPath = await CommonUtil.getFilePath(
       '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
     );
-    send(to_rwkv.LoadRuntimeStateToMemory(stateLoadPath: stateLoadPath));
+    send(
+      to_rwkv.LoadRuntimeStateToMemory(
+        stateLoadPath: stateLoadPath,
+        modelID: modelID,
+      ),
+    );
     debugPrint('11to_rwkv.LoadRuntimeStateToMemory()，，加载角色缓存cache');
     debugPrint('加载角色缓存state: $stateLoadPath');
     debugPrint(
@@ -469,7 +509,7 @@ class RWKVChatService extends GetxController {
 
     if (rmpack != null && rmpack!.isNotEmpty) {
       if (!isHiddenState) {
-        send(to_rwkv.LoadInitialStates(rmpack!));
+        send(to_rwkv.LoadInitialStates(rmpack!, modelID: modelID));
       }
       debugPrint('to_rwkv.LoadInitialStates()，，加载角色扮演的state文件');
       debugPrint('加载角色扮演的state文件: $rmpack');
@@ -488,7 +528,7 @@ class RWKVChatService extends GetxController {
     }
     final prompt =
         "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
-    send(to_rwkv.SetMaxLength(1000));
+    send(to_rwkv.SetMaxLength(1000, modelID: modelID));
     debugPrint('to_rwkv.SetMaxLength(1000)，，设置最大长度');
     // 获取角色参数设置
     try {
@@ -503,6 +543,7 @@ class RWKVChatService extends GetxController {
           presencePenalty: params['presencePenalty'] as double,
           frequencyPenalty: params['frequencyPenalty'] as double,
           penaltyDecay: params['penaltyDecay'] as double,
+          modelID: modelID,
         ),
       );
       debugPrint('to_rwkv.SetSamplerParams()，，设置采样参数');
@@ -519,12 +560,13 @@ class RWKVChatService extends GetxController {
           presencePenalty: 1.5,
           frequencyPenalty: 1.0,
           penaltyDecay: 0.996,
+          modelID: modelID,
         ),
       );
       debugPrint('to_rwkv.SetSamplerParams()，，catch使用默认参数设置采样参数');
     }
     debugPrint('Set Prompt: $prompt');
-    send(to_rwkv.SetPrompt(prompt));
+    send(to_rwkv.SetPrompt(prompt, modelID: modelID));
     debugPrint('11to_rwkv.SetPrompt()，，设置提示词');
   }
 
@@ -541,6 +583,7 @@ class RWKVChatService extends GetxController {
         presencePenalty: params['presencePenalty'] as double,
         frequencyPenalty: params['frequencyPenalty'] as double,
         penaltyDecay: params['penaltyDecay'] as double,
+        modelID: modelID,
       ),
     );
     debugPrint('to_rwkv.SetSamplerParams()，，设置采样参数');
@@ -566,7 +609,12 @@ class RWKVChatService extends GetxController {
     String stateLoadPath = await CommonUtil.getFilePath(
       '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
     );
-    send(to_rwkv.LoadRuntimeStateToMemory(stateLoadPath: stateLoadPath));
+    send(
+      to_rwkv.LoadRuntimeStateToMemory(
+        stateLoadPath: stateLoadPath,
+        modelID: modelID,
+      ),
+    );
     debugPrint('22to_rwkv.LoadRuntimeStateToMemory()，，加载角色缓存cache');
     debugPrint('加载角色缓存state: $stateLoadPath');
     debugPrint(
@@ -578,7 +626,7 @@ class RWKVChatService extends GetxController {
     if (rmpack != null && rmpack!.isNotEmpty) {
       //   rmpack = statePath;
       if (!isHiddenState) {
-        send(to_rwkv.LoadInitialStates(rmpack!));
+        send(to_rwkv.LoadInitialStates(rmpack!, modelID: modelID));
       }
       debugPrint('to_rwkv.LoadInitialStates()，，加载角色扮演的state文件');
       debugPrint('加载角色扮演的state文件: $rmpack');
@@ -593,7 +641,7 @@ class RWKVChatService extends GetxController {
     final prompt =
         "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
     debugPrint('Set Prompt: $prompt');
-    send(to_rwkv.SetPrompt(prompt));
+    send(to_rwkv.SetPrompt(prompt, modelID: modelID));
     debugPrint('22to_rwkv.SetPrompt()，，设置提示词');
   }
 
@@ -614,12 +662,12 @@ class RWKVChatService extends GetxController {
     }
 
     ///只有切换了state文件才需要clearstate
-    send(to_rwkv.ClearStates());
+    send(to_rwkv.ClearStates(modelID: modelID));
     debugPrint('to_rwkv.ClearStates()，，清空状态');
     debugPrint('调用了to_rwkv.ClearStates()');
     if (!isHiddenState) {
       if (rmpack != null && rmpack!.isNotEmpty) {
-        send(to_rwkv.UnloadInitialStates('$rmpack'));
+        send(to_rwkv.UnloadInitialStates('$rmpack', modelID: modelID));
       } else {
         debugPrint('没有卸载角色扮演的state文件: $rmpack');
       }
@@ -631,7 +679,7 @@ class RWKVChatService extends GetxController {
     if (rmpack != null && rmpack!.isNotEmpty) {
       debugPrint('切换了state文件: $rmpack');
       if (!isHiddenState) {
-        send(to_rwkv.LoadInitialStates(rmpack!));
+        send(to_rwkv.LoadInitialStates(rmpack!, modelID: modelID));
       }
       debugPrint('to_rwkv.LoadInitialStates()，，加载角色扮演的state文件');
     } else {
@@ -644,7 +692,7 @@ class RWKVChatService extends GetxController {
     final prompt =
         "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
     debugPrint('changeStatesFile，Set Prompt: $prompt');
-    send(to_rwkv.SetPrompt(prompt));
+    send(to_rwkv.SetPrompt(prompt, modelID: modelID));
     debugPrint('33to_rwkv.SetPrompt()，，设置提示词');
   }
 
@@ -662,13 +710,13 @@ class RWKVChatService extends GetxController {
   Future<void> stop() async {
     lastGeneratedContent = ''; // 清空未完成的内容
     if (isGenerating.value == true) {
-      send(to_rwkv.Stop());
+      send(to_rwkv.Stop(modelID: modelID));
       debugPrint('to_rwkv.Stop()，，stop Generating chat');
     }
   }
 
   Future<void> releaseModel() async {
-    send(to_rwkv.ReleaseModel(modelID: modelID));
+    send(to_rwkv.ReleaseRWKVModel(modelID: modelID));
   }
 
   /// 生成聊天回复流
@@ -713,7 +761,7 @@ class RWKVChatService extends GetxController {
       }
     }
     debugPrint("to_rwkv.history: $history");
-    send(to_rwkv.ChatAsync(history, reasoning: false));
+    send(to_rwkv.ChatAsync(history, reasoning: false, modelID: modelID));
     debugPrint('to_rwkv.ChatAsync()，，发送消息到RWKV');
     debugPrint('Sent ChatAsync to RWKV');
 
@@ -725,10 +773,10 @@ class RWKVChatService extends GetxController {
       timer,
     ) async {
       // send(to_rwkv.GetResponseBufferIds());
-      send(to_rwkv.GetPrefillAndDecodeSpeed());
-      send(to_rwkv.GetResponseBufferContent());
+      send(to_rwkv.GetPrefillAndDecodeSpeed(modelID: modelID));
+      send(to_rwkv.GetResponseBufferContent(messages: [], modelID: modelID));
       await Future.delayed(const Duration(milliseconds: 1000));
-      send(to_rwkv.GetIsGenerating());
+      send(to_rwkv.GetIsGenerating(modelID: modelID));
 
       // // 减少不必要的调用频率
       // if (timer.tick % 5 == 0) {
