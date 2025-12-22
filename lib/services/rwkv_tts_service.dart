@@ -56,7 +56,7 @@ class RWKVTTSService extends GetxController {
   Function(String audioFileName, int audioDuration)? onTTSComplete;
   var appDir = '';
   var cacheDir = '';
-  int modelID = 0;
+  int modelID = -1;
   ModelInfo? modelInfo; // 保存当前的 TTS 模型信息
 
   // TTS 开关状态 (默认关闭)
@@ -319,15 +319,21 @@ class RWKVTTSService extends GetxController {
       "assets/config/chat/vocab_talk.txt",
     );
     // await _ensureQNNCopied();
-    final rootIsolateToken = RootIsolateToken.instance;
-    final options = StartOptions(
-      // modelPath: modelPath,
-      // tokenizerPath: tokenizerPath,
-      // backend: backend,
-      sendPort: _receivePort.sendPort,
-      rootIsolateToken: rootIsolateToken!,
-    );
-    await rwkvMobile.runIsolate(options);
+    if (modelID >= 0) {
+      send(to_rwkv.ReleaseRWKVModel(modelID: modelID));
+      send(to_rwkv.ReleaseTTSModels());
+    } else {
+      final rootIsolateToken = RootIsolateToken.instance;
+      final options = StartOptions(
+        // modelPath: modelPath,
+        // tokenizerPath: tokenizerPath,
+        // backend: backend,
+        sendPort: _receivePort.sendPort,
+        rootIsolateToken: rootIsolateToken!,
+      );
+      await rwkvMobile.runIsolate(options);
+    }
+
     wav2vec2PathStr = wav2vec2Path;
     detokenizePathStr = detokenizePath;
     bicodecTokenzerPathStr = bicodecTokenzerPath;
@@ -427,7 +433,7 @@ class RWKVTTSService extends GetxController {
     debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
     send(to_rwkv.ReleaseRWKVModel(modelID: modelID));
     debugPrint('to_rwkv.ReleaseModel(modelID:$modelID)，，释放模型');
-    modelID = 0;
+    modelID = -1;
     isSparkTTSModelLoaded = false;
     _sendPort = null;
     _initRuntimeCompleter = Completer<void>();

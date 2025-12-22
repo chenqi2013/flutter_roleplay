@@ -55,7 +55,7 @@ class RWKVChatService extends GetxController {
   var history = <String>[];
   bool isHiddenState = false;
   final RWKVMobile rwkvMobile = RWKVMobile();
-  int modelID = 0;
+  int modelID = -1;
   @override
   void onInit() async {
     super.onInit();
@@ -432,8 +432,6 @@ class RWKVChatService extends GetxController {
     //   backend = Backend.webRwkv;
     // }
 
-    final rootIsolateToken = RootIsolateToken.instance;
-
     // if (_sendPort != null) {
     // send(
     //   to_rwkv.ReInitRuntime(
@@ -442,19 +440,23 @@ class RWKVChatService extends GetxController {
     //     tokenizerPath: tokenizerPath,
     //   ),
     // );
-    // // send(to_rwkv.ReleaseModel());
-    // // _sendPort = null;
-    // // debugPrint('to_rwkv.ReleaseModel()，，释放模型');
-    // } else {
-    final options = StartOptions(
-      // modelPath: chatmodelPath.value,
-      // tokenizerPath: tokenizerPath,
-      // backend: backend,
-      sendPort: _receivePort.sendPort,
-      rootIsolateToken: rootIsolateToken!,
-    );
-    await rwkvMobile.runIsolate(options);
-    // }
+    if (modelID >= 0) {
+      send(to_rwkv.ReleaseRWKVModel(modelID: modelID));
+    } else {
+      // // _sendPort = null;
+      // // debugPrint('to_rwkv.ReleaseModel()，，释放模型');
+      // } else {
+      final rootIsolateToken = RootIsolateToken.instance;
+      final options = StartOptions(
+        // modelPath: chatmodelPath.value,
+        // tokenizerPath: tokenizerPath,
+        // backend: backend,
+        sendPort: _receivePort.sendPort,
+        rootIsolateToken: rootIsolateToken!,
+      );
+      await rwkvMobile.runIsolate(options);
+      // }
+    }
 
     while (_sendPort == null) {
       debugPrint("waiting for sendPort...");
