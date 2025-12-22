@@ -21,6 +21,7 @@ class ModelParamsPage extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          const SizedBox(height: 100), // 顶部间距，避免被TabBar遮挡
           _buildHeader(context),
           Expanded(
             child: Obx(() {

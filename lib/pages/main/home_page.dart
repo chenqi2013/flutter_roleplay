@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/widgets/clipped_glass_container_static.dart';
 import 'package:get/get.dart';
@@ -42,15 +43,10 @@ class HomePage extends StatelessWidget {
         children: [
           // 动态背景层 - 只有背景响应 tab 变化
           _buildDynamicBackground(),
-          // 前景内容 - TabBarView 独立于 Obx
-          Column(
-            children: [
-              // 顶部TabBar
-              _buildTabBar(context),
-              // 内容区域 - 不被 Obx 包裹
-              Expanded(child: tabBarView),
-            ],
-          ),
+          // 前景内容 - TabBarView 全屏显示，可以滑动到TabBar下方
+          tabBarView,
+          // 顶部TabBar - 浮在最上层，带高斯模糊效果
+          _buildTabBar(context),
         ],
       ),
     );
@@ -142,49 +138,61 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // 构建TabBar - 完全透明，只显示文字
+  // 构建TabBar - 带高斯模糊效果，让背后内容可见
   Widget _buildTabBar(BuildContext context) {
-    return Container(
-      color: Colors.transparent, // 完全透明
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            // 左侧关闭按钮
-            Padding(
-              padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  // 关闭页面，与 chat_page_builders 的 onBackPressed 保持一致
-                  notifyUpdateRolePlaySessionRequired();
-                  Navigator.of(context).pop();
-                },
-                child: ClippedGlassContainerStatic(
-                  fallbackBlur: 63.1,
-                  color: Colors.black.withValues(alpha: 0.35),
-                  hasGradient: true,
-                  borderRadius: 70,
-                  borderWidth: 0.5,
-                  padding: const EdgeInsets.all(12),
-                  child: SvgPicture.asset(
-                    'packages/flutter_roleplay/assets/svg/close.svg',
-                    height: 12,
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.1), // 轻微的半透明背景
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  // 左侧关闭按钮
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        // 关闭页面，与 chat_page_builders 的 onBackPressed 保持一致
+                        notifyUpdateRolePlaySessionRequired();
+                        Navigator.of(context).pop();
+                      },
+                      child: ClippedGlassContainerStatic(
+                        fallbackBlur: 63.1,
+                        color: Colors.black.withValues(alpha: 0.35),
+                        hasGradient: true,
+                        borderRadius: 70,
+                        borderWidth: 0.5,
+                        padding: const EdgeInsets.all(12),
+                        child: SvgPicture.asset(
+                          'packages/flutter_roleplay/assets/svg/close.svg',
+                          height: 12,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  // 自定义 TabBar（玻璃态效果）- 带滑动指示器
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: _buildAnimatedTabBar(),
+                    ),
+                  ),
+                ],
               ),
             ),
-            // 自定义 TabBar（玻璃态效果）- 带滑动指示器
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: _buildAnimatedTabBar(),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -234,43 +242,47 @@ class HomePage extends StatelessWidget {
                       borderRadius: 70,
                       borderWidth: 0.5,
                       padding: EdgeInsets.zero,
-                      child: ClipRect(
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: -indicatorLeft,
-                              top: 0,
-                              bottom: 0,
-                              width: constraints.maxWidth,
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildTabText(
-                                      label: chatLabel,
-                                      index: 0,
-                                      isForHighlight: true,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(70),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                left: -indicatorLeft,
+                                top: 0,
+                                bottom: 0,
+                                width: constraints.maxWidth,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildTabText(
+                                        label: chatLabel,
+                                        index: 0,
+                                        isForHighlight: true,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _buildTabText(
-                                      label: '角色',
-                                      index: 1,
-                                      isForHighlight: true,
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: _buildTabText(
+                                        label: '角色',
+                                        index: 1,
+                                        isForHighlight: true,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _buildTabText(
-                                      label: '模型',
-                                      index: 2,
-                                      isForHighlight: true,
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: _buildTabText(
+                                        label: '模型',
+                                        index: 2,
+                                        isForHighlight: true,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),

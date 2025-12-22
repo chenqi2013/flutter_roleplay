@@ -669,7 +669,12 @@ class ChatPageBuilders {
           child: ListView.builder(
             controller: scrollController,
             reverse: true,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.fromLTRB(
+              12,
+              100,
+              12,
+              12,
+            ), // 增加顶部padding，避免被TabBar遮挡
             itemCount: messages.length + 1,
             cacheExtent: 1000,
             addAutomaticKeepAlives: true,
