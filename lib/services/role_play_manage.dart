@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
@@ -111,7 +113,11 @@ class RoleplayManage {
 
   /// 通知插件模型下载完成，插件将重新加载模型
   /// 外部应用在模型下载完成后调用此方法
-  static void onModelDownloadComplete(ModelInfo info) {
+  static void onModelDownloadComplete(
+    ModelInfo info,
+    SendPort? sendPort,
+    ReceivePort? receivePort,
+  ) {
     debugPrint('外部应用通知：模型下载完成');
     // 调用全局函数通知模型下载完成
     notifyModelDownloadComplete(info);
