@@ -63,14 +63,8 @@ class RoleplayManage {
 
   static void initializeControllers() {
     Get.lazyPut<RolesListController>(() => RolesListController(), fenix: true);
-    Get.lazyPut<CreateRoleController>(
-      () => CreateRoleController(),
-      fenix: true,
-    );
-    Get.lazyPut<RoleParamsController>(
-      () => RoleParamsController(),
-      fenix: true,
-    );
+    Get.lazyPut<CreateRoleController>(() => CreateRoleController(), fenix: true);
+    Get.lazyPut<RoleParamsController>(() => RoleParamsController(), fenix: true);
     Get.lazyPut<RWKVTTSService>(() => RWKVTTSService(), fenix: true);
   }
 
@@ -121,11 +115,7 @@ class RoleplayManage {
 
   /// 通知插件模型下载完成，插件将重新加载模型
   /// 外部应用在模型下载完成后调用此方法
-  static void onModelDownloadComplete(
-    ModelInfo info,
-    List<dynamic> result,
-    ReceivePort? receivePort11,
-  ) {
+  static void onModelDownloadComplete(ModelInfo info, List<dynamic> result, ReceivePort? receivePort11) {
     debugPrint('外部应用通知：模型下载完成');
     sendPort = result[0];
     if (info.modelType == RoleplayManageModelType.chat) {
@@ -135,16 +125,14 @@ class RoleplayManage {
     }
     receivePort = receivePort11;
     // 调用全局函数通知模型下载完成
-    debugPrint(
-      'sendPort: $sendPort, receivePort: $receivePort, chatModelID: $chatModelID, ttsModelID: $ttsModelID',
-    );
+    debugPrint('sendPort: $sendPort, receivePort: $receivePort, chatModelID: $chatModelID, ttsModelID: $ttsModelID');
     notifyModelDownloadComplete(info);
   }
 
   static void operationMessage(dynamic message) {
-    debugPrint(
-      'isTTSOperationMessage: ${RoleplayManage.isTTSOperationMessage}',
-    );
+    // debugPrint(
+    //   'isTTSOperationMessage: ${RoleplayManage.isTTSOperationMessage}',
+    // );
     if (!RoleplayManage.isTTSOperationMessage) {
       RWKVChatService chatService = Get.find<RWKVChatService>();
       chatService.operationChatMessage(message);
@@ -248,18 +236,13 @@ class RoleplayManage {
 
       for (final roleName in roleNames) {
         // 获取每个角色的最新一条消息
-        final latestMessages = await dbHelper.getLatestMessagesByRole(
-          roleName,
-          1,
-        );
+        final latestMessages = await dbHelper.getLatestMessagesByRole(roleName, 1);
         if (latestMessages.isNotEmpty) {
           // 通过角色名称获取角色信息（包括图片地址）
           final roleInfo = await _getRoleInfoByName(roleName);
           if (roleInfo != null) {
             // 创建Map，key为图片地址，value为最后一条消息
-            final Map<String, ChatMessage> roleMap = {
-              roleInfo['image']: latestMessages.first,
-            };
+            final Map<String, ChatMessage> roleMap = {roleInfo['image']: latestMessages.first};
             rolePlayList.add(roleMap);
           }
         }
@@ -281,18 +264,11 @@ class RoleplayManage {
   }
 
   /// 通过角色名称获取角色信息
-  static Future<Map<String, dynamic>?> _getRoleInfoByName(
-    String roleName,
-  ) async {
+  static Future<Map<String, dynamic>?> _getRoleInfoByName(String roleName) async {
     try {
       final dbHelper = DatabaseHelper();
       final db = await dbHelper.database;
-      final List<Map<String, dynamic>> maps = await db.query(
-        'roles',
-        where: 'name = ?',
-        whereArgs: [roleName],
-        limit: 1,
-      );
+      final List<Map<String, dynamic>> maps = await db.query('roles', where: 'name = ?', whereArgs: [roleName], limit: 1);
 
       if (maps.isNotEmpty) {
         return maps.first;

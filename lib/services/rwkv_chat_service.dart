@@ -391,11 +391,9 @@ class RWKVChatService extends GetxController {
         //   return;
         // }
         debugPrint('没有获取到模型信息');
-        return;
       }
     } catch (e) {
       debugPrint('获取数据库模型信息失败: $e');
-      return;
     }
     if (info != null) {
       chatmodelPath.value = await CommonUtil.getFileDocumentPath(
@@ -701,9 +699,9 @@ class RWKVChatService extends GetxController {
       }
     }
     debugPrint('to_rwkv.UnloadInitialStates()，，卸载角色扮演的state文件');
-    if (statePath != null) {
-      rmpack = statePath;
-    }
+    // if (statePath != null) {
+    //   rmpack = statePath;
+    // }
     if (rmpack != null && rmpack!.isNotEmpty) {
       debugPrint('切换了state文件: $rmpack');
       if (!isHiddenState) {
@@ -744,13 +742,21 @@ class RWKVChatService extends GetxController {
   Future<void> stop() async {
     lastGeneratedContent = ''; // 清空未完成的内容
     if (isGenerating.value == true) {
-      send(to_rwkv.Stop(modelID: RoleplayManage.chatModelID));
-      debugPrint('to_rwkv.Stop()，，stop Generating chat');
+      if (RoleplayManage.chatModelID >= 0) {
+        send(to_rwkv.Stop(modelID: RoleplayManage.chatModelID));
+        isGenerating.value = false;
+        debugPrint('to_rwkv.Stop()，，stop Generating chat');
+      }
     }
   }
 
   Future<void> releaseModel() async {
-    send(to_rwkv.ReleaseRWKVModel(modelID: RoleplayManage.chatModelID));
+    if (RoleplayManage.chatModelID >= 0) {
+      send(to_rwkv.ReleaseRWKVModel(modelID: RoleplayManage.chatModelID));
+      RoleplayManage.chatModelID = -1;
+      isModelLoaded = false;
+      chatmodelPath.value = '';
+    }
   }
 
   /// 生成聊天回复流

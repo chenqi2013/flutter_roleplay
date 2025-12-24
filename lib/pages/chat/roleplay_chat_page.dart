@@ -341,9 +341,9 @@ class _RolePlayChatState extends State<RolePlayChat>
 
     _textController.dispose();
     disposeScrollListener();
-    // _controller?.modelService.stop();
-    // _controller?.modelService.releaseModel();
-    // _controller?.modelService.ttsService?.releaseTTSModel();
+    _controller?.modelService.stop();
+    _controller?.modelService.releaseModel();
+    _controller?.modelService.ttsService?.releaseTTSModel();
     _controller?.modelService.ttsService?.stopPlayer();
     RoleplayManage.isRolePlayMessage = false;
     super.dispose();

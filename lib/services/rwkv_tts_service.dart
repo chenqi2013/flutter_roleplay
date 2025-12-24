@@ -433,17 +433,24 @@ class RWKVTTSService extends GetxController {
       return;
     }
     if (isGenerating.value == true) {
-      send(to_rwkv.Stop(modelID: RoleplayManage.ttsModelID));
-      debugPrint('to_rwkv.Stop()，，stop Generating TTS');
+      if (RoleplayManage.ttsModelID >= 0) {
+        send(to_rwkv.Stop(modelID: RoleplayManage.ttsModelID));
+        isGenerating.value = false;
+        debugPrint('to_rwkv.Stop()，，stop Generating TTS');
+      }
     }
-    send(to_rwkv.ReleaseTTSModels());
-    debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
-    send(to_rwkv.ReleaseRWKVModel(modelID: RoleplayManage.ttsModelID));
-    debugPrint(
-      'to_rwkv.ReleaseModel(modelID:${RoleplayManage.ttsModelID})，，释放模型',
-    );
-    RoleplayManage.ttsModelID = -1;
-    isSparkTTSModelLoaded = false;
+    if (RoleplayManage.ttsModelID >= 0) {
+      send(to_rwkv.ReleaseTTSModels());
+      debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
+      send(to_rwkv.ReleaseRWKVModel(modelID: RoleplayManage.ttsModelID));
+      debugPrint(
+        'to_rwkv.ReleaseRWKVModel(modelID:${RoleplayManage.ttsModelID})，，释放模型',
+      );
+      RoleplayManage.ttsModelID = -1;
+      isSparkTTSModelLoaded = false;
+      ttsmodelPath.value = '';
+    }
+
     // _sendPort = null;
     _initRuntimeCompleter = Completer<void>();
     _getTokensTimer?.cancel();
@@ -453,7 +460,6 @@ class RWKVTTSService extends GetxController {
     _asTimer?.cancel();
     _asTimer = null;
     audioStream = null;
-    debugPrint('releaseTTSModel success');
   }
 
   void stopPlayer() {
