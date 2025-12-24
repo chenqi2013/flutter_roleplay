@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/role_play_manage.dart';
+import 'package:flutter_roleplay/services/rwkv_chat_service.dart';
+import 'package:flutter_roleplay/services/rwkv_tts_service.dart';
 import 'package:get/get.dart';
+import 'package:rwkv_mobile_flutter/types.dart';
 
 /// 模型下载回调函数类型
 typedef ModelDownloadCallback = void Function(RoleplayManageModelType type);
@@ -90,6 +93,31 @@ void notifyModelDownloadComplete(ModelInfo info) {
     _globalModelDownloadCompleteCallback!(info);
   } else {
     debugPrint('未设置模型下载完成回调');
+  }
+
+  /// 现在不会走下载完成的回调了
+  RWKVChatService chatService;
+  RWKVTTSService ttsService;
+  if (info.modelType == RoleplayManageModelType.chat) {
+    if (Get.isRegistered<RWKVChatService>()) {
+      debugPrint('RWKVChatService已注册');
+      chatService = Get.find<RWKVChatService>();
+    } else {
+      debugPrint('RWKVChatService未注册，创建新的实例');
+      chatService = Get.put(RWKVChatService());
+    }
+    debugPrint('chenqi chatService.modelID: ${RoleplayManage.chatModelID}');
+    chatService.loadChatModel(info: info);
+  } else if (info.modelType == RoleplayManageModelType.tts) {
+    if (Get.isRegistered<RWKVTTSService>()) {
+      debugPrint('RWKVTTSService已注册');
+      ttsService = Get.find<RWKVTTSService>();
+    } else {
+      debugPrint('RWKVTTSService未注册，创建新的实例');
+      ttsService = Get.put(RWKVTTSService());
+    }
+    debugPrint('chenqi ttsService.modelID: ${RoleplayManage.ttsModelID}');
+    ttsService.loadTTSModel(modelPath: info.modelPath, backend: info.backend);
   }
 }
 
