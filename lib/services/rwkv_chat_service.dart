@@ -752,7 +752,7 @@ class RWKVChatService extends GetxController {
 
   Future<void> releaseModel() async {
     if (RoleplayManage.chatModelID >= 0) {
-      send(to_rwkv.ReleaseRWKVModel(modelID: RoleplayManage.chatModelID));
+      // send(to_rwkv.ReleaseRWKVModel(modelID: RoleplayManage.chatModelID));
       RoleplayManage.chatModelID = -1;
       isModelLoaded = false;
       chatmodelPath.value = '';

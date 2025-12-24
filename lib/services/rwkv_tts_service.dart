@@ -440,12 +440,12 @@ class RWKVTTSService extends GetxController {
       }
     }
     if (RoleplayManage.ttsModelID >= 0) {
-      send(to_rwkv.ReleaseTTSModels());
-      debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
-      send(to_rwkv.ReleaseRWKVModel(modelID: RoleplayManage.ttsModelID));
-      debugPrint(
-        'to_rwkv.ReleaseRWKVModel(modelID:${RoleplayManage.ttsModelID})，，释放模型',
-      );
+      // send(to_rwkv.ReleaseTTSModels());
+      // debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');
+      // send(to_rwkv.ReleaseRWKVModel(modelID: RoleplayManage.ttsModelID));
+      // debugPrint(
+      //   'to_rwkv.ReleaseRWKVModel(modelID:${RoleplayManage.ttsModelID})，，释放模型',
+      // );
       RoleplayManage.ttsModelID = -1;
       isSparkTTSModelLoaded = false;
       ttsmodelPath.value = '';
