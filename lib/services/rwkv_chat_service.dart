@@ -506,12 +506,14 @@ class RWKVChatService extends GetxController {
     String stateLoadPath = await CommonUtil.getFilePath(
       '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
     );
-    send(
-      to_rwkv.LoadRuntimeStateToMemory(
-        stateLoadPath: stateLoadPath,
-        modelID: RoleplayManage.chatModelID,
-      ),
-    );
+    if (File(stateLoadPath).existsSync()) {
+      send(
+        to_rwkv.LoadRuntimeStateToMemory(
+          stateLoadPath: stateLoadPath,
+          modelID: RoleplayManage.chatModelID,
+        ),
+      );
+    }
     debugPrint('11to_rwkv.LoadRuntimeStateToMemory()，，加载角色缓存cache');
     debugPrint('加载角色缓存state: $stateLoadPath');
     debugPrint(
@@ -539,8 +541,10 @@ class RWKVChatService extends GetxController {
   /// 设置模型参数
   void _setupModelParameters() {
     String stateSrc = '';
-    if (!isHiddenState) {
-      stateSrc = "<state src=\"$rmpack\">";
+    if (rmpack != null && rmpack!.isNotEmpty) {
+      if (!isHiddenState) {
+        stateSrc = "<state src=\"$rmpack\">";
+      }
     }
     final prompt =
         "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
@@ -625,12 +629,14 @@ class RWKVChatService extends GetxController {
     String stateLoadPath = await CommonUtil.getFilePath(
       '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
     );
-    send(
-      to_rwkv.LoadRuntimeStateToMemory(
-        stateLoadPath: stateLoadPath,
-        modelID: RoleplayManage.chatModelID,
-      ),
-    );
+    if (File(stateLoadPath).existsSync()) {
+      send(
+        to_rwkv.LoadRuntimeStateToMemory(
+          stateLoadPath: stateLoadPath,
+          modelID: RoleplayManage.chatModelID,
+        ),
+      );
+    }
     debugPrint('22to_rwkv.LoadRuntimeStateToMemory()，，加载角色缓存cache');
     debugPrint('加载角色缓存state: $stateLoadPath');
     debugPrint(
@@ -656,8 +662,10 @@ class RWKVChatService extends GetxController {
     }
 
     String stateSrc = '';
-    if (!isHiddenState) {
-      stateSrc = "<state src=\"$rmpack\">";
+    if (rmpack != null && rmpack!.isNotEmpty) {
+      if (!isHiddenState) {
+        stateSrc = "<state src=\"$rmpack\">";
+      }
     }
     final prompt =
         "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
@@ -717,8 +725,10 @@ class RWKVChatService extends GetxController {
       debugPrint('没有加载角色扮演的state文件: $rmpack');
     }
     String stateSrc = '';
-    if (!isHiddenState) {
-      stateSrc = "<state src=\"$rmpack\">";
+    if (rmpack != null && rmpack!.isNotEmpty) {
+      if (!isHiddenState) {
+        stateSrc = "<state src=\"$rmpack\">";
+      }
     }
     final prompt =
         "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
