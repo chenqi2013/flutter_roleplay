@@ -4,11 +4,13 @@ import 'package:flutter_roleplay/widgets/clipped_glass_container_static.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/pages/main/home_controller.dart';
 import 'package:flutter_roleplay/pages/chat/roleplay_chat_page.dart';
+import 'package:flutter_roleplay/pages/chat/roleplay_chat_controller.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_page.dart';
 import 'package:flutter_roleplay/pages/params/model_params_page.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
+import 'package:flutter_roleplay/dialog/chat_dialogs.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class HomePage extends StatelessWidget {
@@ -189,6 +191,65 @@ class HomePage extends StatelessWidget {
                       child: _buildAnimatedTabBar(),
                     ),
                   ),
+                  // 清除消息按钮 - 只在第一个tab（聊天页面）显示
+                  Obx(() {
+                    if (controller.currentIndex.value != 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        right: 16,
+                        top: 8,
+                        bottom: 8,
+                      ),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () async {
+                          // 显示确认弹窗
+                          final confirmed =
+                              await ChatDialogs.showDeleteHistoryDialog(
+                                context,
+                              );
+
+                          // 用户确认后才执行清除操作
+                          if (confirmed == true) {
+                            RolePlayChatController chatController;
+                            if (Get.isRegistered<RolePlayChatController>()) {
+                              chatController =
+                                  Get.find<RolePlayChatController>();
+                            } else {
+                              chatController = Get.put(
+                                RolePlayChatController(),
+                              );
+                            }
+                            await chatController.clearAllChatHistory();
+
+                            // 显示清除成功提示
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('chat_history_cleared'.tr),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: ClippedGlassContainerStatic(
+                          fallbackBlur: 63.1,
+                          color: Colors.black.withValues(alpha: 0.35),
+                          hasGradient: true,
+                          borderRadius: 70,
+                          borderWidth: 0.5,
+                          padding: const EdgeInsets.all(12),
+                          child: SvgPicture.asset(
+                            'packages/flutter_roleplay/assets/svg/clear_msg.svg',
+                            height: 12,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
