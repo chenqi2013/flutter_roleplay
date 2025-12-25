@@ -427,11 +427,7 @@ class RWKVTTSService extends GetxController {
     debugPrint('loadSparkTTS success');
   }
 
-  void releaseTTSModel() {
-    if (!isSparkTTSModelLoaded) {
-      //_sendPort == null ||
-      return;
-    }
+  void stopGenerating() {
     if (isGenerating.value == true) {
       if (RoleplayManage.ttsModelID >= 0) {
         send(to_rwkv.Stop(modelID: RoleplayManage.ttsModelID));
@@ -439,6 +435,14 @@ class RWKVTTSService extends GetxController {
         debugPrint('to_rwkv.Stop()，，stop Generating TTS');
       }
     }
+  }
+
+  void releaseTTSModel() {
+    if (!isSparkTTSModelLoaded) {
+      //_sendPort == null ||
+      return;
+    }
+    stopGenerating();
     if (RoleplayManage.ttsModelID >= 0) {
       // send(to_rwkv.ReleaseTTSModels());
       // debugPrint('to_rwkv.ReleaseTTSModels()，，释放TTS模型');

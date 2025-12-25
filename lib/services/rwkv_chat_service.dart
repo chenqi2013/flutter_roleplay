@@ -787,6 +787,11 @@ class RWKVChatService extends GetxController {
       return;
     }
 
+    // //如果语音还在生成就停止掉
+    // if (ttsService?.isGenerating.value == true) {
+    //   ttsService?.stopGenerating();
+    // }
+
     final stateManager = ChatStateManager();
     final messages = stateManager.getMessages(roleName.value);
     debugPrint(
