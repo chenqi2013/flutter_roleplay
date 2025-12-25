@@ -89,6 +89,10 @@ class _RolePlayChatState extends State<RolePlayChat>
       _controller = Get.put(RolePlayChatController());
     }
     _controller?.changeLanguage();
+    // 点击模型名称打开模型切换
+    Future.delayed(const Duration(milliseconds: 500), () {
+      notifyModelDownloadRequired(RoleplayManageModelType.chat);
+    });
   }
 
   // 异步初始化默认角色
