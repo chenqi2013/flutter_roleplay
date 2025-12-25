@@ -354,32 +354,39 @@ class ModelParamsPage extends StatelessWidget {
               child: Obx(
                 () => GestureDetector(
                   onTap: () => controller.setPresetLevel(index),
-                  child: Column(
-                    children: [
-                      // 刻度线
-                      Container(
-                        height: 12,
-                        width: 2,
-                        color: controller.presetLevel.value == index
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.3),
-                      ),
-                      const SizedBox(height: 4),
-                      // 档位名称
-                      Text(
-                        controller.presetConfigs[index]['name'],
-                        style: TextStyle(
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 4.0,
+                    ),
+                    child: Column(
+                      children: [
+                        // 刻度线
+                        Container(
+                          height: 12,
+                          width: 2,
                           color: controller.presetLevel.value == index
                               ? Colors.white
-                              : Colors.white.withValues(alpha: 0.5),
-                          fontSize: 11,
-                          fontWeight: controller.presetLevel.value == index
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                              : Colors.white.withValues(alpha: 0.3),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        // 档位名称
+                        Text(
+                          controller.presetConfigs[index]['name'],
+                          style: TextStyle(
+                            color: controller.presetLevel.value == index
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.5),
+                            fontSize: 11,
+                            fontWeight: controller.presetLevel.value == index
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
