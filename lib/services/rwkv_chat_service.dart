@@ -21,7 +21,7 @@ import 'package:flutter_roleplay/models/chat_message_model.dart';
 import 'package:flutter_roleplay/services/model_callback_service.dart';
 import 'package:flutter_roleplay/services/chat_state_manager.dart';
 import 'package:flutter_roleplay/services/database_helper.dart';
-import 'package:flutter_roleplay/pages/params/role_params_controller.dart';
+import 'package:flutter_roleplay/pages/params/model_params_controller.dart';
 import 'package:flutter_roleplay/dialog/download_dialog.dart';
 
 /// RWKV 聊天模型管理服务
@@ -305,19 +305,19 @@ class RWKVChatService extends GetxController {
         } else if (info.modelType == RoleplayManageModelType.chat) {
           // 把当前的 modelinfo 保存到本地
           controller?.modelInfo = info;
-          RoleParamsController paramsController;
-          // if (Get.isRegistered<RoleParamsController>()) {
-          paramsController = Get.find<RoleParamsController>();
+          ModelParamsController paramsController;
+          // if (Get.isRegistered<ModelParamsController>()) {
+          paramsController = Get.find<ModelParamsController>();
           // } else {
-          //   paramsController = Get.put(RoleParamsController());
+          //   paramsController = Get.put(ModelParamsController());
           // }
-          paramsController.temperature.value = info.temperature ?? 0.6;
-          paramsController.topP.value = info.topP ?? 0.8;
-          paramsController.presencePenalty.value = info.presencePenalty ?? 2.0;
+          paramsController.temperature.value = info.temperature ?? 1.0;
+          paramsController.topP.value = info.topP ?? 0.3;
+          paramsController.presencePenalty.value = info.presencePenalty ?? 0.5;
           paramsController.frequencyPenalty.value =
-              info.frequencyPenalty ?? 0.2;
-          paramsController.penaltyDecay.value = info.penaltyDecay ?? 0.990;
-          paramsController.saveParams();
+              info.frequencyPenalty ?? 0.5;
+          paramsController.penaltyDecay.value = info.penaltyDecay ?? 0.996;
+          paramsController.saveConfiguration();
         }
         await _saveModelInfoToLocal(info);
       }
@@ -550,26 +550,31 @@ class RWKVChatService extends GetxController {
         "${stateSrc}System: ${roleLanguage.value == 'zh-CN' ? '请你扮演' : 'You are '}${roleName.value}，${roleDescription.value}\n\n";
     send(to_rwkv.SetMaxLength(1000, modelID: RoleplayManage.chatModelID));
     debugPrint('to_rwkv.SetMaxLength(1000)，，设置最大长度');
-    // 获取角色参数设置
+    // 获取模型参数设置
     try {
-      final paramsController = Get.find<RoleParamsController>();
-      final params = paramsController.getCurrentParams();
-      debugPrint('setupModelParameters: $params');
+      final paramsController = Get.find<ModelParamsController>();
+      debugPrint(
+        'setupModelParameters: temperature=${paramsController.temperature.value}, '
+        'topP=${paramsController.topP.value}, '
+        'presencePenalty=${paramsController.presencePenalty.value}, '
+        'frequencyPenalty=${paramsController.frequencyPenalty.value}, '
+        'penaltyDecay=${paramsController.penaltyDecay.value}',
+      );
       send(
         to_rwkv.SetSamplerParams(
-          temperature: params['temperature'] as double,
-          topK: params['topK'] as int,
-          topP: params['topP'] as double,
-          presencePenalty: params['presencePenalty'] as double,
-          frequencyPenalty: params['frequencyPenalty'] as double,
-          penaltyDecay: params['penaltyDecay'] as double,
+          temperature: paramsController.temperature.value,
+          topK: 500, // ModelParamsController 没有 topK，使用默认值
+          topP: paramsController.topP.value,
+          presencePenalty: paramsController.presencePenalty.value,
+          frequencyPenalty: paramsController.frequencyPenalty.value,
+          penaltyDecay: paramsController.penaltyDecay.value,
           modelID: RoleplayManage.chatModelID,
         ),
       );
       debugPrint('to_rwkv.SetSamplerParams()，，设置采样参数');
     } catch (e) {
       debugPrint(
-        'RoleParamsController not found, using default parameters: $e',
+        'ModelParamsController not found, using default parameters: $e',
       );
       // 使用默认参数
       send(
@@ -592,17 +597,22 @@ class RWKVChatService extends GetxController {
 
   /// 设置采样参数
   void setSamplerParams() {
-    final paramsController = Get.find<RoleParamsController>();
-    final params = paramsController.getCurrentParams();
-    debugPrint('setSamplerParams: $params');
+    final paramsController = Get.find<ModelParamsController>();
+    debugPrint(
+      'setSamplerParams: temperature=${paramsController.temperature.value}, '
+      'topP=${paramsController.topP.value}, '
+      'presencePenalty=${paramsController.presencePenalty.value}, '
+      'frequencyPenalty=${paramsController.frequencyPenalty.value}, '
+      'penaltyDecay=${paramsController.penaltyDecay.value}',
+    );
     send(
       to_rwkv.SetSamplerParams(
-        temperature: params['temperature'] as double,
-        topK: params['topK'] as int,
-        topP: params['topP'] as double,
-        presencePenalty: params['presencePenalty'] as double,
-        frequencyPenalty: params['frequencyPenalty'] as double,
-        penaltyDecay: params['penaltyDecay'] as double,
+        temperature: paramsController.temperature.value,
+        topK: 500, // ModelParamsController 没有 topK，使用默认值
+        topP: paramsController.topP.value,
+        presencePenalty: paramsController.presencePenalty.value,
+        frequencyPenalty: paramsController.frequencyPenalty.value,
+        penaltyDecay: paramsController.penaltyDecay.value,
         modelID: RoleplayManage.chatModelID,
       ),
     );
