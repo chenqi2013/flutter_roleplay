@@ -91,7 +91,9 @@ class _RolePlayChatState extends State<RolePlayChat>
     _controller?.changeLanguage();
     // 点击模型名称打开模型切换
     Future.delayed(const Duration(milliseconds: 500), () {
-      notifyModelDownloadRequired(RoleplayManageModelType.chat);
+      if (chatmodelPath.value.isEmpty) {
+        notifyModelDownloadRequired(RoleplayManageModelType.chat);
+      }
     });
   }
 
