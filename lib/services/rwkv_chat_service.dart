@@ -634,11 +634,13 @@ class RWKVChatService extends GetxController {
       debugPrint("sendPort is null");
       return;
     }
+    send(to_rwkv.ClearStates(modelID: RoleplayManage.chatModelID));
 
     ///加载角色缓存state
     String stateLoadPath = await CommonUtil.getFilePath(
       '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
     );
+
     if (File(stateLoadPath).existsSync()) {
       send(
         to_rwkv.LoadRuntimeStateToMemory(

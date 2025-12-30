@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/models/model_info.dart';
 import 'package:flutter_roleplay/services/language_service.dart';
+import 'package:flutter_roleplay/utils/common_util.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -95,6 +98,15 @@ class RolePlayChatController extends GetxController {
 
     // 清空待保存的用户消息
     _pendingUserMessage = null;
+
+    String stateLoadPath = await CommonUtil.getFilePath(
+      '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
+    );
+    File file = File(stateLoadPath);
+    if (file.existsSync()) {
+      file.deleteSync();
+      debugPrint('清除了角色缓存state: $stateLoadPath');
+    }
 
     // // 清空模型状态
     // await modelService.clearStates();

@@ -272,8 +272,8 @@ class CommonUtil {
       // 清空图片组件缓存，确保背景图片能正确更新
       ChatPageBuilders.clearMemoryCache();
 
-      // // 清空当前状态（只清空内存，不删除数据库记录）
-      // controller?.clearStates();
+      /// 切换state cache和系统提示词
+      controller?.clearStates();
 
       // 同步加载聊天历史记录（避免异步时序问题）
       _loadChatHistorySync(newRoleName, controller);
