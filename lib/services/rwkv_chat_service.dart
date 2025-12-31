@@ -809,10 +809,15 @@ class RWKVChatService extends GetxController {
       return;
     }
 
-    // //如果语音还在生成就停止掉
-    // if (ttsService?.isGenerating.value == true) {
-    //   ttsService?.stopGenerating();
-    // }
+    //如果语音还在生成就停止掉
+    if (ttsService?.isGenerating.value == true) {
+      ttsService?.stopGenerating();
+      debugPrint('ttsService is generating, stop generating');
+    }
+    while (ttsService?.isGenerating.value == true) {
+      debugPrint('ttsService is generating, waiting for stop');
+      await Future.delayed(const Duration(milliseconds: 1000));
+    }
 
     final stateManager = ChatStateManager();
     final messages = stateManager.getMessages(roleName.value);

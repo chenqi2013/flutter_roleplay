@@ -431,7 +431,6 @@ class RWKVTTSService extends GetxController {
     if (isGenerating.value == true) {
       if (RoleplayManage.ttsModelID >= 0) {
         send(to_rwkv.Stop(modelID: RoleplayManage.ttsModelID));
-        isGenerating.value = false;
         debugPrint('to_rwkv.Stop()，，stop Generating TTS');
       }
     }
