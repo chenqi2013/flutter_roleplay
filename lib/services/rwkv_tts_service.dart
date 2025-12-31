@@ -280,8 +280,9 @@ class RWKVTTSService extends GetxController {
         _onTTSStreamingBuffer(message);
       } else if (message is IsGenerating) {
         var generating = message.isGenerating;
-        isGenerating.value = generating;
+        // isGenerating.value = generating;
         if (!generating) {
+          isGenerating.value = false;
           debugPrint('语音生成完成');
           _stopQueryTimer();
           // 回调通知生成完成
@@ -622,6 +623,7 @@ class RWKVTTSService extends GetxController {
         rawFloatList,
       ).sublist(latestBufferLength.value, length);
       audioStream?.push(float32Data);
+      isGenerating.value = true;
     }
 
     this.generating.value = generating;
