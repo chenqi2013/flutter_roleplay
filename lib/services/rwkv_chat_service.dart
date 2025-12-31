@@ -630,8 +630,8 @@ class RWKVChatService extends GetxController {
     // stateManager.getMessages(roleName.value).clear();
 
     final sendPort = RoleplayManage.sendPort;
-    if (sendPort == null) {
-      debugPrint("sendPort is null");
+    if (sendPort == null || chatmodelPath.value.isEmpty) {
+      debugPrint("sendPort is null||chatmodelPath.value is empty");
       return;
     }
     send(to_rwkv.ClearStates(modelID: RoleplayManage.chatModelID));
