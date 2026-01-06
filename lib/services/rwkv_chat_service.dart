@@ -836,7 +836,8 @@ class RWKVChatService extends GetxController {
     send(
       to_rwkv.ChatAsync(
         history,
-        reasoning: false,
+        enableReasoning: false,
+        forceReasoning: false,
         modelID: RoleplayManage.chatModelID,
       ),
     );
