@@ -13,8 +13,8 @@ class ModelParamsController extends GetxController {
   final Rx<ModelInfo?> currentTTSModel = Rx<ModelInfo?>(null);
 
   // TTS语言选择 (中文/英文/日语)
-  final RxString ttsLanguage = '中文'.obs;
-  final List<String> ttsLanguages = ['中文', '英文', '日语'];
+  final RxString ttsLanguage = 'chinese'.obs;
+  final List<String> ttsLanguages = ['chinese', 'english_lang', 'japanese'];
 
   // 风格滑块值 (0.0 - 1.0, 0=无聊的, 1=疯狂的)
   final RxDouble styleValue = 0.5.obs;
@@ -55,9 +55,9 @@ class ModelParamsController extends GetxController {
   final RxBool isSaving = false.obs;
 
   // 预设档位配置
-  final List<Map<String, dynamic>> presetConfigs = [
+  List<Map<String, dynamic>> get presetConfigs => [
     {
-      'name': '狂想曲',
+      'name': 'preset_crazy'.tr,
       'temp': 0.6,
       'topp': 0.8,
       'presence': 2.0,
@@ -65,7 +65,7 @@ class ModelParamsController extends GetxController {
       'decay': 0.99,
     },
     {
-      'name': '沸腾',
+      'name': 'preset_boiling'.tr,
       'temp': 0.8,
       'topp': 0.6,
       'presence': 1.2,
@@ -73,7 +73,7 @@ class ModelParamsController extends GetxController {
       'decay': 0.993,
     },
     {
-      'name': '日常',
+      'name': 'preset_daily'.tr,
       'temp': 1.0,
       'topp': 0.3,
       'presence': 0.5,
@@ -81,7 +81,7 @@ class ModelParamsController extends GetxController {
       'decay': 0.996,
     },
     {
-      'name': '克制',
+      'name': 'preset_restrained'.tr,
       'temp': 0.5,
       'topp': 0.3,
       'presence': 0.2,
@@ -89,7 +89,7 @@ class ModelParamsController extends GetxController {
       'decay': 0.996,
     },
     {
-      'name': '留白',
+      'name': 'preset_blank'.tr,
       'temp': 0.3,
       'topp': 0.3,
       'presence': 0.0,
@@ -132,8 +132,8 @@ class ModelParamsController extends GetxController {
     } catch (e) {
       debugPrint('加载模型失败: $e');
       Get.snackbar(
-        '加载失败',
-        '无法加载模型信息: $e',
+        'load_failed_title'.tr,
+        '${'unable_to_load_model_info'.tr}: $e',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
@@ -147,7 +147,7 @@ class ModelParamsController extends GetxController {
   Future<void> loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      ttsLanguage.value = prefs.getString('tts_language') ?? '中文';
+      ttsLanguage.value = prefs.getString('tts_language') ?? 'chinese';
       styleValue.value = prefs.getDouble('style_value') ?? 0.5;
 
       // 加载实际的音色名称（从全局变量或SharedPreferences）
@@ -216,11 +216,11 @@ class ModelParamsController extends GetxController {
   /// 获取风格描述
   String getStyleDescription() {
     if (styleValue.value < 0.3) {
-      return '无聊的';
+      return 'style_boring'.tr;
     } else if (styleValue.value > 0.7) {
-      return '疯狂的';
+      return 'style_crazy'.tr;
     } else {
-      return '正常人类';
+      return 'style_normal'.tr;
     }
   }
 
@@ -335,8 +335,8 @@ class ModelParamsController extends GetxController {
       await prefs.setDouble('penalty_decay', penaltyDecay.value);
 
       Get.snackbar(
-        '保存成功',
-        '模型参数配置已保存',
+        'save_success_title'.tr,
+        'model_params_saved'.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green.withValues(alpha: 0.8),
         colorText: Colors.white,
@@ -349,8 +349,8 @@ class ModelParamsController extends GetxController {
     } catch (e) {
       debugPrint('保存配置失败: $e');
       Get.snackbar(
-        '保存失败',
-        '无法保存配置: $e',
+        'save_failed_title'.tr,
+        '${'unable_to_save_config'.tr}: $e',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
@@ -362,7 +362,7 @@ class ModelParamsController extends GetxController {
 
   /// 获取模型显示名称
   String getModelDisplayName(ModelInfo? model) {
-    if (model == null) return '未配置';
+    if (model == null) return 'not_configured'.tr;
     // 从 ID 或路径中提取模型名称
     final name = model.id.split('/').last;
     return name.replaceAll('.bin', '').replaceAll('_', ' ');

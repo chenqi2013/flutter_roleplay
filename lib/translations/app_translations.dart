@@ -136,6 +136,83 @@ class AppTranslations extends Translations {
       'model_not_loaded': '模型未加载',
       'edit_role_title': '编辑角色',
       'edit_success_message': '角色"@name"已更新',
+
+      // HomePage 相关翻译
+      'chat_tab': '聊天',
+      'role_tab': '角色',
+      'model_tab': '模型',
+
+      // CreateRolePage 新增翻译
+      'role_voice': '角色音色',
+      'role_voice_description': '选择角色专属的语音音色（可选）',
+      'tap_to_select_voice': '点击选择音色',
+      'update_role': '更新角色',
+
+      // RolesListPage 新增翻译
+      'roleplay': '扮演',
+      'roleplay_description': '请选择你想对话的角色或创建角色。',
+      'create_my_role': '创建我的角色',
+      'custom': '自定义',
+      'edit': '编辑',
+      'delete_role_title': '删除角色',
+      'delete_role_confirm_text': '确定要删除角色',
+      'this_cannot_be_undone': '此操作无法撤销',
+
+      // AudioListPage 相关翻译
+      'what_voice_do_you_want': '你希望拥有什么样的声音',
+      'no_audio': '暂无音频',
+
+      // AudioListController 相关翻译
+      'chinese': '中文',
+      'english_lang': '英文',
+      'japanese': '日语',
+      'error_title': '错误',
+      'load_audio_data_failed': '加载音频数据失败',
+      'play_audio_failed': '播放音频失败',
+
+      // ModelParamsPage 相关翻译
+      'select_chat_model': '选择聊天模型',
+      'select_tts_model': '选择语音模型',
+      'adjust_here': '在此处调整',
+      'model_params_suffix': '模型参数。',
+      'not_configured': '未配置',
+      'tts_language_label': 'TTS语言',
+      'decoding_params': '解码参数',
+      'gear_mode': '档位模式',
+      'detailed_params': '详细参数',
+      'temperature_label': '温度',
+      'top_p_label': 'Top P',
+      'presence_penalty_label': '存在惩罚',
+      'frequency_penalty_label': '频率惩罚',
+      'penalty_decay_label': '惩罚衰减',
+      'select_voice_timbre': '选择音色',
+      'save_configuration': '保存以上配置',
+
+      // ModelParamsController 相关翻译
+      'save_success_title': '保存成功',
+      'model_params_saved': '模型参数配置已保存',
+      'save_failed_title': '保存失败',
+      'unable_to_save_config': '无法保存配置',
+      'load_failed_title': '加载失败',
+      'unable_to_load_model_info': '无法加载模型信息',
+      'preset_crazy': '狂想曲',
+      'preset_boiling': '沸腾',
+      'preset_daily': '日常',
+      'preset_restrained': '克制',
+      'preset_blank': '留白',
+      'style_boring': '无聊的',
+      'style_crazy': '疯狂的',
+      'style_normal': '正常人类',
+
+      // RolePlayChatPage 相关翻译
+      'unable_to_regenerate': '无法重新生成',
+      'cannot_find_user_message': '找不到对应的用户消息，无法重新生成回复。',
+      'confirm_button': '确定',
+
+      // RolesListController 相关翻译
+      'no_local_cache': '无本地缓存',
+      'just_now': '刚刚',
+      'cache_cleared': '已清空本地角色缓存',
     },
     'en_US': {
       // CreateRolePage related translations
@@ -295,6 +372,86 @@ class AppTranslations extends Translations {
       'model_not_loaded': 'Model not loaded',
       'edit_role_title': 'Edit Role',
       'edit_success_message': 'Role "@name" has been updated',
+
+      // HomePage related translations
+      'chat_tab': 'Chat',
+      'role_tab': 'Role',
+      'model_tab': 'Model',
+
+      // CreateRolePage new translations
+      'role_voice': 'Role Voice',
+      'role_voice_description':
+          'Select a voice timbre for this role (optional)',
+      'tap_to_select_voice': 'Tap to select voice',
+      'update_role': 'Update Role',
+
+      // RolesListPage new translations
+      'roleplay': 'Roleplay',
+      'roleplay_description':
+          'Please select a role to chat with or create a new role.',
+      'create_my_role': 'Create My Role',
+      'custom': 'Custom',
+      'edit': 'Edit',
+      'delete_role_title': 'Delete Role',
+      'delete_role_confirm_text': 'Are you sure to delete role',
+      'this_cannot_be_undone': 'This operation cannot be undone',
+
+      // AudioListPage related translations
+      'what_voice_do_you_want': 'What kind of voice do you want',
+      'no_audio': 'No audio available',
+
+      // AudioListController related translations
+      'chinese': 'Chinese',
+      'english_lang': 'English',
+      'japanese': 'Japanese',
+      'error_title': 'Error',
+      'load_audio_data_failed': 'Failed to load audio data',
+      'play_audio_failed': 'Failed to play audio',
+
+      // ModelParamsPage related translations
+      'select_chat_model': 'Select Chat Model',
+      'select_tts_model': 'Select TTS Model',
+      'adjust_here': 'Adjust here',
+      'model_params_suffix': 'model parameters.',
+      'not_configured': 'Not configured',
+      'tts_language_label': 'TTS Language',
+      'decoding_params': 'Decoding Parameters',
+      'gear_mode': 'Gear Mode',
+      'detailed_params': 'Detailed Parameters',
+      'temperature_label': 'Temperature',
+      'top_p_label': 'Top P',
+      'presence_penalty_label': 'Presence Penalty',
+      'frequency_penalty_label': 'Frequency Penalty',
+      'penalty_decay_label': 'Penalty Decay',
+      'select_voice_timbre': 'Select Voice',
+      'save_configuration': 'Save Configuration',
+
+      // ModelParamsController related translations
+      'save_success_title': 'Save Successful',
+      'model_params_saved': 'Model parameters configuration has been saved',
+      'save_failed_title': 'Save Failed',
+      'unable_to_save_config': 'Unable to save configuration',
+      'load_failed_title': 'Load Failed',
+      'unable_to_load_model_info': 'Unable to load model information',
+      'preset_crazy': 'Rhapsody',
+      'preset_boiling': 'Boiling',
+      'preset_daily': 'Daily',
+      'preset_restrained': 'Restrained',
+      'preset_blank': 'Blank',
+      'style_boring': 'Boring',
+      'style_crazy': 'Crazy',
+      'style_normal': 'Normal',
+
+      // RolePlayChatPage related translations
+      'unable_to_regenerate': 'Unable to Regenerate',
+      'cannot_find_user_message':
+          'Cannot find the corresponding user message, unable to regenerate response.',
+      'confirm_button': 'Confirm',
+
+      // RolesListController related translations
+      'no_local_cache': 'No local cache',
+      'just_now': 'Just now',
+      'cache_cleared': 'Local role cache has been cleared',
     },
   };
 }

@@ -168,7 +168,7 @@ class RolesListPage extends StatelessWidget {
                 height: 36,
               ),
               Text(
-                '扮演',
+                'roleplay'.tr,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
@@ -180,7 +180,7 @@ class RolesListPage extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '请选择你想对话的角色或创建角色。',
+            'roleplay_description'.tr,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w500,
@@ -218,10 +218,10 @@ class RolesListPage extends StatelessWidget {
               borderRadius: 70,
               borderWidth: 0.5,
               padding: const EdgeInsets.all(12),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  '创建我的角色',
-                  style: TextStyle(
+                  'create_my_role'.tr,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
@@ -469,9 +469,9 @@ class _RoleGridCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Text(
-                      '自定义',
-                      style: TextStyle(
+                    child: Text(
+                      'custom'.tr,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -591,7 +591,7 @@ class _RoleGridCard extends StatelessWidget {
                     _buildMenuItem(
                       context: context,
                       icon: Icons.edit_rounded,
-                      label: '编辑',
+                      label: 'edit'.tr,
                       color: Colors.blue.shade400,
                       backgroundColor: Colors.blue.withValues(alpha: 0.15),
                       onTap: () {
@@ -615,7 +615,7 @@ class _RoleGridCard extends StatelessWidget {
                     _buildMenuItem(
                       context: context,
                       icon: Icons.delete_rounded,
-                      label: '删除',
+                      label: 'delete'.tr,
                       color: Colors.red.shade400,
                       backgroundColor: Colors.red.withValues(alpha: 0.15),
                       onTap: () {
@@ -753,8 +753,8 @@ class _RoleGridCard extends StatelessWidget {
               const SizedBox(height: 20),
               // 标题
               Text(
-                '删除角色',
-                style: TextStyle(
+                'delete_role_title'.tr,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -772,7 +772,7 @@ class _RoleGridCard extends StatelessWidget {
                     height: 1.5,
                   ),
                   children: [
-                    const TextSpan(text: '确定要删除角色 '),
+                    TextSpan(text: '${'delete_role_confirm_text'.tr} '),
                     TextSpan(
                       text: '"${role.name}"',
                       style: TextStyle(
@@ -782,7 +782,7 @@ class _RoleGridCard extends StatelessWidget {
                     ),
                     const TextSpan(text: ' 吗？\n'),
                     TextSpan(
-                      text: '此操作无法撤销',
+                      text: 'this_cannot_be_undone'.tr,
                       style: TextStyle(
                         color: Colors.red.withValues(alpha: 0.8),
                         fontSize: 13,
@@ -812,7 +812,7 @@ class _RoleGridCard extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            '取消',
+                            'cancel'.tr,
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.9),
                               fontSize: 16,
@@ -851,8 +851,8 @@ class _RoleGridCard extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            '删除',
-                            style: TextStyle(
+                            'delete'.tr,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,

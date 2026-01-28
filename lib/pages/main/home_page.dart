@@ -263,7 +263,7 @@ class HomePage extends StatelessWidget {
   Widget _buildAnimatedTabBar() {
     return Obx(() {
       // 在Obx内部立即获取observable的值
-      final chatLabel = roleName.value.isNotEmpty ? roleName.value : '聊天';
+      final chatLabel = roleName.value.isNotEmpty ? roleName.value : 'chat_tab'.tr;
 
       return AnimatedBuilder(
         animation: controller.tabController.animation!,
@@ -285,9 +285,9 @@ class HomePage extends StatelessWidget {
                         child: _buildTabText(label: chatLabel, index: 0),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(child: _buildTabText(label: '角色', index: 1)),
+                      Expanded(child: _buildTabText(label: 'role_tab'.tr, index: 1)),
                       const SizedBox(width: 8),
-                      Expanded(child: _buildTabText(label: '模型', index: 2)),
+                      Expanded(child: _buildTabText(label: 'model_tab'.tr, index: 2)),
                     ],
                   ),
                   // 顶层：滑动的高亮指示器和文字
@@ -326,7 +326,7 @@ class HomePage extends StatelessWidget {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: _buildTabText(
-                                        label: '角色',
+                                        label: 'role_tab'.tr,
                                         index: 1,
                                         isForHighlight: true,
                                       ),
@@ -334,7 +334,7 @@ class HomePage extends StatelessWidget {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: _buildTabText(
-                                        label: '模型',
+                                        label: 'model_tab'.tr,
                                         index: 2,
                                         isForHighlight: true,
                                       ),

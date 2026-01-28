@@ -38,14 +38,14 @@ class ModelParamsPage extends StatelessWidget {
                   children: [
                     // 当前聊天模型
                     _buildModelInfo(
-                      title: '选择聊天模型',
+                      title: 'select_chat_model'.tr,
                       modelType: RoleplayManageModelType.chat,
                     ),
                     const SizedBox(height: 16),
 
                     // 当前语音模型
                     _buildModelInfo(
-                      title: '选择语音模型',
+                      title: 'select_tts_model'.tr,
                       modelType: RoleplayManageModelType.tts,
                     ),
                     const SizedBox(height: 16),
@@ -91,7 +91,7 @@ class ModelParamsPage extends StatelessWidget {
           Row(
             children: [
               Text(
-                '在此处调整',
+                'adjust_here'.tr,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.45),
                   fontSize: 20,
@@ -106,7 +106,7 @@ class ModelParamsPage extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                '模型参数。',
+                'model_params_suffix'.tr,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.45),
                   fontSize: 20,
@@ -187,7 +187,7 @@ class ModelParamsPage extends StatelessWidget {
 
   /// 从模型路径提取显示名称
   String _getModelDisplayName(String path) {
-    if (path.isEmpty) return '未配置';
+    if (path.isEmpty) return 'not_configured'.tr;
 
     // 从路径中提取文件名
     final fileName = path.split('/').last;
@@ -212,7 +212,7 @@ class ModelParamsPage extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            'TTS语言',
+            'tts_language_label'.tr,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.6),
               fontSize: 16,
@@ -241,7 +241,7 @@ class ModelParamsPage extends StatelessWidget {
                                 padding: const EdgeInsets.all(12),
                                 child: Center(
                                   child: Text(
-                                    lang,
+                                    lang.tr,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -256,7 +256,7 @@ class ModelParamsPage extends StatelessWidget {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    lang,
+                                    lang.tr,
                                     style: TextStyle(
                                       color: Colors.white.withValues(
                                         alpha: 0.6,
@@ -296,7 +296,7 @@ class ModelParamsPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '解码参数',
+                'decoding_params'.tr,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 16,
@@ -316,7 +316,7 @@ class ModelParamsPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      controller.showDetailedParams.value ? '档位模式' : '详细参数',
+                      controller.showDetailedParams.value ? 'gear_mode'.tr : 'detailed_params'.tr,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -404,15 +404,15 @@ class ModelParamsPage extends StatelessWidget {
   Widget _buildDetailedParams() {
     return Column(
       children: [
-        _buildParamRow('温度', controller.tempController, 'temp'),
+        _buildParamRow('temperature_label'.tr, controller.tempController, 'temp'),
         const SizedBox(height: 12),
-        _buildParamRow('Top P', controller.topPController, 'topp'),
+        _buildParamRow('top_p_label'.tr, controller.topPController, 'topp'),
         const SizedBox(height: 12),
-        _buildParamRow('存在惩罚', controller.presenceController, 'presence'),
+        _buildParamRow('presence_penalty_label'.tr, controller.presenceController, 'presence'),
         const SizedBox(height: 12),
-        _buildParamRow('频率惩罚', controller.frequencyController, 'frequency'),
+        _buildParamRow('frequency_penalty_label'.tr, controller.frequencyController, 'frequency'),
         const SizedBox(height: 12),
-        _buildParamRow('惩罚衰减', controller.decayController, 'decay'),
+        _buildParamRow('penalty_decay_label'.tr, controller.decayController, 'decay'),
       ],
     );
   }
@@ -491,7 +491,7 @@ class ModelParamsPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '选择音色',
+                'select_voice_timbre'.tr,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 16,
@@ -570,9 +570,9 @@ class ModelParamsPage extends StatelessWidget {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          '保存以上配置',
-                          style: TextStyle(
+                      : Text(
+                          'save_configuration'.tr,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.w400,

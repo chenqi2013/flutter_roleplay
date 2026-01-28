@@ -703,12 +703,12 @@ class _RolePlayChatState extends State<RolePlayChat>
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('无法重新生成'),
-          content: const Text('找不到对应的用户消息，无法重新生成回复。'),
+          title: Text('unable_to_regenerate'.tr),
+          content: Text('cannot_find_user_message'.tr),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('确定'),
+              child: Text('confirm_button'.tr),
             ),
           ],
         ),

@@ -183,7 +183,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '角色音色',
+                                'role_voice'.tr,
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
@@ -192,7 +192,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '选择角色专属的语音音色（可选）',
+                                'role_voice_description'.tr,
                                 style: const TextStyle(
                                   color: Colors.white54,
                                   fontSize: 12,
@@ -258,7 +258,7 @@ class _CreateRolePageState extends State<CreateRolePage> {
                                                     .selectedVoiceTxt
                                                     .value
                                                     .isEmpty
-                                                ? '点击选择音色'
+                                                ? 'tap_to_select_voice'.tr
                                                 : controller
                                                       .selectedVoiceTxt
                                                       .value,
@@ -389,7 +389,9 @@ class _CreateRolePageState extends State<CreateRolePage> {
                                             ),
                                           )
                                         : Text(
-                                            'create_role_button'.tr,
+                                            widget.editRole != null
+                                                ? 'update_role'.tr
+                                                : 'create_role_button'.tr,
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontSize: 14,

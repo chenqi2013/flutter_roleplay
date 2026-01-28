@@ -222,7 +222,7 @@ class RolesListController extends GetxController {
   Future<String> getCacheInfo() async {
     final hasCache = await _dbHelper.hasLocalRoleData();
     if (!hasCache) {
-      return '无本地缓存';
+      return 'no_local_cache'.tr;
     }
 
     final count = await _dbHelper.getRoleCount();
@@ -238,7 +238,7 @@ class RolesListController extends GetxController {
       } else if (duration.inMinutes > 0) {
         timeAgo = '${duration.inMinutes}分钟前';
       } else {
-        timeAgo = '刚刚';
+        timeAgo = 'just_now'.tr;
       }
       return '缓存: $count 个角色，更新于 $timeAgo';
     }
@@ -250,9 +250,9 @@ class RolesListController extends GetxController {
   Future<void> clearCache(BuildContext context) async {
     await _dbHelper.clearRoles();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('已清空本地角色缓存'),
-        duration: Duration(seconds: 1),
+      SnackBar(
+        content: Text('cache_cleared'.tr),
+        duration: const Duration(seconds: 1),
       ),
     );
   }

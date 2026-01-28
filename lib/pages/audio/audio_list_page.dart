@@ -55,10 +55,13 @@ class AudioListPage extends StatelessWidget {
     }
 
     switch (ttsLanguage) {
+      case 'chinese':
       case '中文':
         return controller.chineseAudios;
+      case 'english_lang':
       case '英文':
         return controller.englishAudios;
+      case 'japanese':
       case '日语':
         return controller.japaneseAudios;
       default:
@@ -86,8 +89,8 @@ class AudioListPage extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            '你希望拥有什么样的声音',
-            style: TextStyle(
+            'what_voice_do_you_want'.tr,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w500,
@@ -106,7 +109,7 @@ class AudioListPage extends StatelessWidget {
     if (audios.isEmpty) {
       return Center(
         child: Text(
-          '暂无音频',
+          'no_audio'.tr,
           style: TextStyle(
             fontSize: 16,
             color: Colors.white.withValues(alpha: 0.5),

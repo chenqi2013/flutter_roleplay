@@ -141,7 +141,8 @@ class RolePlayChatController extends GetxController {
   // }
 
   // 流式聊天完成 - 委托给模型服务
-  Stream<String> streamLocalChatCompletions({String content = '介绍下自己'}) {
+  Stream<String> streamLocalChatCompletions({String? content}) {
+    content ??= 'introduce_yourself'.tr;
     return modelService.streamLocalChatCompletions(content: content);
   }
 

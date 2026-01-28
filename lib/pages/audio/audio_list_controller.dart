@@ -175,8 +175,8 @@ class AudioListController extends GetxController
     } catch (e) {
       debugPrint('加载音频数据失败: $e');
       Get.snackbar(
-        '错误',
-        '加载音频数据失败: $e',
+        'error_title'.tr,
+        '${'load_audio_data_failed'.tr}: $e',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
@@ -227,8 +227,8 @@ class AudioListController extends GetxController
     } catch (e) {
       debugPrint('播放音频失败: $e');
       Get.snackbar(
-        '错误',
-        '播放音频失败: $e',
+        'error_title'.tr,
+        '${'play_audio_failed'.tr}: $e',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
