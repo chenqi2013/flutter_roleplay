@@ -34,6 +34,7 @@ class RoleModel {
   final bool isCustom; // true: 用户自定义角色, false: API获取的角色
   final String? voice; // TTS 音色文件名，如 "Chinese(PRC)_Aventurine_4.wav"
   final String? voiceTxt; // TTS 音色文本，如 "…我们到了。"
+  final int? updatedAt; // 更新时间戳，用于排序
 
   RoleModel({
     required this.id,
@@ -44,6 +45,7 @@ class RoleModel {
     this.isCustom = false, // 默认为API角色
     this.voice, // 可选的音色字段
     this.voiceTxt, // 可选的音色文本字段
+    this.updatedAt, // 可选的更新时间
   });
 
   factory RoleModel.fromJson(Map<String, dynamic> json) {
@@ -142,6 +144,7 @@ class RoleModel {
       isCustom: (map['is_custom'] as int) == 1,
       voice: map['voice'] as String?, // 从数据库读取音色字段
       voiceTxt: map['voice_txt'] as String?, // 从数据库读取音色文本字段
+      updatedAt: map['updated_at'] as int?, // 从数据库读取更新时间
     );
   }
 }

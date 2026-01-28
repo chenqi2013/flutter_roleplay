@@ -555,7 +555,7 @@ class _RoleGridCard extends StatelessWidget {
         color: Colors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        offset: const Offset(10, 22),
+        offset: const Offset(-8, 36),
         itemBuilder: (BuildContext context) => [
           PopupMenuItem<String>(
             padding: EdgeInsets.zero,

@@ -544,13 +544,13 @@ class DatabaseHelper {
     }
   }
 
-  /// 从本地获取角色列表 (自定义角色排在前面)
+  /// 从本地获取角色列表 (自定义角色排在前面，最近更新的排在最前)
   Future<List<RoleModel>> getRoles() async {
     try {
       final db = await database;
       final List<Map<String, dynamic>> maps = await db.query(
         'roles',
-        orderBy: 'is_custom DESC', // 自定义角色在前
+        orderBy: 'is_custom DESC, updated_at DESC', // 自定义角色在前，按更新时间降序
       );
 
       final roles = List.generate(maps.length, (i) {
@@ -678,6 +678,8 @@ class DatabaseHelper {
           'description': role.description,
           'image': role.image,
           'language': role.language,
+          'voice': role.voice,
+          'voice_txt': role.voiceTxt,
           'updated_at': now,
         },
         where: 'id = ? AND is_custom = 1',
