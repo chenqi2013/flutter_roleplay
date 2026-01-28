@@ -661,6 +661,19 @@ class _RolePlayChatState extends State<RolePlayChat>
       return;
     }
 
+    // 检查模型是否已加载
+    if (!_controller!.modelService.isModelLoaded) {
+      debugPrint('Model not loaded, skipping regenerate');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('model_not_loaded'.tr),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 1),
+        ),
+      );
+      return;
+    }
+
     // 简化逻辑：直接查找前一条用户消息
     final userMessage = _findPreviousUserMessage(message);
     debugPrint('Found previous user message: ${userMessage?.content}');
