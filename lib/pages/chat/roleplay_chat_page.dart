@@ -702,15 +702,121 @@ class _RolePlayChatState extends State<RolePlayChat>
     if (mounted) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text('unable_to_regenerate'.tr),
-          content: Text('cannot_find_user_message'.tr),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('confirm_button'.tr),
+        barrierColor: Colors.black.withValues(alpha: 0.6),
+        builder: (BuildContext dialogContext) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.grey.shade900.withValues(alpha: 0.95),
+                  Colors.black.withValues(alpha: 0.98),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.orange.withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-          ],
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 警告图标
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.orange.withValues(alpha: 0.2),
+                        Colors.orange.withValues(alpha: 0.3),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.orange.shade400,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // 标题
+                Text(
+                  'unable_to_regenerate'.tr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // 内容
+                Text(
+                  'cannot_find_user_message'.tr,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 15,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // 确认按钮
+                GestureDetector(
+                  onTap: () => Navigator.of(dialogContext).pop(),
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Colors.orange.shade600, Colors.orange.shade700],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        'confirm_button'.tr,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }

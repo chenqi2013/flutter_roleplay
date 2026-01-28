@@ -709,10 +709,10 @@ class _RoleGridCard extends StatelessWidget {
               ],
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.red.withValues(alpha: 0.2),
-              width: 1,
-            ),
+            // border: Border.all(
+            //   color: Colors.red.withValues(alpha: 0.2),
+            //   width: 1,
+            // ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.5),

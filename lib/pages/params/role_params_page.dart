@@ -403,45 +403,168 @@ class RoleParamsPage extends StatelessWidget {
   void _showResetDialog(BuildContext context, RoleParamsController controller) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.grey[900],
-          title: Text(
-            'reset_params_title'.tr,
-            style: const TextStyle(color: Colors.white),
-          ),
-          content: Text(
-            'reset_params_desc'.tr,
-            style: const TextStyle(color: Colors.white70),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'cancel'.tr,
-                style: const TextStyle(color: Colors.white70),
-              ),
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      builder: (BuildContext dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.grey.shade900.withValues(alpha: 0.95),
+                Colors.black.withValues(alpha: 0.98),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                controller.resetToDefaults();
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('params_reset_success'.tr),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.orange.withValues(alpha: 0.2),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 20,
+                spreadRadius: 0,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 警告图标
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.orange.withValues(alpha: 0.2),
+                      Colors.orange.withValues(alpha: 0.3),
+                    ],
                   ),
-                );
-              },
-              child: const Text(
-                'reset',
-                style: TextStyle(color: Colors.orange),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.refresh_rounded,
+                  color: Colors.orange.shade400,
+                  size: 28,
+                ),
               ),
-            ),
-          ],
-        );
-      },
+              const SizedBox(height: 20),
+              // 标题
+              Text(
+                'reset_params_title'.tr,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // 内容
+              Text(
+                'reset_params_desc'.tr,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // 按钮
+              Row(
+                children: [
+                  // 取消按钮
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(dialogContext).pop(),
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'cancel'.tr,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // 重置按钮
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        controller.resetToDefaults();
+                        Navigator.of(dialogContext).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('params_reset_success'.tr),
+                            backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Colors.orange.shade600, Colors.orange.shade700],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'reset',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

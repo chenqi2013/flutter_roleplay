@@ -10,185 +10,158 @@ class ChatDialogs {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.6),
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return Dialog(
           backgroundColor: Colors.transparent,
-          elevation: 0,
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.grey.shade900.withValues(alpha: 0.95),
+                  Colors.black.withValues(alpha: 0.98),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.orange.withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 警告图标
+                Container(
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      width: 1.5,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.orange.withValues(alpha: 0.2),
+                        Colors.orange.withValues(alpha: 0.3),
+                      ],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 30,
-                        offset: const Offset(0, 10),
-                        spreadRadius: 0,
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                        spreadRadius: 0,
-                      ),
-                    ],
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Icon
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.orange.shade300,
-                              Colors.orange.shade500,
-                            ],
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.orange.withValues(alpha: 0.3),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.warning_rounded,
-                          size: 36,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Title
-                      Text(
-                        'confirm_operation'.tr,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1A1A1A),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Content
-                      Text(
-                        'ai_interruption_message'.tr,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
-                          height: 1.5,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Buttons
-                      Row(
-                        children: [
-                          // Cancel button
-                          Expanded(
-                            child: Container(
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.grey.shade200,
-                                  width: 1,
-                                ),
-                              ),
-                              child: TextButton(
-                                onPressed: () =>
-                                    Navigator.of(context).pop(false),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.grey.shade700,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'cancel'.tr,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-
-                          // Confirm button
-                          Expanded(
-                            child: Container(
-                              height: 52,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.red.shade400,
-                                    Colors.red.shade600,
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.red.withValues(alpha: 0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: TextButton(
-                                onPressed: () =>
-                                    Navigator.of(context).pop(true),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'confirm'.tr,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.warning_rounded,
+                    color: Colors.orange.shade400,
+                    size: 28,
                   ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                // 标题
+                Text(
+                  'confirm_operation'.tr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // 内容
+                Text(
+                  'ai_interruption_message'.tr,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 15,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // 按钮
+                Row(
+                  children: [
+                    // 取消按钮
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(dialogContext).pop(false),
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'cancel'.tr,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // 确认按钮
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(dialogContext).pop(true),
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.red.shade600,
+                                Colors.red.shade700,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              'confirm'.tr,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         );
@@ -205,187 +178,158 @@ class ChatDialogs {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.6),
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return Dialog(
           backgroundColor: Colors.transparent,
-          elevation: 0,
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.grey.shade900.withValues(alpha: 0.95),
+                  Colors.black.withValues(alpha: 0.98),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.blue.withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 切换图标
+                Container(
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      width: 1.5,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.blue.withValues(alpha: 0.2),
+                        Colors.blue.withValues(alpha: 0.3),
+                      ],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 30,
-                        offset: const Offset(0, 10),
-                        spreadRadius: 0,
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                        spreadRadius: 0,
-                      ),
-                    ],
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Icon
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.blue.shade300,
-                              Colors.blue.shade500,
-                            ],
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.withValues(alpha: 0.3),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.swap_horiz_rounded,
-                          size: 36,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Title
-                      Text(
-                        'role_switch_dialog_title'.tr,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1A1A1A),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Content
-                      Text(
-                        'role_switch_confirm_message'.trParams({
-                          'name': roleName,
-                        }),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
-                          height: 1.5,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Buttons
-                      Row(
-                        children: [
-                          // Cancel button
-                          Expanded(
-                            child: Container(
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.grey.shade200,
-                                  width: 1,
-                                ),
-                              ),
-                              child: TextButton(
-                                onPressed: () =>
-                                    Navigator.of(context).pop(false),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.grey.shade700,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'cancel'.tr,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-
-                          // Confirm button
-                          Expanded(
-                            child: Container(
-                              height: 52,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.blue.shade400,
-                                    Colors.blue.shade600,
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.blue.withValues(alpha: 0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: TextButton(
-                                onPressed: () =>
-                                    Navigator.of(context).pop(true),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'confirm'.tr,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.swap_horiz_rounded,
+                    color: Colors.blue.shade400,
+                    size: 28,
                   ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                // 标题
+                Text(
+                  'role_switch_dialog_title'.tr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // 内容
+                Text(
+                  'role_switch_confirm_message'.trParams({'name': roleName}),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 15,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // 按钮
+                Row(
+                  children: [
+                    // 取消按钮
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(dialogContext).pop(false),
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'cancel'.tr,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // 确认按钮
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(dialogContext).pop(true),
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.blue.shade600,
+                                Colors.blue.shade700,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              'confirm'.tr,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         );
@@ -398,60 +342,83 @@ class ChatDialogs {
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      builder: (BuildContext dialogContext) {
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 16,
+          backgroundColor: Colors.transparent,
           child: Container(
-            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Colors.white, Colors.grey.shade50],
+                colors: [
+                  Colors.grey.shade900.withValues(alpha: 0.95),
+                  Colors.black.withValues(alpha: 0.98),
+                ],
               ),
+              borderRadius: BorderRadius.circular(20),
+              // border: Border.all(
+              //   color: Colors.red.withValues(alpha: 0.2),
+              //   width: 1,
+              // ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Icon
+                // 警告图标
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.red.withValues(alpha: 0.2),
+                        Colors.red.withValues(alpha: 0.3),
+                      ],
+                    ),
                     shape: BoxShape.circle,
+                    // border: Border.all(
+                    //   color: Colors.red.withValues(alpha: 0.3),
+                    //   width: 2,
+                    // ),
                   ),
                   child: Icon(
                     Icons.delete_forever,
-                    size: 32,
                     color: Colors.red.shade400,
+                    size: 28,
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Title
+                // 标题
                 Text(
                   'delete_history_title'.tr,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // Content
+                // 内容
                 Text(
                   'delete_history_message'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                    height: 1.4,
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 15,
+                    height: 1.5,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -459,77 +426,77 @@ class ChatDialogs {
                   'delete_irreversible'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.red.shade400,
+                    color: Colors.red.withValues(alpha: 0.8),
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 32),
-
-                // Buttons
+                const SizedBox(height: 24),
+                // 按钮
                 Row(
                   children: [
-                    // Cancel button
+                    // 取消按钮
                     Expanded(
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.grey.shade600,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(dialogContext).pop(false),
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
                             ),
                           ),
-                          child: const Text(
-                            '取消',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                          child: Center(
+                            child: Text(
+                              '取消',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
-
-                    // Delete button
+                    // 删除按钮
                     Expanded(
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
-                            colors: [Colors.red.shade400, Colors.red.shade600],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.red.shade200,
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(dialogContext).pop(true),
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.red.shade600,
+                                Colors.red.shade700,
+                              ],
                             ),
-                          ],
-                        ),
-                        child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                          child: Text(
-                            'delete'.tr,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                          child: Center(
+                            child: Text(
+                              'delete'.tr,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
                         ),
