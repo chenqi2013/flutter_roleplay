@@ -95,7 +95,12 @@ class RolesListPage extends StatelessWidget {
                       slivers: [
                         // GridView 角色列表
                         SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(16, 100, 16, 88), // 增加底部 padding 为悬浮按钮留出空间
+                          padding: const EdgeInsets.fromLTRB(
+                            16,
+                            100,
+                            16,
+                            88,
+                          ), // 增加底部 padding 为悬浮按钮留出空间
                           sliver: SliverGrid(
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
@@ -104,11 +109,15 @@ class RolesListPage extends StatelessWidget {
                                   mainAxisSpacing: 12, // 行间距
                                   childAspectRatio: 0.7, // 调整宽高比，让卡片更高
                                 ),
-                            delegate: SliverChildBuilderDelegate((context, index) {
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
                               final role = displayRoles[index];
                               return _RoleGridCard(
                                 role: role,
-                                onTap: () => controller.selectRole(role, context),
+                                onTap: () =>
+                                    controller.selectRole(role, context),
                                 onDelete: () =>
                                     controller.deleteCustomRole(role, context),
                               );
@@ -511,84 +520,161 @@ class _RoleGridCard extends StatelessWidget {
   /// 构建更多按钮
   Widget _buildMoreButton(BuildContext context) {
     return Container(
+      width: 28,
+      height: 28,
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.5),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.black.withValues(alpha: 0.2),
+            Colors.black.withValues(alpha: 0.3),
+          ],
+        ),
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 6,
-            spreadRadius: 1,
-          ),
-        ],
+        // border: Border.all(
+        //   color: Colors.white.withValues(alpha: 0.15),
+        //   width: 0.5,
+        // ),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withValues(alpha: 0.4),
+        //     blurRadius: 8,
+        //     spreadRadius: 0,
+        //     offset: const Offset(0, 2),
+        //   ),
+        // ],
       ),
       child: PopupMenuButton<String>(
-        icon: const Icon(
+        padding: EdgeInsets.zero,
+        icon: Icon(
           Icons.more_vert,
-          color: Colors.white,
-          size: 20,
+          color: Colors.white.withValues(alpha: 0.95),
+          size: 16,
         ),
-        color: Colors.black.withValues(alpha: 0.9),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: Colors.white.withValues(alpha: 0.1),
-            width: 1,
-          ),
-        ),
-        offset: const Offset(-10, 40),
-        elevation: 8,
+        color: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        offset: const Offset(10, 22),
         itemBuilder: (BuildContext context) => [
           PopupMenuItem<String>(
-            value: 'edit',
-            child: Row(
-              children: [
-                Icon(
-                  Icons.edit_outlined,
-                  size: 20,
-                  color: Colors.white.withValues(alpha: 0.9),
+            padding: EdgeInsets.zero,
+            value: 'container',
+            enabled: false,
+            child: Container(
+              width: 140,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [const Color(0xFF1a1a1a), const Color(0xFF0a0a0a)],
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  '编辑',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    blurRadius: 16,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 4),
                   ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildMenuItem(
+                      context: context,
+                      icon: Icons.edit_rounded,
+                      label: '编辑',
+                      color: Colors.blue.shade400,
+                      backgroundColor: Colors.blue.withValues(alpha: 0.15),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _navigateToEditPage(context);
+                      },
+                    ),
+                    Container(
+                      height: 0.5,
+                      margin: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            Colors.white.withValues(alpha: 0.1),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                    _buildMenuItem(
+                      context: context,
+                      icon: Icons.delete_rounded,
+                      label: '删除',
+                      color: Colors.red.shade400,
+                      backgroundColor: Colors.red.withValues(alpha: 0.15),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _showDeleteDialog(context);
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          PopupMenuItem<String>(
-            value: 'delete',
-            child: Row(
-              children: [
-                Icon(
-                  Icons.delete_outline,
-                  size: 20,
-                  color: Colors.red.withValues(alpha: 0.9),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '删除',
-                  style: TextStyle(
-                    color: Colors.red.withValues(alpha: 0.9),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
-        onSelected: (String value) {
-          if (value == 'edit') {
-            _navigateToEditPage(context);
-          } else if (value == 'delete') {
-            _showDeleteDialog(context);
-          }
-        },
+        onSelected: (_) {},
+      ),
+    );
+  }
+
+  /// 构建菜单项
+  Widget _buildMenuItem({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required Color backgroundColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: color.withValues(alpha: 0.1),
+        highlightColor: color.withValues(alpha: 0.05),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 18, color: color),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -597,9 +683,7 @@ class _RoleGridCard extends StatelessWidget {
   void _navigateToEditPage(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => CreateRolePage(editRole: role),
-      ),
+      MaterialPageRoute(builder: (context) => CreateRolePage(editRole: role)),
     ).then((_) {
       // 从编辑页面返回后刷新列表
       final controller = Get.find<RolesListController>();
@@ -610,55 +694,180 @@ class _RoleGridCard extends StatelessWidget {
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          '删除角色',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        content: Text(
-          '确定要删除角色 "${role.name}" 吗？\n此操作无法撤销。',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.8),
-            fontSize: 15,
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(
-              '取消',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 16,
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      builder: (BuildContext dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.grey.shade900.withValues(alpha: 0.95),
+                Colors.black.withValues(alpha: 0.98),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.red.withValues(alpha: 0.2),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 20,
+                spreadRadius: 0,
+                offset: const Offset(0, 10),
               ),
-            ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              onDelete();
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red.shade400,
-            ),
-            child: const Text(
-              '删除',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 警告图标
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.red.withValues(alpha: 0.2),
+                      Colors.red.withValues(alpha: 0.3),
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.red.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red.shade400,
+                  size: 28,
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+              // 标题
+              Text(
+                '删除角色',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // 内容
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 15,
+                    height: 1.5,
+                  ),
+                  children: [
+                    const TextSpan(text: '确定要删除角色 '),
+                    TextSpan(
+                      text: '"${role.name}"',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const TextSpan(text: ' 吗？\n'),
+                    TextSpan(
+                      text: '此操作无法撤销',
+                      style: TextStyle(
+                        color: Colors.red.withValues(alpha: 0.8),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // 按钮
+              Row(
+                children: [
+                  // 取消按钮
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(dialogContext).pop(),
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '取消',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // 删除按钮
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(dialogContext).pop();
+                        onDelete();
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Colors.red.shade600, Colors.red.shade700],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.red.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            '删除',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
