@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_roleplay/constant/theme.dart';
 import 'package:flutter_roleplay/models/role_model.dart';
 import 'package:flutter_roleplay/pages/audio/audio_list_page.dart';
-import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
+import 'package:flutter_roleplay/widgets/chat_page_builders.dart';
 import 'package:flutter_roleplay/widgets/clipped_glass_container_static.dart';
-import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'createrole_controller.dart';
@@ -520,15 +519,23 @@ class _ImageSelector extends GetView<CreateRoleController> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: controller.selectedImage.value != null
+                      color:
+                          (controller.selectedImage.value != null ||
+                              controller.imageUrl.value.isNotEmpty)
                           ? const Color(0xFF6A8DFF).withValues(alpha: 0.6)
                           : Colors.white.withValues(alpha: 0.2),
-                      width: controller.selectedImage.value != null ? 1.5 : 1.0,
+                      width:
+                          (controller.selectedImage.value != null ||
+                              controller.imageUrl.value.isNotEmpty)
+                          ? 1.5
+                          : 1.0,
                     ),
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: controller.selectedImage.value != null
+                      colors:
+                          (controller.selectedImage.value != null ||
+                              controller.imageUrl.value.isNotEmpty)
                           ? [
                               const Color(0xFF6A8DFF).withValues(alpha: 0.1),
                               const Color(0xFF9B7BFF).withValues(alpha: 0.1),
@@ -539,16 +546,25 @@ class _ImageSelector extends GetView<CreateRoleController> {
                             ],
                     ),
                   ),
-                  child: controller.selectedImage.value != null
+                  child:
+                      (controller.selectedImage.value != null ||
+                          controller.imageUrl.value.isNotEmpty)
                       ? Stack(
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(11),
-                              child: Image.file(
-                                controller.selectedImage.value!,
-                                fit: BoxFit.cover,
+                              child: SizedBox(
                                 width: double.infinity,
                                 height: double.infinity,
+                                child: controller.selectedImage.value != null
+                                    ? Image.file(
+                                        controller.selectedImage.value!,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : ChatPageBuilders.buildImageWidget(
+                                        controller.imageUrl.value,
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             ),
                             // 编辑图标覆盖层
@@ -598,7 +614,8 @@ class _ImageSelector extends GetView<CreateRoleController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (controller.selectedImage.value == null) ...[
+                    if (controller.selectedImage.value == null &&
+                        controller.imageUrl.value.isEmpty) ...[
                       Text(
                         'image_upload_tips'.tr,
                         style: const TextStyle(

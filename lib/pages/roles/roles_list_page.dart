@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_roleplay/widgets/clipped_glass_container.dart';
 import 'package:flutter_roleplay/widgets/clipped_glass_container_static.dart';
-import 'package:flutter_roleplay/widgets/pre_blurred_background.dart';
 import 'package:get/get.dart';
 import 'package:flutter_roleplay/constant/constant.dart';
 import 'package:flutter_roleplay/pages/roles/roles_list_controller.dart';
@@ -323,7 +321,7 @@ class _RoleGridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      onLongPress: role.isCustom ? _showDeleteDialog : null,
+      onLongPress: role.isCustom ? () => _showDeleteDialog(context) : null,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -430,6 +428,18 @@ class _RoleGridCard extends StatelessWidget {
                     : const SizedBox.shrink(),
               ),
 
+              // 更多按钮（仅自定义角色且非当前使用的角色显示）
+              if (role.isCustom)
+                Obx(
+                  () => roleName.value != role.name
+                      ? Positioned(
+                          top: 10,
+                          right: 10,
+                          child: _buildMoreButton(context),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+
               // 自定义角色标识
               if (role.isCustom)
                 Positioned(
@@ -498,20 +508,155 @@ class _RoleGridCard extends StatelessWidget {
     );
   }
 
-  void _showDeleteDialog() {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('删除角色'),
-        content: Text('确定要删除角色 "${role.name}" 吗？'),
+  /// 构建更多按钮
+  Widget _buildMoreButton(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 6,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: PopupMenuButton<String>(
+        icon: const Icon(
+          Icons.more_vert,
+          color: Colors.white,
+          size: 20,
+        ),
+        color: Colors.black.withValues(alpha: 0.9),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+        offset: const Offset(-10, 40),
+        elevation: 8,
+        itemBuilder: (BuildContext context) => [
+          PopupMenuItem<String>(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.edit_outlined,
+                  size: 20,
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '编辑',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          PopupMenuItem<String>(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: Colors.red.withValues(alpha: 0.9),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '删除',
+                  style: TextStyle(
+                    color: Colors.red.withValues(alpha: 0.9),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        onSelected: (String value) {
+          if (value == 'edit') {
+            _navigateToEditPage(context);
+          } else if (value == 'delete') {
+            _showDeleteDialog(context);
+          }
+        },
+      ),
+    );
+  }
+
+  /// 跳转到编辑页面
+  void _navigateToEditPage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateRolePage(editRole: role),
+      ),
+    ).then((_) {
+      // 从编辑页面返回后刷新列表
+      final controller = Get.find<RolesListController>();
+      controller.loadRoles();
+    });
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          '删除角色',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          '确定要删除角色 "${role.name}" 吗？\n此操作无法撤销。',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.8),
+            fontSize: 15,
+            height: 1.5,
+          ),
+        ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              '取消',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 16,
+              ),
+            ),
+          ),
           TextButton(
             onPressed: () {
-              Get.back();
+              Navigator.of(dialogContext).pop();
               onDelete();
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('删除'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red.shade400,
+            ),
+            child: const Text(
+              '删除',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
