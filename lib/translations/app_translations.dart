@@ -186,7 +186,7 @@ class AppTranslations extends Translations {
       'frequency_penalty_label': '频率惩罚',
       'penalty_decay_label': '惩罚衰减',
       'select_voice_timbre': '选择音色',
-      'save_configuration': '保存以上配置',
+      'save_configuration': '保存',
 
       // ModelParamsController 相关翻译
       'save_success_title': '保存成功',
@@ -424,7 +424,7 @@ class AppTranslations extends Translations {
       'frequency_penalty_label': 'Frequency Penalty',
       'penalty_decay_label': 'Penalty Decay',
       'select_voice_timbre': 'Select Voice',
-      'save_configuration': 'Save Configuration',
+      'save_configuration': 'Save',
 
       // ModelParamsController related translations
       'save_success_title': 'Save Successful',
