@@ -68,59 +68,68 @@ class RolesListPage extends StatelessWidget {
         );
       }
 
-      return Column(
+      return Stack(
         children: [
-          // //测试
-          // TestContainer(
-          //   blur: 100,
-          //   color: Colors.black.withValues(alpha: 0.35),
-          //   hasGradient: true,
-          //   borderRadius: 90,
-          //   borderWidth: 0.5,
-          // ),
-          // 顶部欢迎文本
-          _buildWelcomeHeader(),
-          // 角色列表 - GridView + 底部按钮
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: controller.refreshRoles,
-              child: Obx(() {
-                final displayRoles = controller.displayRoles;
-                if (displayRoles.isEmpty &&
-                    controller.searchQuery.value.isNotEmpty) {
-                  // 显示无搜索结果
-                  return _buildNoSearchResults();
-                }
-                return CustomScrollView(
-                  slivers: [
-                    // GridView 角色列表
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 100, 16, 12),
-                      sliver: SliverGrid(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2, // 2列
-                              crossAxisSpacing: 12, // 列间距
-                              mainAxisSpacing: 12, // 行间距
-                              childAspectRatio: 0.7, // 调整宽高比，让卡片更高
-                            ),
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          final role = displayRoles[index];
-                          return _RoleGridCard(
-                            role: role,
-                            onTap: () => controller.selectRole(role, context),
-                            onDelete: () =>
-                                controller.deleteCustomRole(role, context),
-                          );
-                        }, childCount: displayRoles.length),
-                      ),
-                    ),
-                    // 底部创建角色按钮
-                    SliverToBoxAdapter(child: _buildCreateRoleButton(context)),
-                  ],
-                );
-              }),
-            ),
+          Column(
+            children: [
+              // //测试
+              // TestContainer(
+              //   blur: 100,
+              //   color: Colors.black.withValues(alpha: 0.35),
+              //   hasGradient: true,
+              //   borderRadius: 90,
+              //   borderWidth: 0.5,
+              // ),
+              // 顶部欢迎文本
+              _buildWelcomeHeader(),
+              // 角色列表 - GridView
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: controller.refreshRoles,
+                  child: Obx(() {
+                    final displayRoles = controller.displayRoles;
+                    if (displayRoles.isEmpty &&
+                        controller.searchQuery.value.isNotEmpty) {
+                      // 显示无搜索结果
+                      return _buildNoSearchResults();
+                    }
+                    return CustomScrollView(
+                      slivers: [
+                        // GridView 角色列表
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 100, 16, 88), // 增加底部 padding 为悬浮按钮留出空间
+                          sliver: SliverGrid(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2, // 2列
+                                  crossAxisSpacing: 12, // 列间距
+                                  mainAxisSpacing: 12, // 行间距
+                                  childAspectRatio: 0.7, // 调整宽高比，让卡片更高
+                                ),
+                            delegate: SliverChildBuilderDelegate((context, index) {
+                              final role = displayRoles[index];
+                              return _RoleGridCard(
+                                role: role,
+                                onTap: () => controller.selectRole(role, context),
+                                onDelete: () =>
+                                    controller.deleteCustomRole(role, context),
+                              );
+                            }, childCount: displayRoles.length),
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+          // 悬浮在底部的创建角色按钮
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildCreateRoleButton(context),
           ),
         ],
       );
