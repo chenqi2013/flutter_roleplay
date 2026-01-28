@@ -114,14 +114,11 @@ class CreateRoleController extends GetxController {
     }
   }
 
-  // 选择图片
+  // 选择图片（保存原图，不压缩）
   Future<void> selectImage(BuildContext context) async {
     try {
       final XFile? pickedFile = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
       );
 
       if (pickedFile != null) {
