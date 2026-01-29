@@ -531,6 +531,7 @@ class _RolePlayChatState extends State<RolePlayChat>
               onBranchChanged: (message, branchIndex) =>
                   _handleBranchChanged(message, branchIndex),
               onTTSRequested: (text) => _handleTTSRequested(text),
+              isTTSModelLoaded: () => _isTTSModelLoaded(),
             );
           },
         );
@@ -650,6 +651,15 @@ class _RolePlayChatState extends State<RolePlayChat>
   }
 
   // ===== TTS 处理函数 =====
+
+  /// 检查 TTS 模型是否已加载
+  bool _isTTSModelLoaded() {
+    final ttsService = _controller?.modelService.ttsService;
+    if (ttsService == null) {
+      return false;
+    }
+    return ttsService.isSparkTTSModelLoaded && ttsmodelPath.value.isNotEmpty;
+  }
 
   /// 处理 TTS 请求
   void _handleTTSRequested(String text) {

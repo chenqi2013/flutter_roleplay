@@ -698,6 +698,7 @@ class ChatPageBuilders {
     Function(ChatMessage)? onRegeneratePressed,
     Function(ChatMessage, int)? onBranchChanged,
     Function(String text)? onTTSRequested,
+    bool Function()? isTTSModelLoaded,
   }) {
     // 如果没有消息，只显示角色介绍
     if (messages.isEmpty) {
@@ -735,6 +736,7 @@ class ChatPageBuilders {
           showBranchIndicator: !msg.isUser && msg.totalBranches > 1,
           isLastAIMessage: isLastAIMessage,
           onTTSRequested: isLastAIMessage ? onTTSRequested : null,
+          isTTSModelLoaded: isLastAIMessage ? isTTSModelLoaded : null,
         ),
       );
     } else if (index == messages.length) {

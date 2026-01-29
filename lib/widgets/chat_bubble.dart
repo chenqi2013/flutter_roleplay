@@ -26,6 +26,7 @@ class ChatBubble extends StatefulWidget {
     this.showBranchIndicator = false,
     this.isLastAIMessage = false,
     this.onTTSRequested,
+    this.isTTSModelLoaded,
   });
 
   final ChatMessage message;
@@ -36,6 +37,8 @@ class ChatBubble extends StatefulWidget {
   final bool isLastAIMessage;
   /// TTS 请求回调（用于生成 TTS 音频）
   final Function(String text)? onTTSRequested;
+  /// 检查 TTS 模型是否已加载的回调
+  final bool Function()? isTTSModelLoaded;
 
   @override
   State<ChatBubble> createState() => _ChatBubbleState();
@@ -126,9 +129,16 @@ class _ChatBubbleState extends State<ChatBubble> {
       
       // 调用 TTS 请求回调
       if (widget.onTTSRequested != null) {
-        setState(() {
-          _isGeneratingTTS = true;
-        });
+        // 检查 TTS 模型是否已加载，只有加载了才显示 loading
+        final isModelLoaded = widget.isTTSModelLoaded?.call() ?? false;
+        
+        if (isModelLoaded) {
+          // 模型已加载，显示 loading 并开始生成
+          setState(() {
+            _isGeneratingTTS = true;
+          });
+        }
+        // 如果模型未加载，不显示 loading，会弹出模型选择面板
         
         // 提取文本内容（去除括号内的动作描述）
         String textForTTS = widget.message.content
@@ -296,8 +306,10 @@ class _ChatBubbleState extends State<ChatBubble> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 音频图标（最新 AI 消息始终显示，用于手动生成或播放 TTS）
-                if (widget.isLastAIMessage)
+                // 音频图标：最新 AI 消息始终显示（用于生成或播放），历史消息有音频时也显示（仅播放）
+                if (widget.isLastAIMessage ||
+                    (widget.message.audioFileName != null &&
+                        widget.message.audioFileName!.isNotEmpty))
                   _buildAudioIcon(),
 
                 // 消息内容
