@@ -140,120 +140,102 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // 构建TabBar - 带高斯模糊效果，让背后内容可见
+  // 构建TabBar
   Widget _buildTabBar(BuildContext context) {
     return Positioned(
       top: 0,
       left: 0,
       right: 0,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.1), // 轻微的半透明背景
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Row(
-                children: [
-                  // 左侧关闭按钮
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        // 关闭页面，与 chat_page_builders 的 onBackPressed 保持一致
-                        notifyUpdateRolePlaySessionRequired();
-                        Navigator.of(context).pop();
-                      },
-                      child: ClippedGlassContainerStatic(
-                        fallbackBlur: 63.1,
-                        color: Colors.black.withValues(alpha: 0.35),
-                        hasGradient: true,
-                        borderRadius: 70,
-                        borderWidth: 0.5,
-                        padding: const EdgeInsets.all(12),
-                        child: SvgPicture.asset(
-                          'packages/flutter_roleplay/assets/svg/close.svg',
-                          height: 12,
-                        ),
-                      ),
-                    ),
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            // 左侧关闭按钮
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  // 关闭页面，与 chat_page_builders 的 onBackPressed 保持一致
+                  notifyUpdateRolePlaySessionRequired();
+                  Navigator.of(context).pop();
+                },
+                child: ClippedGlassContainerStatic(
+                  fallbackBlur: 63.1,
+                  color: Colors.black.withValues(alpha: 0.35),
+                  hasGradient: true,
+                  borderRadius: 70,
+                  borderWidth: 0.5,
+                  padding: const EdgeInsets.all(12),
+                  child: SvgPicture.asset(
+                    'packages/flutter_roleplay/assets/svg/close.svg',
+                    height: 12,
                   ),
-                  // 自定义 TabBar（玻璃态效果）- 带滑动指示器
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: _buildAnimatedTabBar(),
-                    ),
-                  ),
-                  // 清除消息按钮 - 只在第一个tab（聊天页面）显示
-                  Obx(() {
-                    if (controller.currentIndex.value != 0) {
-                      return const SizedBox.shrink();
-                    }
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        right: 16,
-                        top: 8,
-                        bottom: 8,
-                      ),
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () async {
-                          // 显示确认弹窗
-                          final confirmed =
-                              await ChatDialogs.showDeleteHistoryDialog(
-                                context,
-                              );
-
-                          // 用户确认后才执行清除操作
-                          if (confirmed == true) {
-                            RolePlayChatController chatController;
-                            if (Get.isRegistered<RolePlayChatController>()) {
-                              chatController =
-                                  Get.find<RolePlayChatController>();
-                            } else {
-                              chatController = Get.put(
-                                RolePlayChatController(),
-                              );
-                            }
-                            await chatController.clearAllChatHistory();
-
-                            // 显示清除成功提示
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('chat_history_cleared'.tr),
-                                  duration: const Duration(seconds: 1),
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        child: ClippedGlassContainerStatic(
-                          fallbackBlur: 63.1,
-                          color: Colors.black.withValues(alpha: 0.35),
-                          hasGradient: true,
-                          borderRadius: 70,
-                          borderWidth: 0.5,
-                          padding: const EdgeInsets.all(12),
-                          child: SvgPicture.asset(
-                            'packages/flutter_roleplay/assets/svg/clear_msg.svg',
-                            height: 12,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
+                ),
               ),
             ),
-          ),
+            // 自定义 TabBar（玻璃态效果）- 带滑动指示器
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: _buildAnimatedTabBar(),
+              ),
+            ),
+            // 清除消息按钮 - 只在第一个tab（聊天页面）显示
+            Obx(() {
+              if (controller.currentIndex.value != 0) {
+                return const SizedBox.shrink();
+              }
+              return Padding(
+                padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () async {
+                    // 显示确认弹窗
+                    final confirmed = await ChatDialogs.showDeleteHistoryDialog(
+                      context,
+                    );
+
+                    // 用户确认后才执行清除操作
+                    if (confirmed == true) {
+                      RolePlayChatController chatController;
+                      if (Get.isRegistered<RolePlayChatController>()) {
+                        chatController = Get.find<RolePlayChatController>();
+                      } else {
+                        chatController = Get.put(RolePlayChatController());
+                      }
+                      await chatController.clearAllChatHistory();
+
+                      // 显示清除成功提示
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('chat_history_cleared'.tr),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: ClippedGlassContainerStatic(
+                    fallbackBlur: 63.1,
+                    color: Colors.black.withValues(alpha: 0.35),
+                    hasGradient: true,
+                    borderRadius: 70,
+                    borderWidth: 0.5,
+                    padding: const EdgeInsets.all(12),
+                    child: SvgPicture.asset(
+                      'packages/flutter_roleplay/assets/svg/clear_msg.svg',
+                      height: 12,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
         ),
       ),
     );
@@ -263,7 +245,9 @@ class HomePage extends StatelessWidget {
   Widget _buildAnimatedTabBar() {
     return Obx(() {
       // 在Obx内部立即获取observable的值
-      final chatLabel = roleName.value.isNotEmpty ? roleName.value : 'chat_tab'.tr;
+      final chatLabel = roleName.value.isNotEmpty
+          ? roleName.value
+          : 'chat_tab'.tr;
 
       return AnimatedBuilder(
         animation: controller.tabController.animation!,
@@ -285,9 +269,13 @@ class HomePage extends StatelessWidget {
                         child: _buildTabText(label: chatLabel, index: 0),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(child: _buildTabText(label: 'role_tab'.tr, index: 1)),
+                      Expanded(
+                        child: _buildTabText(label: 'role_tab'.tr, index: 1),
+                      ),
                       const SizedBox(width: 8),
-                      Expanded(child: _buildTabText(label: 'model_tab'.tr, index: 2)),
+                      Expanded(
+                        child: _buildTabText(label: 'model_tab'.tr, index: 2),
+                      ),
                     ],
                   ),
                   // 顶层：滑动的高亮指示器和文字

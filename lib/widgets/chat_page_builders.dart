@@ -697,6 +697,7 @@ class ChatPageBuilders {
     required String roleDescription,
     Function(ChatMessage)? onRegeneratePressed,
     Function(ChatMessage, int)? onBranchChanged,
+    Function(String text)? onTTSRequested,
   }) {
     // 如果没有消息，只显示角色介绍
     if (messages.isEmpty) {
@@ -732,6 +733,8 @@ class ChatPageBuilders {
           onBranchChanged: (branchIndex) =>
               onBranchChanged?.call(msg, branchIndex),
           showBranchIndicator: !msg.isUser && msg.totalBranches > 1,
+          isLastAIMessage: isLastAIMessage,
+          onTTSRequested: isLastAIMessage ? onTTSRequested : null,
         ),
       );
     } else if (index == messages.length) {

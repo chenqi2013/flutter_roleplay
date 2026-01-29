@@ -99,6 +99,11 @@ class RolePlayChatController extends GetxController {
     // 清空待保存的用户消息
     _pendingUserMessage = null;
 
+    // 清空会话ID和分支选择（重要！避免使用旧的会话ID）
+    currentConversationId.value = '';
+    selectedBranches.clear();
+    debugPrint('Cleared conversation ID and selected branches');
+
     String stateLoadPath = await CommonUtil.getFilePath(
       '${CommonUtil.getFileName(chatmodelPath.value)}_${backend.toString().split('.').last}_${roleName.value}.cache',
     );
@@ -120,6 +125,10 @@ class RolePlayChatController extends GetxController {
     stateManager.getMessages(roleName).clear();
     // 清空待保存的用户消息
     _pendingUserMessage = null;
+    // 清空会话ID和分支选择（重要！避免使用旧的会话ID）
+    currentConversationId.value = '';
+    selectedBranches.clear();
+    debugPrint('Cleared conversation ID and selected branches for role: $roleName');
     // // 清空模型状态
     // await modelService.clearStates();
   }
@@ -401,42 +410,88 @@ class RolePlayChatController extends GetxController {
 
       // 查找用户消息
       final userMessage = _findUserMessageForRegeneration();
-      if (userMessage != null && userMessage.id != null) {
-        debugPrint('Creating AI branch with parentId: ${userMessage.id}');
-        debugPrint('User message content: ${userMessage.content}');
-
-        final newBranch = await createAIBranch(userMessage, aiMessage.content);
-        if (newBranch != null) {
-          debugPrint(
-            'insertMessage (regenerated branch): ${newBranch.toMap()}',
-          );
-
-          // 更新内存中的消息
-          final stateManager = ChatStateManager();
-          final messages = stateManager.getMessages(roleName.value);
-          final index = messages.indexOf(aiMessage);
-          if (index != -1) {
-            messages[index] = newBranch;
-            debugPrint('Updated message at index $index in memory');
+      if (userMessage != null) {
+        // 如果用户消息没有ID，先保存用户消息
+        ChatMessage finalUserMessage = userMessage;
+        if (userMessage.id == null) {
+          debugPrint('User message has no ID, saving it first...');
+          debugPrint('User message content: ${userMessage.content}');
+          
+          final savedUserMessage = await saveUserMessage(userMessage.content);
+          if (savedUserMessage != null) {
+            finalUserMessage = savedUserMessage;
+            debugPrint('User message saved with ID: ${savedUserMessage.id}');
+            
+            // 更新内存中的用户消息
+            final stateManager = ChatStateManager();
+            final messages = stateManager.getMessages(roleName.value);
+            for (int i = messages.length - 1; i >= 0; i--) {
+              if (messages[i].isUser &&
+                  messages[i].content == userMessage.content &&
+                  messages[i].id == null) {
+                messages[i] = savedUserMessage;
+                debugPrint('Updated user message in memory with ID: ${savedUserMessage.id}');
+                break;
+              }
+            }
+            
+            // 清空待保存的用户消息（如果内容匹配的话）
+            if (_pendingUserMessage != null && 
+                _pendingUserMessage!.content == userMessage.content) {
+              _pendingUserMessage = null;
+              debugPrint('Cleared pending user message as it has been saved');
+            }
           } else {
-            debugPrint(
-              'WARNING: Could not find AI message in memory to update',
-            );
+            debugPrint('Failed to save user message, using fallback');
           }
-
-          debugPrint('AI branch created successfully with ID: ${newBranch.id}');
-          debugPrint(
-            'Branch info: ${newBranch.branchIndex + 1}/${newBranch.totalBranches}',
-          );
-          debugPrint('=== Regenerated message saved successfully ===');
         } else {
-          debugPrint('Failed to create AI branch, using fallback save');
+          // 用户消息已有ID，清空待保存的用户消息（如果内容匹配）
+          if (_pendingUserMessage != null && 
+              _pendingUserMessage!.content == userMessage.content) {
+            _pendingUserMessage = null;
+            debugPrint('Cleared pending user message as the message already has ID');
+          }
+        }
+
+        // 现在用户消息应该有ID了，创建AI分支
+        if (finalUserMessage.id != null) {
+          debugPrint('Creating AI branch with parentId: ${finalUserMessage.id}');
+          debugPrint('User message content: ${finalUserMessage.content}');
+
+          final newBranch = await createAIBranch(finalUserMessage, aiMessage.content);
+          if (newBranch != null) {
+            debugPrint(
+              'insertMessage (regenerated branch): ${newBranch.toMap()}',
+            );
+
+            // 更新内存中的消息
+            final stateManager = ChatStateManager();
+            final messages = stateManager.getMessages(roleName.value);
+            final index = messages.indexOf(aiMessage);
+            if (index != -1) {
+              messages[index] = newBranch;
+              debugPrint('Updated message at index $index in memory');
+            } else {
+              debugPrint(
+                'WARNING: Could not find AI message in memory to update',
+              );
+            }
+
+            debugPrint('AI branch created successfully with ID: ${newBranch.id}');
+            debugPrint(
+              'Branch info: ${newBranch.branchIndex + 1}/${newBranch.totalBranches}',
+            );
+            debugPrint('=== Regenerated message saved successfully ===');
+          } else {
+            debugPrint('Failed to create AI branch, using fallback save');
+            await saveAiMessage(aiMessage.content);
+          }
+        } else {
+          debugPrint('User message still has no ID, using fallback save');
           await saveAiMessage(aiMessage.content);
         }
       } else {
-        debugPrint('No user message ID found, using fallback save');
-        debugPrint('User message: ${userMessage?.content ?? 'null'}');
-        debugPrint('User message ID: ${userMessage?.id ?? 'null'}');
+        debugPrint('No user message found, using fallback save');
         await saveAiMessage(aiMessage.content);
       }
 
@@ -617,14 +672,18 @@ class RolePlayChatController extends GetxController {
               messages[userIndex] = finalUserMessage;
             }
           } else {
-            debugPrint('User message not found in database, cannot regenerate');
-            _isRegeneratingMode = false;
-            return;
+            debugPrint(
+              'User message not found in database, using in-memory message for regeneration',
+            );
+            // 如果数据库中没有找到，说明这是清除历史后新发送的消息
+            // 直接使用内存中的消息进行重新生成
+            finalUserMessage = userMessage;
           }
         } catch (e) {
           debugPrint('Error finding user message in database: $e');
-          _isRegeneratingMode = false;
-          return;
+          // 出错时也使用内存中的消息进行重新生成
+          debugPrint('Using in-memory message for regeneration');
+          finalUserMessage = userMessage;
         }
       }
 

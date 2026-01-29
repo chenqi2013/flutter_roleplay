@@ -24,12 +24,18 @@ class ChatBubble extends StatefulWidget {
     this.onRegeneratePressed,
     this.onBranchChanged,
     this.showBranchIndicator = false,
+    this.isLastAIMessage = false,
+    this.onTTSRequested,
   });
 
   final ChatMessage message;
   final VoidCallback? onRegeneratePressed;
   final Function(int branchIndex)? onBranchChanged;
   final bool showBranchIndicator;
+  /// 是否是最后一条 AI 消息（用于显示音频按钮）
+  final bool isLastAIMessage;
+  /// TTS 请求回调（用于生成 TTS 音频）
+  final Function(String text)? onTTSRequested;
 
   @override
   State<ChatBubble> createState() => _ChatBubbleState();
@@ -39,6 +45,7 @@ class _ChatBubbleState extends State<ChatBubble> {
   AudioPlayer? _audioPlayer;
   bool _isPlaying = false;
   bool _isLoading = false;
+  bool _isGeneratingTTS = false; // 是否正在生成 TTS
   var cacheDir = '';
 
   @override
@@ -69,9 +76,11 @@ class _ChatBubbleState extends State<ChatBubble> {
     if (hadNoAudio && nowHasAudio) {
       debugPrint('🎵 Audio file added, initializing player in didUpdateWidget');
       _initAudioPlayer();
-      // 触发重建以显示音频图标
+      // TTS 生成完成，重置生成状态
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isGeneratingTTS = false;
+        });
       }
     }
   }
@@ -105,9 +114,37 @@ class _ChatBubbleState extends State<ChatBubble> {
     super.dispose();
   }
 
-  // 播放或暂停音频
+  // 播放、暂停或生成音频
   Future<void> _toggleAudio() async {
-    if (widget.message.audioFileName == null) return;
+    // 如果没有音频文件，请求生成 TTS
+    if (widget.message.audioFileName == null ||
+        widget.message.audioFileName!.isEmpty) {
+      if (_isGeneratingTTS) {
+        debugPrint('TTS is already generating, skip');
+        return;
+      }
+      
+      // 调用 TTS 请求回调
+      if (widget.onTTSRequested != null) {
+        setState(() {
+          _isGeneratingTTS = true;
+        });
+        
+        // 提取文本内容（去除括号内的动作描述）
+        String textForTTS = widget.message.content
+            .replaceAll(RegExp(r'[\(（][^\)）]*[\)）]'), '')
+            .trim();
+        
+        debugPrint('Requesting TTS for text: $textForTTS');
+        widget.onTTSRequested!(textForTTS);
+        
+        // 注意：TTS 生成完成后会通过 widget 更新自动刷新
+        // _isGeneratingTTS 会在 didUpdateWidget 中重置
+      }
+      return;
+    }
+    
+    // 有音频文件，执行播放/暂停逻辑
     if (_audioPlayer == null) {
       _initAudioPlayer();
     }
@@ -259,9 +296,8 @@ class _ChatBubbleState extends State<ChatBubble> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 音频图标（如果有音频文件）
-                if (widget.message.audioFileName != null &&
-                    widget.message.audioFileName!.isNotEmpty)
+                // 音频图标（最新 AI 消息始终显示，用于手动生成或播放 TTS）
+                if (widget.isLastAIMessage)
                   _buildAudioIcon(),
 
                 // 消息内容
@@ -533,6 +569,10 @@ class _ChatBubbleState extends State<ChatBubble> {
 
   /// 构建音频图标
   Widget _buildAudioIcon() {
+    // 判断是否有音频文件
+    final hasAudio = widget.message.audioFileName != null &&
+        widget.message.audioFileName!.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -544,12 +584,12 @@ class _ChatBubbleState extends State<ChatBubble> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: _isPlaying
+                color: (_isPlaying || _isGeneratingTTS)
                     ? Colors.white.withValues(alpha: 0.2)
                     : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _isPlaying
+                  color: (_isPlaying || _isGeneratingTTS)
                       ? Colors.white.withValues(alpha: 0.4)
                       : Colors.white.withValues(alpha: 0.2),
                   width: 1,
@@ -558,7 +598,7 @@ class _ChatBubbleState extends State<ChatBubble> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_isLoading)
+                  if (_isLoading || _isGeneratingTTS)
                     SizedBox(
                       width: 18,
                       height: 18,
@@ -571,18 +611,22 @@ class _ChatBubbleState extends State<ChatBubble> {
                     )
                   else
                     Icon(
-                      _isPlaying
-                          ? Icons.pause_rounded
-                          : Icons.volume_up_rounded,
+                      hasAudio
+                          ? (_isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.volume_up_rounded)
+                          : Icons.graphic_eq_rounded, // 无音频时显示生成图标
                       color: Colors.white.withValues(alpha: 0.8),
                       size: 18,
                     ),
                   const SizedBox(width: 6),
                   Text(
-                    (widget.message.audioDuration != null &&
-                            widget.message.audioDuration! > 0
-                        ? '${widget.message.audioDuration}s'
-                        : ''),
+                    _isGeneratingTTS
+                        ? 'TTS...'
+                        : (hasAudio && widget.message.audioDuration != null &&
+                                widget.message.audioDuration! > 0
+                            ? '${widget.message.audioDuration}s'
+                            : (hasAudio ? '' : 'TTS')),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 12,

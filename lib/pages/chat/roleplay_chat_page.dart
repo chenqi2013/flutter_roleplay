@@ -520,7 +520,7 @@ class _RolePlayChatState extends State<RolePlayChat>
             // 处理滚动通知已在 mixin 中处理
             return Container();
           },
-          itemBuilder: (context, index) {
+            itemBuilder: (context, index) {
             return ChatPageBuilders.buildListItem(
               context: context,
               index: index,
@@ -530,6 +530,7 @@ class _RolePlayChatState extends State<RolePlayChat>
                   _handleRegeneratePressed(message),
               onBranchChanged: (message, branchIndex) =>
                   _handleBranchChanged(message, branchIndex),
+              onTTSRequested: (text) => _handleTTSRequested(text),
             );
           },
         );
@@ -646,6 +647,32 @@ class _RolePlayChatState extends State<RolePlayChat>
       inputBar: _buildInputBar(),
       showBackground: false, // 不显示背景，由HomePage统一管理
     );
+  }
+
+  // ===== TTS 处理函数 =====
+
+  /// 处理 TTS 请求
+  void _handleTTSRequested(String text) {
+    debugPrint('_handleTTSRequested: $text');
+    
+    // 检查 TTS 模型是否已加载
+    final ttsService = _controller?.modelService.ttsService;
+    if (ttsService == null) {
+      debugPrint('TTS service is null');
+      return;
+    }
+    
+    // 检查 TTS 模型是否已加载
+    if (!ttsService.isSparkTTSModelLoaded || ttsmodelPath.value.isEmpty) {
+      debugPrint('TTS model not loaded, requesting model download');
+      // 弹出 TTS 模型选择面板
+      notifyModelDownloadRequired(RoleplayManageModelType.tts);
+      return;
+    }
+    
+    // TTS 模型已加载，生成音频
+    debugPrint('TTS model loaded, generating audio');
+    ttsService.playTTS(text);
   }
 
   // ===== 分支管理处理函数 =====

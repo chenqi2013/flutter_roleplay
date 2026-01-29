@@ -195,11 +195,11 @@ class RWKVChatService extends GetxController {
         isGenerating.value = generating;
         if (!generating && isNeedSaveAiMessage) {
           debugPrint('receive IsGenerating: $generating');
-          // 使用最后生成的完整内容进行TTS
-          if (lastGeneratedContent.isNotEmpty) {
-            ttsService?.playTTS(lastGeneratedContent);
-            lastGeneratedContent = ''; // 清空以备下次使用
-          }
+          // 不再自动生成 TTS，改为手动点击音频按钮生成
+          // if (lastGeneratedContent.isNotEmpty) {
+          //   ttsService?.playTTS(lastGeneratedContent);
+          //   lastGeneratedContent = ''; // 清空以备下次使用
+          // }
           isNeedSaveAiMessage = false;
           _onGenerationComplete?.call();
           String stateLoadPath = await CommonUtil.getFilePath(

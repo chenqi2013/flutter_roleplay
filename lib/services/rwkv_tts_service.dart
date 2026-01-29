@@ -206,9 +206,9 @@ class RWKVTTSService extends GetxController {
     }
     loadSparkTTS(
       modelPath: modelPath,
-      wav2vec2Path: "$appDir/wav2vec2-large-xlsr-53.mnn",
-      detokenizePath: "$appDir/BiCodecDetokenize.mnn",
-      bicodecTokenzerPath: "$appDir/BiCodecTokenize.mnn",
+      wav2vec2Path: "$appDir/rwkv_chat_models/wav2vec2-large-xlsr-53.mnn",
+      detokenizePath: "$appDir/rwkv_chat_models/BiCodecDetokenize.mnn",
+      bicodecTokenzerPath: "$appDir/rwkv_chat_models/BiCodecTokenize.mnn",
       backend: backend,
     );
   }
@@ -558,9 +558,9 @@ class RWKVTTSService extends GetxController {
       ttsmodelPath.value = modelPath;
       await loadSparkTTS(
         modelPath: modelPath,
-        wav2vec2Path: "$appDir/wav2vec2-large-xlsr-53.mnn",
-        detokenizePath: "$appDir/BiCodecDetokenize.mnn",
-        bicodecTokenzerPath: "$appDir/BiCodecTokenize.mnn",
+        wav2vec2Path: "$appDir/rwkv_chat_models/wav2vec2-large-xlsr-53.mnn",
+        detokenizePath: "$appDir/rwkv_chat_models/BiCodecDetokenize.mnn",
+        bicodecTokenzerPath: "$appDir/rwkv_chat_models/BiCodecTokenize.mnn",
         backend: modelInfo!.backend,
       );
     }
