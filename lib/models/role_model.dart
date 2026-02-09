@@ -1,26 +1,26 @@
 import 'package:flutter/foundation.dart';
 
 class RoleResponse {
-  final int code;
-  final String message;
+  // final int code;
+  // final String message;
   final List<RoleModel> data;
-  final int timestamp;
+  // final int timestamp;
 
   RoleResponse({
-    required this.code,
-    required this.message,
+    // required this.code,
+    // required this.message,
     required this.data,
-    required this.timestamp,
+    // required this.timestamp,
   });
 
-  factory RoleResponse.fromJson(Map<String, dynamic> json) {
+  factory RoleResponse.fromJson(List<dynamic> json) {
     return RoleResponse(
-      code: json['code'] as int,
-      message: json['message'] as String,
-      data: (json['data'] as List)
+      // code: json['code'] as int,
+      // message: json['message'] as String,
+      data: (json)
           .map((item) => RoleModel.fromJson(item as Map<String, dynamic>))
           .toList(),
-      timestamp: json['timestamp'] as int,
+      // timestamp: json['timestamp'] as int,
     );
   }
 }

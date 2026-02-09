@@ -3,12 +3,12 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_roleplay/models/role_model.dart';
 
 class RoleApiService {
-  static const String baseUrl = 'https://api.codecrack.cn/api/v1';
+  // static const String baseUrl = 'https://api.codecrack.cn/api/v1/role';
 
   static Future<List<RoleModel>> getRoles() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/role'),
+        Uri.parse('https://auth.rwkvos.com/api/chat-prompt'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -16,11 +16,11 @@ class RoleApiService {
         final jsonData = json.decode(response.body);
         final roleResponse = RoleResponse.fromJson(jsonData);
 
-        if (roleResponse.code == 200) {
-          return roleResponse.data;
-        } else {
-          throw Exception('API Error: ${roleResponse.message}');
-        }
+        // if (roleResponse.code == 200) {
+        return roleResponse.data;
+        // } else {
+        //   throw Exception('API Error: ${roleResponse.message}');
+        // }
       } else {
         throw Exception('HTTP Error: ${response.statusCode}');
       }
