@@ -131,10 +131,14 @@ class RolesListController extends GetxController {
         final roleJson = jsonItem as Map<String, dynamic>;
 
         // 将图片路径改为本地 assets 路径
-        // 图片路径格式：assets/images/{name}.webp
+        // image 在 json 里是完整 URL，需从中取出文件名（如 yingzheng.webp）
         final String roleName = roleJson['name'] as String;
+        final String imageUrl = roleJson['image'] as String;
+        final String imageFileName = Uri.parse(imageUrl).pathSegments.isNotEmpty
+            ? Uri.parse(imageUrl).pathSegments.last
+            : imageUrl.split('/').last;
         final String localImagePath =
-            'packages/flutter_roleplay/assets/images/$roleName.webp';
+            'packages/flutter_roleplay/assets/images/$imageFileName';
 
         final role = RoleModel(
           id: roleJson['id'] as int,
