@@ -833,12 +833,14 @@ class RWKVChatService extends GetxController {
       }
     }
     debugPrint("to_rwkv.history: $history");
+    final addGenerationPrompt = history.length.isOdd;
     send(
       to_rwkv.ChatAsync(
         history,
         enableReasoning: false,
         forceReasoning: false,
         modelID: RoleplayManage.chatModelID,
+        addGenerationPrompt: addGenerationPrompt,
       ),
     );
     debugPrint('to_rwkv.ChatAsync()，，发送消息到RWKV');
