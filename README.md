@@ -2,6 +2,23 @@
 
 `flutter_roleplay` 是一个基于 RWKV 本地模型的 Flutter 角色扮演聊天组件包。它提供完整的角色选择、角色创建、流式对话、聊天历史、模型参数、TTS 音色选择和多语言 UI，适合嵌入到已有 Flutter App 中作为“角色聊天/陪伴对话”模块。
 
+## 界面预览
+
+<table>
+  <tr>
+    <td align="center"><img src="screenshot/1.jpg" alt="角色聊天页" width="190"></td>
+    <td align="center"><img src="screenshot/2.jpg" alt="角色列表页" width="190"></td>
+    <td align="center"><img src="screenshot/3.jpg" alt="模型参数页" width="190"></td>
+    <td align="center"><img src="screenshot/4.jpg" alt="音色选择页" width="190"></td>
+  </tr>
+  <tr>
+    <td align="center">角色聊天</td>
+    <td align="center">角色列表</td>
+    <td align="center">模型参数</td>
+    <td align="center">音色选择</td>
+  </tr>
+</table>
+
 ## 功能特性
 
 - 角色扮演聊天：内置聊天页、角色页、模型参数页和音色选择页。
